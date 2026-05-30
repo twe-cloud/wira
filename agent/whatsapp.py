@@ -11,6 +11,7 @@ from neonize.events import ConnectedEv, MessageEv
 
 import config
 from drafts import Drafts
+from onboarding import is_onboarding_complete, process_onboarding_reply, get_step_message, _load_state
 from policy import should_auto_send
 
 logger = logging.getLogger("wira.whatsapp")
@@ -27,6 +28,25 @@ class WhatsApp:
     def _on_connected(self, client: NewClient, _event: ConnectedEv):
         logger.info("Connected to WhatsApp as %s. Wira is live.", config.OWNER_NAME)
 
+        # Send onboarding welcome if this is a first-time setup
+        if not is_onboarding_complete():
+            import threading
+            def _send_welcome():
+                import time
+                time.sleep(3)  # Wait for connection to stabilize
+                try:
+                    state = _load_state()
+                    if state.get("step", 0) == 0:
+                        msg = get_step_message(0, state)
+                        # Send to the owner's own number (the linked device)
+                        jid = client.get_me()
+                        if jid:
+                            client.send_message(jid, msg)
+                            logger.info("Sent onboarding welcome message")
+                except Exception as e:
+                    logger.warning("Could not send onboarding welcome: %s", e)
+            threading.Thread(target=_send_welcome, daemon=True).start()
+
     def _on_message(self, client: NewClient, event: MessageEv):
         try:
             self._handle(client, event)
@@ -37,7 +57,9 @@ class WhatsApp:
         info = event.Info
         source = info.MessageSource
 
-        if source.IsFromMe:  # our own outgoing messages — never reply to ourselves
+        # Our own outgoing messages — check if this is the first connection
+        # and send the onboarding welcome
+        if source.IsFromMe:
             return
         if source.IsGroup and not config.REPLY_TO_GROUPS:
             return
@@ -54,6 +76,14 @@ class WhatsApp:
 
         sender_name = info.Pushname or sender_number or "there"
         chat_key = getattr(chat, "User", "") or str(chat)
+
+        # --- Onboarding: if not complete, handle as onboarding conversation ---
+        if not is_onboarding_complete():
+            logger.info("Onboarding message from %s: %s", sender_name, text)
+            response = process_onboarding_reply(text)
+            if response:
+                client.reply_message(response, event)
+            return
 
         logger.info("Message from %s: %s", sender_name, text)
         reply = self.brain.reply(chat_key, sender_name, text)

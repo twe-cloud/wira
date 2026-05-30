@@ -1,0 +1,6 @@
+
+agent/build/
+agent/dist/
+agent/.venv/
+agent/*.sqlite3
+
