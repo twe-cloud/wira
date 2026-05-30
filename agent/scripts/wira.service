@@ -5,11 +5,11 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=craig
-Group=craig
-WorkingDirectory=/home/craig/claude-creations/wira-whatsapp
-EnvironmentFile=/home/craig/claude-creations/wira-whatsapp/.env
-ExecStart=/home/craig/claude-creations/wira-whatsapp/.venv/bin/python main.py
+User=__USER__
+Group=__USER__
+WorkingDirectory=__AGENT_DIR__
+EnvironmentFile=__AGENT_DIR__/.env
+ExecStart=__AGENT_DIR__/.venv/bin/python main.py
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
