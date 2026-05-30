@@ -341,10 +341,15 @@ class WiraApp(tk.Tk):
 
             @client.event(QREv)
             def on_qr(c, event):
-                # event.Codes is a repeated string field; first element is the QR data
-                codes = list(event.Codes)
-                if codes:
-                    self.event_queue.put(("qr", codes[0]))
+                # Sync client may pass bytes or protobuf with Codes field
+                if isinstance(event, bytes):
+                    qr_str = event.decode("utf-8", errors="replace")
+                elif hasattr(event, "Codes") and event.Codes:
+                    qr_str = list(event.Codes)[0]
+                else:
+                    qr_str = str(event)
+                if qr_str:
+                    self.event_queue.put(("qr", qr_str))
 
             @client.event(ConnectedEv)
             def on_connected(c, event):
