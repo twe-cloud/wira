@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /onboarding
+Disallow: /success
+
+Sitemap: https://wira.io/sitemap.xml
