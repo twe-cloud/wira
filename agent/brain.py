@@ -23,11 +23,25 @@ class Brain:
         logger.info("Brain ready (provider=%s, model=%s)", self.provider, config.LLM_MODEL)
 
     def _build_client(self):
-        if self.provider == "anthropic":
+        if self.provider == "chatgpt":
+            from auth import get_access_token, cloudflare_headers, CODEX_BASE_URL
+            from openai import OpenAI
+
+            token = get_access_token()
+            if not token:
+                raise RuntimeError(
+                    "ChatGPT login required. Run: python setup.py"
+                )
+            return OpenAI(
+                api_key=token,
+                base_url=CODEX_BASE_URL,
+                default_headers=cloudflare_headers(token),
+            )
+        elif self.provider == "anthropic":
             if not config.ANTHROPIC_API_KEY:
                 raise RuntimeError(
                     "LLM_PROVIDER=anthropic but ANTHROPIC_API_KEY is not set. "
-                    "Add it to .env, or switch LLM_PROVIDER=openai or LLM_PROVIDER=ollama."
+                    "Add it to .env, or switch LLM_PROVIDER=chatgpt or LLM_PROVIDER=ollama."
                 )
             from anthropic import Anthropic
 
@@ -36,7 +50,7 @@ class Brain:
             if not config.OPENAI_API_KEY:
                 raise RuntimeError(
                     "LLM_PROVIDER=openai but OPENAI_API_KEY is not set. "
-                    "Add it to .env, or switch LLM_PROVIDER=anthropic or LLM_PROVIDER=ollama."
+                    "Add it to .env, or switch LLM_PROVIDER=chatgpt or LLM_PROVIDER=ollama."
                 )
             from openai import OpenAI
 
@@ -46,7 +60,7 @@ class Brain:
 
             return Client(host=config.OLLAMA_HOST)
         raise RuntimeError(
-            f"Unknown LLM_PROVIDER: {self.provider!r} (use 'anthropic', 'openai', or 'ollama')"
+            f"Unknown LLM_PROVIDER: {self.provider!r} (use 'chatgpt', 'anthropic', 'openai', or 'ollama')"
         )
 
     def reply(self, chat: str, sender_name: str, text: str) -> str:
@@ -69,8 +83,24 @@ class Brain:
         self.memory.save(chat, "assistant", reply)
         return reply
 
+    def _rebuild_chatgpt_client(self):
+        """Refresh ChatGPT token and rebuild the client."""
+        from auth import get_access_token, cloudflare_headers, CODEX_BASE_URL
+        from openai import OpenAI
+
+        token = get_access_token()
+        if not token:
+            raise RuntimeError("ChatGPT token refresh failed. Run: python setup.py")
+        self._client = OpenAI(
+            api_key=token,
+            base_url=CODEX_BASE_URL,
+            default_headers=cloudflare_headers(token),
+        )
+
     def _generate(self, sys: str, history: list[dict], text: str) -> str:
-        if self.provider == "anthropic":
+        if self.provider == "chatgpt":
+            return self._generate_chatgpt(sys, history, text)
+        elif self.provider == "anthropic":
             messages = history + [{"role": "user", "content": text}]
             resp = self._client.messages.create(
                 model=config.LLM_MODEL,
@@ -95,3 +125,29 @@ class Brain:
             messages.append({"role": "user", "content": text})
             resp = self._client.chat(model=config.LLM_MODEL, messages=messages)
             return resp.message.content
+
+    def _generate_chatgpt(self, sys: str, history: list[dict], text: str) -> str:
+        """Generate via ChatGPT subscription with automatic token refresh."""
+        messages = [{"role": "system", "content": sys}]
+        messages += history
+        messages.append({"role": "user", "content": text})
+
+        try:
+            resp = self._client.chat.completions.create(
+                model=config.LLM_MODEL,
+                max_tokens=config.MAX_TOKENS,
+                messages=messages,
+            )
+            return resp.choices[0].message.content or ""
+        except Exception as e:
+            # Token might have expired — refresh and retry once
+            if "401" in str(e) or "403" in str(e) or "Unauthorized" in str(e):
+                logger.info("ChatGPT token expired, refreshing...")
+                self._rebuild_chatgpt_client()
+                resp = self._client.chat.completions.create(
+                    model=config.LLM_MODEL,
+                    max_tokens=config.MAX_TOKENS,
+                    messages=messages,
+                )
+                return resp.choices[0].message.content or ""
+            raise

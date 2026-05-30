@@ -10,10 +10,11 @@ OWNER_NAME = os.getenv("OWNER_NAME", "Craig")
 ASSISTANT_NAME = os.getenv("ASSISTANT_NAME", "Wira")
 
 # --- Brain (LLM provider) ---
-# "anthropic" = Claude (default, best quality, needs ANTHROPIC_API_KEY)
-# "openai"    = GPT (needs OPENAI_API_KEY)
+# "chatgpt"   = Uses your ChatGPT subscription (default, no API key needed)
+# "anthropic" = Claude API (needs ANTHROPIC_API_KEY)
+# "openai"    = GPT API (needs OPENAI_API_KEY)
 # "ollama"    = local model (private, free, needs Ollama running)
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "anthropic").lower()
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "chatgpt").lower()
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
@@ -21,11 +22,12 @@ OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 
 # Default model per provider (overridable with LLM_MODEL)
 _DEFAULT_MODEL = {
+    "chatgpt": "gpt-4o",
     "anthropic": "claude-sonnet-4-6",
     "openai": "gpt-4o-mini",
     "ollama": "llama3.2:3b",
 }
-LLM_MODEL = os.getenv("LLM_MODEL") or _DEFAULT_MODEL.get(LLM_PROVIDER, "claude-sonnet-4-6")
+LLM_MODEL = os.getenv("LLM_MODEL") or _DEFAULT_MODEL.get(LLM_PROVIDER, "gpt-4o")
 
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "400"))
 
