@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""PyInstaller spec for Wira.app — standalone Mac application."""
+"""PyInstaller spec for Wira — Windows build."""
 
 import sys
 from pathlib import Path
@@ -13,7 +13,6 @@ a = Analysis(
     datas=[
         (str(agent_dir / '.env.example'), '.'),
         (str(agent_dir / 'requirements.txt'), '.'),
-        (str(agent_dir / 'wira-icon.icns'), '.'),
     ],
     hiddenimports=[
         'neonize',
@@ -37,7 +36,6 @@ a = Analysis(
         'review',
         'tkinter',
         'sqlite3',
-        'magic',
     ],
     hookspath=[],
     hooksconfig={},
@@ -51,8 +49,9 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.datas,
     [],
-    exclude_binaries=True,
     name='Wira',
     debug=False,
     bootloader_ignore_signals=False,
@@ -60,34 +59,5 @@ exe = EXE(
     upx=True,
     console=False,
     disable_windowed_traceback=False,
-    argv_emulation=True,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-)
-
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name='Wira',
-)
-
-app = BUNDLE(
-    coll,
-    name='Wira.app',
-    icon=str(agent_dir / 'wira-icon.icns'),
-    bundle_identifier='biz.nibiashara.wira',
-    info_plist={
-        'CFBundleName': 'Wira',
-        'CFBundleDisplayName': 'Wira',
-        'CFBundleShortVersionString': '1.0.0',
-        'CFBundleVersion': '1',
-        'NSHighResolutionCapable': True,
-        'LSMinimumSystemVersion': '12.0',
-        'CFBundleDocumentTypes': [],
-    },
+    icon=str(agent_dir / 'wira-icon.ico') if (agent_dir / 'wira-icon.ico').exists() else None,
 )
