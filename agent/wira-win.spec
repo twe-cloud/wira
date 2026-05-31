@@ -16,7 +16,10 @@ def _find_binary_dependencies_without_neonize_import(binaries, import_packages, 
     # importing it inside PyInstaller's isolated dependency scanner crashes the
     # scanner before it can build the app. The DLL is prepared by the workflow
     # and bundled as package data; runtime imports still load normally.
-    import_packages = [package for package in import_packages if package != 'neonize']
+    import_packages = [
+        package for package in import_packages
+        if package != 'neonize' and not package.startswith('neonize.')
+    ]
     return _find_binary_dependencies(binaries, import_packages, symlink_suppression_patterns)
 
 
