@@ -29,12 +29,14 @@ import drafts as drafts_mod  # noqa: E402
 import memory  # noqa: E402
 import policy  # noqa: E402
 import prompts  # noqa: E402
+import whatsapp_cloud  # noqa: E402
 
 importlib.reload(memory)
 importlib.reload(prompts)
 importlib.reload(brain)
 importlib.reload(drafts_mod)
 importlib.reload(policy)
+importlib.reload(whatsapp_cloud)
 
 
 class MemoryTests(unittest.TestCase):
@@ -216,6 +218,167 @@ class VoiceSamplesTests(unittest.TestCase):
             p = prompts.system_prompt()
             self.assertIn("sure, sending now", p)
             self.assertIn("examples to mirror", p.lower())
+
+
+class WhatsAppCloudTests(unittest.TestCase):
+    def _payload(self, message_id="wamid.1", body="hello", sender="15551234567"):
+        return {
+            "object": "whatsapp_business_account",
+            "entry": [
+                {
+                    "changes": [
+                        {
+                            "value": {
+                                "metadata": {"phone_number_id": "12345"},
+                                "contacts": [
+                                    {"wa_id": sender, "profile": {"name": "Alice"}}
+                                ],
+                                "messages": [
+                                    {
+                                        "from": sender,
+                                        "id": message_id,
+                                        "timestamp": "1710000000",
+                                        "type": "text",
+                                        "text": {"body": body},
+                                    }
+                                ],
+                            }
+                        }
+                    ]
+                }
+            ],
+        }
+
+    def test_webhook_challenge_accepts_matching_token(self):
+        got = whatsapp_cloud.verify_webhook_challenge(
+            "hub.mode=subscribe&hub.verify_token=good&hub.challenge=abc123",
+            "good",
+        )
+        self.assertEqual(got, "abc123")
+
+    def test_webhook_challenge_rejects_wrong_token(self):
+        with self.assertRaises(whatsapp_cloud.WebhookError):
+            whatsapp_cloud.verify_webhook_challenge(
+                "hub.mode=subscribe&hub.verify_token=bad&hub.challenge=abc123",
+                "good",
+            )
+
+    def test_meta_signature_verification(self):
+        body = b'{"ok":true}'
+        sig = "sha256=" + __import__("hmac").new(
+            b"secret",
+            body,
+            __import__("hashlib").sha256,
+        ).hexdigest()
+        whatsapp_cloud.verify_meta_signature(body, sig, "secret")
+        with self.assertRaises(whatsapp_cloud.WebhookError):
+            whatsapp_cloud.verify_meta_signature(body, sig, "wrong")
+
+    def test_meta_signature_required_when_app_secret_missing(self):
+        with self.assertRaises(whatsapp_cloud.WebhookError):
+            whatsapp_cloud.verify_meta_signature(b"{}", "", "", require_signature=True)
+
+    def test_parse_cloud_messages_extracts_text(self):
+        messages = whatsapp_cloud.parse_cloud_messages(self._payload())
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0].message_id, "wamid.1")
+        self.assertEqual(messages[0].from_number, "15551234567")
+        self.assertEqual(messages[0].sender_name, "Alice")
+        self.assertEqual(messages[0].text, "hello")
+        self.assertEqual(messages[0].phone_number_id, "12345")
+
+    def test_parse_cloud_messages_ignores_status_only_payloads(self):
+        payload = {"entry": [{"changes": [{"value": {"statuses": [{"id": "x"}]}}]}]}
+        self.assertEqual(whatsapp_cloud.parse_cloud_messages(payload), [])
+
+    def test_message_store_is_idempotent(self):
+        store = whatsapp_cloud.CloudMessageStore(tempfile.mktemp(suffix=".db"))
+        self.assertTrue(store.mark_seen("wamid.1", "15551234567"))
+        self.assertFalse(store.mark_seen("wamid.1", "15551234567"))
+
+    def test_handle_payload_sends_when_policy_allows(self):
+        class FakeBrain:
+            def reply(self, chat, sender_name, text):
+                return f"reply to {sender_name}: {text}"
+
+        class FakeTransport:
+            def __init__(self):
+                self.sent = []
+
+            def send_text(self, to_number, body):
+                self.sent.append((to_number, body))
+                return {"ok": True}
+
+        transport = FakeTransport()
+        store = whatsapp_cloud.CloudMessageStore(tempfile.mktemp(suffix=".db"))
+        with patch.object(whatsapp_cloud, "should_auto_send", return_value=True):
+            stats = whatsapp_cloud.handle_cloud_payload(
+                self._payload(),
+                FakeBrain(),
+                transport,
+                store=store,
+                drafts=drafts_mod.Drafts(tempfile.mktemp(suffix=".db")),
+            )
+
+        self.assertEqual(stats["sent"], 1)
+        self.assertEqual(stats["drafted"], 0)
+        self.assertEqual(transport.sent, [("15551234567", "reply to Alice: hello")])
+
+    def test_handle_payload_drafts_when_policy_blocks(self):
+        class FakeBrain:
+            def reply(self, chat, sender_name, text):
+                return "draft reply"
+
+        class FakeTransport:
+            def send_text(self, to_number, body):
+                raise AssertionError("should not send")
+
+        draft_db = tempfile.mktemp(suffix=".db")
+        draft_store = drafts_mod.Drafts(draft_db)
+        with patch.object(whatsapp_cloud, "should_auto_send", return_value=False):
+            stats = whatsapp_cloud.handle_cloud_payload(
+                self._payload(),
+                FakeBrain(),
+                FakeTransport(),
+                store=whatsapp_cloud.CloudMessageStore(tempfile.mktemp(suffix=".db")),
+                drafts=draft_store,
+            )
+
+        self.assertEqual(stats["sent"], 0)
+        self.assertEqual(stats["drafted"], 1)
+        self.assertEqual(draft_store.pending()[0]["draft"], "draft reply")
+
+    def test_transport_send_text_posts_graph_payload(self):
+        class FakeResponse:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {"messages": [{"id": "wamid.out"}]}
+
+        class FakeClient:
+            def __init__(self):
+                self.calls = []
+
+            def post(self, url, headers, json):
+                self.calls.append((url, headers, json))
+                return FakeResponse()
+
+        client = FakeClient()
+        transport = whatsapp_cloud.CloudApiTransport(
+            access_token="token",
+            phone_number_id="phone-id",
+            graph_version="v23.0",
+            client=client,
+        )
+        result = transport.send_text("+1 (555) 123-4567", "hello")
+
+        self.assertEqual(result["messages"][0]["id"], "wamid.out")
+        url, headers, payload = client.calls[0]
+        self.assertEqual(url, "https://graph.facebook.com/v23.0/phone-id/messages")
+        self.assertEqual(headers["Authorization"], "Bearer token")
+        self.assertEqual(payload["to"], "15551234567")
+        self.assertEqual(payload["text"]["body"], "hello")
 
 
 if __name__ == "__main__":
