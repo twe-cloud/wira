@@ -26,21 +26,32 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Prepare neonize native library
+      - name: Build bundled Windows app directory
         working-directory: agent
+        shell: pwsh
         run: |
-          $target = python -c "import pathlib, sysconfig; print(pathlib.Path(sysconfig.get_paths()['purelib']) / 'neonize' / 'neonize-windows-amd64.dll')"
-          curl.exe -L --fail --retry 3 --connect-timeout 20 --max-time 120 -o $target https://github.com/krypton-byte/neonize/releases/download/0.3.18.post0/neonize-windows-amd64.dll
-          if (!(Test-Path $target)) { throw "neonize native library was not downloaded" }
-          Get-Item $target
+          New-Item -ItemType Directory -Force dist/Wira/python, dist/Wira/app, dist/Wira/app_lib
+          robocopy $env:pythonLocation dist/Wira/python /E /XD __pycache__ /XF *.pyc
+          if ($LASTEXITCODE -le 7) { $global:LASTEXITCODE = 0 } else { exit $LASTEXITCODE }
 
-      - name: Build with PyInstaller
-        working-directory: agent
-        env:
-          # Prevent neonize from loading its native WhatsApp DLL while
-          # PyInstaller is only analyzing imports. Runtime loads normally.
-          SPHINX: "1"
-        run: pyinstaller wira-win.spec --clean --noconfirm
+          pip install -r requirements.txt --target dist/Wira/app_lib
+          Copy-Item *.py dist/Wira/app/
+          Copy-Item .env.example, requirements.txt, wira-icon.ico dist/Wira/app/
+          curl.exe -L --fail --retry 3 --connect-timeout 20 --max-time 120 -o dist/Wira/app_lib/neonize/neonize-windows-amd64.dll https://github.com/krypton-byte/neonize/releases/download/0.3.18.post0/neonize-windows-amd64.dll
+
+          @'
+          import os
+          import runpy
+          import sys
+          from pathlib import Path
+
+          app_dir = Path(__file__).resolve().parent
+          root = app_dir.parent
+          sys.path.insert(0, str(root / "app_lib"))
+          sys.path.insert(0, str(app_dir))
+          os.chdir(app_dir)
+          runpy.run_path(str(app_dir / "gui.py"), run_name="__main__")
+          '@ | Set-Content -Encoding UTF8 dist/Wira/app/wira_launcher.py
 
       - name: Create installer with Inno Setup
         working-directory: agent
