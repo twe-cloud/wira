@@ -28,10 +28,11 @@ jobs:
 
       - name: Prepare neonize native library
         working-directory: agent
-        env:
-          SPHINX: "1"
         run: |
-          python -c "from neonize.download import download; download()"
+          $target = python -c "import pathlib, sysconfig; print(pathlib.Path(sysconfig.get_paths()['purelib']) / 'neonize' / 'neonize-windows-amd64.dll')"
+          curl.exe -L --fail --retry 3 --connect-timeout 20 --max-time 120 -o $target https://github.com/krypton-byte/neonize/releases/download/0.3.18.post0/neonize-windows-amd64.dll
+          if (!(Test-Path $target)) { throw "neonize native library was not downloaded" }
+          Get-Item $target
 
       - name: Build with PyInstaller
         working-directory: agent
