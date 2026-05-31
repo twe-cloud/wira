@@ -84,8 +84,8 @@ app = BUNDLE(
     info_plist={
         'CFBundleName': 'Wira',
         'CFBundleDisplayName': 'Wira',
-        'CFBundleShortVersionString': '1.0.1',
-        'CFBundleVersion': '2',
+        'CFBundleShortVersionString': '1.0.2',
+        'CFBundleVersion': '3',
         'NSHighResolutionCapable': True,
         'LSMinimumSystemVersion': '12.0',
         'CFBundleDocumentTypes': [],

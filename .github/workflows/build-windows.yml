@@ -28,6 +28,10 @@ jobs:
 
       - name: Build with PyInstaller
         working-directory: agent
+        env:
+          # Prevent neonize from loading its native WhatsApp DLL while
+          # PyInstaller is only analyzing imports. Runtime loads normally.
+          SPHINX: "1"
         run: pyinstaller wira-win.spec --clean --noconfirm
 
       - name: Create installer with Inno Setup
