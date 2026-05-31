@@ -131,6 +131,22 @@ WHATSAPP_CLOUD_REQUIRE_SIGNATURE=true
 python cloud_webhook.py
 ```
 
+In the Motwe / Ni Biashara workspace, the same server also accepts the shared
+Meta credential-profile names used by `credential_guard.py`:
+
+```bash
+WHATSAPP_ACCESS_TOKEN=...
+WHATSAPP_PHONE_NUMBER_ID=...
+WHATSAPP_WEBHOOK_VERIFY_TOKEN=...
+WHATSAPP_APP_SECRET=...
+```
+
+Sales truth: Wira Business is sold as a managed per-business deployment using
+the live-proven Ni Biashara Cloud API pattern. Do not claim a customer-specific
+standalone Wira Business host is live until that deployment has passed webhook
+challenge verification, signed inbound-message verification, draft creation,
+and an owner-approved outbound send.
+
 Point the Meta webhook subscription at:
 
 ```text
