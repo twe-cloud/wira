@@ -118,6 +118,41 @@ official, unbannable, scalable, on a dedicated business number. Same Wira brain
 (`brain.py` / `memory.py` / `prompts.py`) — only the transport layer (`whatsapp.py`) swaps
 out for a webhook. That's the natural "Wira Pro" tier.
 
+This repo now has that transport:
+
+```bash
+# Server-side only. Do not ship these in the desktop app.
+WHATSAPP_CLOUD_ACCESS_TOKEN=...
+WHATSAPP_CLOUD_PHONE_NUMBER_ID=...
+WHATSAPP_CLOUD_VERIFY_TOKEN=...
+WHATSAPP_CLOUD_APP_SECRET=...
+WHATSAPP_CLOUD_REQUIRE_SIGNATURE=true
+
+python cloud_webhook.py
+```
+
+Point the Meta webhook subscription at:
+
+```text
+https://<your-host>/webhooks/whatsapp
+```
+
+The webhook verifies Meta's challenge token, verifies `X-Hub-Signature-256` by default,
+ignores delivery-status callbacks, deduplicates inbound message IDs, and routes customer
+text into the same Wira brain/memory/draft policy as the local QR version.
+
+For the managed small-business product, keep two SKUs separate:
+
+| SKU | Channel | Best for |
+|---|---|---|
+| Wira Local | QR-linked personal WhatsApp | Founder/personal assistant, demo, private local use |
+| Wira Business | WhatsApp Business Cloud API | Managed AI assistants on dedicated business numbers |
+
+Provider note: Twilio can still be useful for number procurement or as a WhatsApp BSP,
+but Wira Business should stay provider-abstracted. Direct Meta Cloud API and Twilio
+WhatsApp are different transports with different credentials, callbacks, and operational
+controls.
+
 ## Offering Wira as a Setup
 
 This repo is the product. Two ways to sell it:

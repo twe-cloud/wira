@@ -73,3 +73,23 @@ MEMORY_DB_PATH = os.getenv("MEMORY_DB_PATH", str(Path.home() / ".wira" / "memory
 
 MAX_HISTORY_MESSAGES = int(os.getenv("MAX_HISTORY_MESSAGES", "20"))  # per-contact context
 MAX_STORED_MESSAGES = int(os.getenv("MAX_STORED_MESSAGES", "5000"))  # global prune ceiling
+
+# --- WhatsApp Business Cloud API ---
+# Official WhatsApp Business transport. This is separate from the QR-linked
+# personal-number transport in whatsapp.py.
+WHATSAPP_CLOUD_ACCESS_TOKEN = os.getenv("WHATSAPP_CLOUD_ACCESS_TOKEN", "")
+WHATSAPP_CLOUD_PHONE_NUMBER_ID = os.getenv("WHATSAPP_CLOUD_PHONE_NUMBER_ID", "")
+WHATSAPP_CLOUD_VERIFY_TOKEN = os.getenv("WHATSAPP_CLOUD_VERIFY_TOKEN", "")
+WHATSAPP_CLOUD_APP_SECRET = os.getenv("WHATSAPP_CLOUD_APP_SECRET", "")
+WHATSAPP_CLOUD_REQUIRE_SIGNATURE = os.getenv(
+    "WHATSAPP_CLOUD_REQUIRE_SIGNATURE",
+    "true",
+).lower() in ("1", "true", "yes")
+WHATSAPP_CLOUD_GRAPH_VERSION = os.getenv("WHATSAPP_CLOUD_GRAPH_VERSION", "v23.0")
+WHATSAPP_CLOUD_WEBHOOK_PATH = os.getenv("WHATSAPP_CLOUD_WEBHOOK_PATH", "/webhooks/whatsapp")
+WHATSAPP_CLOUD_HOST = os.getenv("WHATSAPP_CLOUD_HOST", "0.0.0.0")
+WHATSAPP_CLOUD_PORT = int(os.getenv("WHATSAPP_CLOUD_PORT", "8080"))
+WHATSAPP_CLOUD_DB_PATH = os.getenv(
+    "WHATSAPP_CLOUD_DB_PATH",
+    str(Path.home() / ".wira" / "whatsapp_cloud.db"),
+)
