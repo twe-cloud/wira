@@ -1,6 +1,6 @@
 [Setup]
 AppName=Wira
-AppVersion=1.0.4
+AppVersion=1.0.5
 AppPublisher=Ni Biashara LLC
 AppPublisherURL=https://nibiashara.biz/products/wira/
 DefaultDirName={autopf}\Wira
