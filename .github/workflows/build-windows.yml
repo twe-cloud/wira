@@ -26,6 +26,13 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Prepare neonize native library
+        working-directory: agent
+        env:
+          SPHINX: "1"
+        run: |
+          python -c "from neonize.download import download; download()"
+
       - name: Build with PyInstaller
         working-directory: agent
         env:

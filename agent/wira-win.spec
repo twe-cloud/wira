@@ -4,7 +4,23 @@
 import sys
 from pathlib import Path
 
+import PyInstaller.building.build_main as build_main
+
 agent_dir = Path(SPECPATH)
+
+_find_binary_dependencies = build_main.find_binary_dependencies
+
+
+def _find_binary_dependencies_without_neonize_import(binaries, import_packages, symlink_suppression_patterns):
+    # neonize loads a native WhatsApp DLL at import time. On Windows runners,
+    # importing it inside PyInstaller's isolated dependency scanner crashes the
+    # scanner before it can build the app. The DLL is prepared by the workflow
+    # and bundled as package data; runtime imports still load normally.
+    import_packages = [package for package in import_packages if package != 'neonize']
+    return _find_binary_dependencies(binaries, import_packages, symlink_suppression_patterns)
+
+
+build_main.find_binary_dependencies = _find_binary_dependencies_without_neonize_import
 
 a = Analysis(
     [str(agent_dir / 'gui.py')],
