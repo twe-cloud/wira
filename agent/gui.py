@@ -335,14 +335,21 @@ class WiraApp(tk.Tk):
             importlib.reload(_cfg)
 
             from neonize.client import NewClient
-            from neonize.events import ConnectedEv, QREvent
+            from neonize.events import ConnectedEv, QREv
 
             client = NewClient(_cfg.SESSION_DB_PATH)
 
-            @client.event(QREvent)
-            def on_qr(c, qr_data):
-                # qr_data is the raw QR string
-                self.event_queue.put(("qr", qr_data))
+            @client.event(QREv)
+            def on_qr(c, event):
+                # Sync client may pass bytes or protobuf with Codes field
+                if isinstance(event, bytes):
+                    qr_str = event.decode("utf-8", errors="replace")
+                elif hasattr(event, "Codes") and event.Codes:
+                    qr_str = list(event.Codes)[0]
+                else:
+                    qr_str = str(event)
+                if qr_str:
+                    self.event_queue.put(("qr", qr_str))
 
             @client.event(ConnectedEv)
             def on_connected(c, event):
@@ -393,6 +400,9 @@ class WiraApp(tk.Tk):
                   activebackground=ACCENT, activeforeground=WHITE, relief="flat",
                   padx=20, pady=8, cursor="hand2",
                   command=self._minimize_and_run).pack()
+
+        # Auto-start on login
+        self._install_autostart()
 
         # Start the agent in background
         threading.Thread(target=self._start_agent, daemon=True).start()
@@ -453,6 +463,50 @@ class WiraApp(tk.Tk):
             send_welcome()
         except Exception as e:
             logger.warning("Could not send onboarding message: %s", e)
+
+    def _install_autostart(self):
+        """Install a launchd plist so Wira starts on login."""
+        try:
+            launch_agents = Path.home() / "Library" / "LaunchAgents"
+            launch_agents.mkdir(parents=True, exist_ok=True)
+            plist_path = launch_agents / "biz.nibiashara.wira.plist"
+
+            # Find the app bundle path
+            app_path = None
+            # If running from .app bundle
+            exe = Path(sys.executable)
+            if ".app" in str(exe):
+                app_path = str(exe).split(".app")[0] + ".app"
+            elif Path("/Applications/Wira.app").exists():
+                app_path = "/Applications/Wira.app"
+
+            if not app_path:
+                logger.info("Not in .app bundle — skipping auto-start install")
+                return
+
+            plist_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>biz.nibiashara.wira</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>open</string>
+        <string>-a</string>
+        <string>{app_path}</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <false/>
+</dict>
+</plist>
+"""
+            plist_path.write_text(plist_content)
+            logger.info("Auto-start installed: %s", plist_path)
+        except Exception as e:
+            logger.warning("Could not install auto-start: %s", e)
 
     def _minimize_and_run(self):
         self.withdraw()
