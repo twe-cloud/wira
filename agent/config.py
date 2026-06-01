@@ -77,10 +77,14 @@ MAX_STORED_MESSAGES = int(os.getenv("MAX_STORED_MESSAGES", "5000"))  # global pr
 # --- WhatsApp Business Cloud API ---
 # Official WhatsApp Business transport. This is separate from the QR-linked
 # personal-number transport in whatsapp.py.
-WHATSAPP_CLOUD_ACCESS_TOKEN = os.getenv("WHATSAPP_CLOUD_ACCESS_TOKEN", "")
-WHATSAPP_CLOUD_PHONE_NUMBER_ID = os.getenv("WHATSAPP_CLOUD_PHONE_NUMBER_ID", "")
-WHATSAPP_CLOUD_VERIFY_TOKEN = os.getenv("WHATSAPP_CLOUD_VERIFY_TOKEN", "")
-WHATSAPP_CLOUD_APP_SECRET = os.getenv("WHATSAPP_CLOUD_APP_SECRET", "")
+#
+# Wira accepts both its own WHATSAPP_CLOUD_* names and the shared Ni Biashara
+# Meta profile names used by credential_guard.py (`meta-whatsapp-ni-biashara-cloud-api`).
+# Keep this alias layer server-side only; never ship these values in the desktop app.
+WHATSAPP_CLOUD_ACCESS_TOKEN = os.getenv("WHATSAPP_CLOUD_ACCESS_TOKEN") or os.getenv("WHATSAPP_ACCESS_TOKEN", "")
+WHATSAPP_CLOUD_PHONE_NUMBER_ID = os.getenv("WHATSAPP_CLOUD_PHONE_NUMBER_ID") or os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
+WHATSAPP_CLOUD_VERIFY_TOKEN = os.getenv("WHATSAPP_CLOUD_VERIFY_TOKEN") or os.getenv("WHATSAPP_WEBHOOK_VERIFY_TOKEN", "")
+WHATSAPP_CLOUD_APP_SECRET = os.getenv("WHATSAPP_CLOUD_APP_SECRET") or os.getenv("WHATSAPP_APP_SECRET", "")
 WHATSAPP_CLOUD_REQUIRE_SIGNATURE = os.getenv(
     "WHATSAPP_CLOUD_REQUIRE_SIGNATURE",
     "true",

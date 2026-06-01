@@ -220,6 +220,35 @@ class VoiceSamplesTests(unittest.TestCase):
             self.assertIn("examples to mirror", p.lower())
 
 
+class WhatsAppCloudConfigTests(unittest.TestCase):
+    def test_shared_meta_profile_env_aliases_are_accepted(self):
+        with patch.dict(
+            os.environ,
+            {
+                "WHATSAPP_ACCESS_TOKEN": "shared-token",
+                "WHATSAPP_PHONE_NUMBER_ID": "shared-phone-id",
+                "WHATSAPP_WEBHOOK_VERIFY_TOKEN": "shared-verify-token",
+                "WHATSAPP_APP_SECRET": "shared-app-secret",
+            },
+            clear=False,
+        ):
+            importlib.reload(config)
+            try:
+                self.assertEqual(config.WHATSAPP_CLOUD_ACCESS_TOKEN, "shared-token")
+                self.assertEqual(config.WHATSAPP_CLOUD_PHONE_NUMBER_ID, "shared-phone-id")
+                self.assertEqual(config.WHATSAPP_CLOUD_VERIFY_TOKEN, "shared-verify-token")
+                self.assertEqual(config.WHATSAPP_CLOUD_APP_SECRET, "shared-app-secret")
+            finally:
+                for key in (
+                    "WHATSAPP_ACCESS_TOKEN",
+                    "WHATSAPP_PHONE_NUMBER_ID",
+                    "WHATSAPP_WEBHOOK_VERIFY_TOKEN",
+                    "WHATSAPP_APP_SECRET",
+                ):
+                    os.environ.pop(key, None)
+                importlib.reload(config)
+
+
 class WhatsAppCloudTests(unittest.TestCase):
     def _payload(self, message_id="wamid.1", body="hello", sender="15551234567"):
         return {
