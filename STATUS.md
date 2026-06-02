@@ -1,6 +1,6 @@
 # Wira Status
 
-Updated: 2026-05-31
+Updated: 2026-06-01
 Mode: BUSINESS
 Canonical repo: `/Users/motwe/Wira`
 Remote: `git@github.com:twe-cloud/wira.git`
@@ -19,6 +19,9 @@ Two lanes stay separate:
 
 - The Wira codebase includes the WhatsApp Business Cloud API transport in `agent/whatsapp_cloud.py` and webhook server in `agent/cloud_webhook.py`.
 - The transport verifies Meta webhook challenge tokens, supports `X-Hub-Signature-256` verification when an app secret is configured, deduplicates inbound message IDs, and routes inbound text into the Wira brain/memory/draft policy.
+- The Cloud webhook now forces the `business_cloud` prompt profile. Customer replies speak as the client business via `BUSINESS_NAME` and the WhatsApp Business display name. Wira remains the owner/admin product surface; Hermes remains internal and must not appear in customer-facing chat.
+- The customer journey is now documented in `site/docs/customer-journey.md`: Local returns to a setup checklist for installer/brain/QR/onboarding, while Hosted returns to a managed setup checklist for business map, WhatsApp number path, draft-first launch, and smoke checks.
+- Wira Local now keeps buyer-owned config, auth, WhatsApp pairing, memory, drafts, and onboarding state under `~/.wira`; the GUI exposes a Check for Updates button that opens the latest GitHub release page. This keeps Local positioned as self-managed enablement after setup, not managed support.
 - Tests pass with `python3 -m unittest -q` from `agent/`.
 - The code now accepts both Wira-specific `WHATSAPP_CLOUD_*` env names and the shared Ni Biashara Meta credential profile env names from `meta-whatsapp-ni-biashara-cloud-api`:
   - `WHATSAPP_ACCESS_TOKEN`

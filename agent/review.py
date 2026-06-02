@@ -8,19 +8,13 @@ Usage:
 """
 
 import argparse
-import os
 import time
 from datetime import datetime
-from pathlib import Path
 
-# Load .env so DRAFTS_DB_PATH matches the running agent
-_env = Path(__file__).parent / ".env"
-if _env.exists():
-    for line in _env.read_text().splitlines():
-        line = line.strip()
-        if line and not line.startswith("#") and "=" in line:
-            k, _, v = line.partition("=")
-            os.environ.setdefault(k.strip(), v.strip())
+from paths import load_env
+
+# Load .env so DRAFTS_DB_PATH matches the running agent.
+load_env()
 
 from drafts import Drafts  # noqa: E402
 

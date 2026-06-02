@@ -3,4 +3,5 @@ agent/build/
 agent/dist/
 agent/.venv/
 agent/*.sqlite3
-
+.video-work/
+site/public/video/

@@ -12,8 +12,7 @@ import os
 import sys
 from pathlib import Path
 
-WIRA_DIR = Path.home() / ".wira"
-ENV_FILE = Path(__file__).parent / ".env"
+from paths import ENV_FILE, WIRA_DIR, write_env
 
 
 def banner():
@@ -142,9 +141,7 @@ def write_env(provider, extra_env, owner, assistant, voice, approval_mode):
     for k, v in extra_env.items():
         lines.append(f"{k}={v}")
 
-    ENV_FILE.write_text("\n".join(lines) + "\n")
-    # Restrict permissions — may contain API keys
-    ENV_FILE.chmod(0o600)
+    write_env(lines)
     print()
     print(f"  Config saved to {ENV_FILE}")
 

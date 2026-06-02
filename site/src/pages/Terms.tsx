@@ -2,41 +2,37 @@ import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import { PRODUCT } from "@/lib/brand";
 
-/**
- * REVIEW BEFORE PUBLISHING. Starting template — not legal advice.
- * Have counsel adapt to your jurisdiction and risk profile.
- */
 export default function Terms() {
   return (
     <>
       <Nav />
       <main className="container-narrow py-16">
-        <h1 className="text-5xl">Terms of Service</h1>
+        <h1 className="text-5xl">Wira Local Terms</h1>
         <p className="mt-2 text-ink-muted">
           Last updated: {new Date().toISOString().slice(0, 10)}
         </p>
 
-        <Block title="Plain English summary">
+        <Block title="Plain summary">
           <p>
-            Pay your subscription. Use {PRODUCT.name} for your own communication.
-            Don't use it to spam or harass anyone. If something goes wrong,
-            we'll do our best to fix it but our liability is capped at what
-            you paid us in the last 12 months.
+            {PRODUCT.name} Local is an enablement setup for your own machine,
+            WhatsApp account, tools, and model/provider accounts. After setup,
+            your agent is yours to run.
           </p>
         </Block>
 
-        <Block title="1. The Service">
+        <Block title="1. What Wira Local provides">
           <p>
-            {PRODUCT.name} ("the Service") connects to your personal WhatsApp
-            via WhatsApp's multi-device protocol and replies to messages on
-            your behalf using AI. We are not affiliated with WhatsApp or Meta.
+            {PRODUCT.name} Local provides the app/download, setup instructions,
+            and a way to connect a supported brain and WhatsApp linked-device
+            session. It is not a managed hosted service.
           </p>
         </Block>
 
-        <Block title="2. Your account">
+        <Block title="2. Your responsibility">
           <p>
-            You're responsible for keeping your login secure and for everything
-            done with your account. Tell us within 7 days if it's compromised.
+            You control your machine, WhatsApp number, ChatGPT/API/local-model
+            account, tools, data, backups, updates, reply mode, and messages.
+            You are responsible for what your agent sends or does after setup.
           </p>
         </Block>
 
@@ -47,29 +43,24 @@ export default function Terms() {
             <li>Harass, deceive, defraud, or harm anyone.</li>
             <li>Impersonate someone else without their permission.</li>
             <li>Use the Service to break any law applicable to you or the recipient.</li>
-            <li>Attempt to reverse-engineer, resell, or sublicense the Service.</li>
+            <li>Give Wira destructive system access unless you accept that risk.</li>
           </ul>
-          <p>
-            We can suspend or terminate accounts that breach this section, with
-            or without notice.
-          </p>
         </Block>
 
         <Block title="4. WhatsApp">
           <p>
             WhatsApp is a third-party service with its own terms. Their rules
-            apply to your number, not us. If WhatsApp restricts your number,
-            we cannot reverse that. We rate-limit replies and recommend
-            against bulk outreach for exactly this reason.
+            apply to your number, not Ni Biashara. If WhatsApp or Meta restricts
+            your number, we cannot reverse that.
           </p>
         </Block>
 
-        <Block title="5. Payments">
+        <Block title="5. Not managed support">
           <p>
-            Subscriptions renew automatically. Cancel from your dashboard at
-            any time; access continues until the end of the current billing
-            period. We don't issue refunds for partial months but will review
-            edge cases on request.
+            Wira Local does not include hosted uptime, monitoring, account
+            administration, tool administration, data recovery, managed backups,
+            or hands-on support after handoff unless a separate written service
+            is sold.
           </p>
         </Block>
 
@@ -77,48 +68,49 @@ export default function Terms() {
           <p>
             {PRODUCT.name} generates replies using AI models. Output may be
             inaccurate, inappropriate, or unexpected. You are responsible for
-            what is sent from your account. We recommend keeping approval mode
-            on until you trust the replies.
+            what is sent from your account and for any actions taken through
+            tools you connect. Keep draft mode on until you trust the replies.
           </p>
         </Block>
 
-        <Block title="7. Intellectual property">
+        <Block title="7. Updates">
           <p>
-            We own the software. You own your messages, your account data, and
-            anything you create using the Service. You grant us a limited
-            licence to process your messages to provide the Service.
+            Updates are manual. Wira can open the latest release page, and you
+            can download and install a newer build. Local settings, auth,
+            WhatsApp session, memory, drafts, and onboarding state are kept in
+            your local Wira folder.
           </p>
         </Block>
 
         <Block title="8. Warranty disclaimer">
           <p>
-            The Service is provided "as is" without warranties of any kind. We
-            don't guarantee it will be uninterrupted, error-free, or fit for
-            any particular purpose.
+            Wira Local is provided "as is" without warranties of any kind. We do
+            not guarantee uninterrupted operation, error-free output, account
+            safety, or fitness for a particular purpose.
           </p>
         </Block>
 
         <Block title="9. Limitation of liability">
           <p>
-            To the maximum extent allowed by law, our total liability for any
-            claim is capped at the amount you paid us in the 12 months before
-            the claim arose. We're not liable for indirect, incidental, or
-            consequential damages.
+            To the maximum extent allowed by law, Ni Biashara is not responsible
+            for lost messages, account restrictions, bad replies, deleted files,
+            broken local systems, third-party provider failures, business losses,
+            customer disputes, or actions taken by your agent after setup.
           </p>
         </Block>
 
         <Block title="10. Governing law">
           <p>
-            These Terms are governed by the laws of Kenya. Any dispute will be
-            resolved by the courts of Nairobi unless your local consumer law
-            says otherwise.
+            These terms are governed by the law that applies to Ni Biashara LLC
+            and the transaction, unless mandatory consumer law says otherwise.
           </p>
         </Block>
 
         <Block title="11. Changes">
           <p>
-            We may update these Terms. Material changes are emailed to active
-            customers 30 days before they take effect.
+            We may update these terms. The version shown at checkout or setup is
+            the version attached to that purchase unless a later written service
+            agreement replaces it.
           </p>
         </Block>
 

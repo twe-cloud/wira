@@ -3,11 +3,20 @@
 import os
 from pathlib import Path
 
+from paths import SESSION_DB_PATH as DEFAULT_SESSION_DB_PATH
+
 AGENT_DIR = Path(__file__).parent
 
 # --- Identity ---
 OWNER_NAME = os.getenv("OWNER_NAME", "Craig")
 ASSISTANT_NAME = os.getenv("ASSISTANT_NAME", "Wira")
+BUSINESS_NAME = (
+    os.getenv("BUSINESS_NAME")
+    or os.getenv("CLIENT_BUSINESS_NAME")
+    or OWNER_NAME
+).strip()
+CUSTOMER_VISIBLE_ASSISTANT_NAME = os.getenv("CUSTOMER_VISIBLE_ASSISTANT_NAME", "").strip()
+WIRA_PROMPT_PROFILE = os.getenv("WIRA_PROMPT_PROFILE", "local").strip().lower()
 
 # --- Brain (LLM provider) ---
 # "chatgpt"   = Uses your ChatGPT subscription (default, no API key needed)
@@ -67,7 +76,7 @@ DISCLOSE_AI = os.getenv("DISCLOSE_AI", "true").lower() in ("1", "true", "yes")
 
 # --- Storage ---
 # WhatsApp session (device pairing). Delete this file to re-pair / log out.
-SESSION_DB_PATH = os.getenv("SESSION_DB_PATH", str(AGENT_DIR / "session.sqlite3"))
+SESSION_DB_PATH = os.getenv("SESSION_DB_PATH", str(DEFAULT_SESSION_DB_PATH))
 # Conversation memory.
 MEMORY_DB_PATH = os.getenv("MEMORY_DB_PATH", str(Path.home() / ".wira" / "memory.db"))
 

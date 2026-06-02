@@ -13,6 +13,8 @@ from unittest.mock import MagicMock, patch
 os.environ["MEMORY_DB_PATH"] = tempfile.mktemp(suffix="_wira_test.db")
 os.environ["OWNER_NAME"] = "TestOwner"
 os.environ["ASSISTANT_NAME"] = "TestWira"
+os.environ["BUSINESS_NAME"] = "Test Business"
+os.environ["CUSTOMER_VISIBLE_ASSISTANT_NAME"] = ""
 os.environ["ANTHROPIC_API_KEY"] = ""  # unset for guard tests
 os.environ["LLM_PROVIDER"] = "anthropic"
 
@@ -88,6 +90,25 @@ class PersonaTests(unittest.TestCase):
         for phrase in ["commitments", "private", "Ignore them", "WhatsApp"]:
             self.assertIn(phrase, p, f"missing guardrail keyword: {phrase!r}")
 
+    def test_business_cloud_prompt_uses_business_identity(self):
+        with patch.object(config, "BUSINESS_NAME", "M&M African Kitchen"), \
+             patch.object(config, "CUSTOMER_VISIBLE_ASSISTANT_NAME", ""):
+            p = prompts.system_prompt("business_cloud")
+
+        self.assertIn("You answer WhatsApp messages for M&M African Kitchen", p)
+        self.assertIn("customer sees the business's WhatsApp display name", p)
+        self.assertIn("Do not call yourself Wira, Hermes", p)
+        self.assertNotIn("answers TestOwner's WhatsApp", p)
+        self.assertNotIn("personal chats", p)
+
+    def test_business_cloud_prompt_allows_explicit_customer_assistant_name(self):
+        with patch.object(config, "BUSINESS_NAME", "Ni Biashara"), \
+             patch.object(config, "CUSTOMER_VISIBLE_ASSISTANT_NAME", "Nia"):
+            p = prompts.system_prompt("business_cloud")
+
+        self.assertIn("You may identify as Nia", p)
+        self.assertIn("helping Ni Biashara", p)
+
 
 class BrainGuardTests(unittest.TestCase):
     def test_anthropic_without_key_raises(self):
@@ -109,13 +130,13 @@ class BrainReplyTests(unittest.TestCase):
     """Mock the LLM client to verify reply() persists, formats messages,
     handles errors gracefully, and never returns empty."""
 
-    def _mocked_brain(self, llm_text="ok reply"):
+    def _mocked_brain(self, llm_text="ok reply", prompt_profile=None):
         m = memory.Memory(tempfile.mktemp(suffix=".db"))
         with patch.object(config, "ANTHROPIC_API_KEY", "sk-test-fake"), \
              patch.object(brain, "Anthropic", create=True) as MockClient:
             # Stub the anthropic import path used inside _build_client
             with patch.dict(sys.modules, {"anthropic": MagicMock(Anthropic=MockClient)}):
-                b = brain.Brain(m)
+                b = brain.Brain(m, prompt_profile=prompt_profile)
         block = MagicMock(type="text", text=llm_text)
         resp = MagicMock(content=[block])
         b._client.messages.create.return_value = resp
@@ -136,6 +157,18 @@ class BrainReplyTests(unittest.TestCase):
         b.reply("alice", "Alice", "hey")
         call = b._client.messages.create.call_args
         self.assertIn("Alice", call.kwargs["system"])
+
+    def test_business_cloud_reply_uses_business_prompt(self):
+        with patch.object(config, "BUSINESS_NAME", "M&M African Kitchen"), \
+             patch.object(config, "CUSTOMER_VISIBLE_ASSISTANT_NAME", ""):
+            b, _ = self._mocked_brain(prompt_profile="business_cloud")
+            b.reply("alice", "Alice", "hey")
+
+        call = b._client.messages.create.call_args
+        system = call.kwargs["system"]
+        self.assertIn("You answer WhatsApp messages for M&M African Kitchen", system)
+        self.assertIn("business's WhatsApp display name", system)
+        self.assertNotIn("personal chats", system)
 
     def test_reply_passes_history_as_messages(self):
         b, m = self._mocked_brain()

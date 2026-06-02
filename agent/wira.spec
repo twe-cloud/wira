@@ -32,6 +32,7 @@ a = Analysis(
         'drafts',
         'policy',
         'prompts',
+        'paths',
         'auth',
         'onboarding',
         'review',

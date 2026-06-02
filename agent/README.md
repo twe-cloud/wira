@@ -157,6 +157,17 @@ The webhook verifies Meta's challenge token, verifies `X-Hub-Signature-256` by d
 ignores delivery-status callbacks, deduplicates inbound message IDs, and routes customer
 text into the same Wira brain/memory/draft policy as the local QR version.
 
+Customer-facing identity is different on the Cloud path. `cloud_webhook.py` forces the
+`business_cloud` prompt profile:
+
+- WhatsApp customers see and hear from the client's business identity, controlled by the
+  WhatsApp Business display name and `BUSINESS_NAME`.
+- Wira is the owner/admin product name and operator feed, not the default customer-facing
+  speaker.
+- Hermes is internal plumbing only and must not appear in customer or client-facing chat.
+- Set `CUSTOMER_VISIBLE_ASSISTANT_NAME` only when the business explicitly wants a named
+  assistant such as Nia.
+
 For the managed small-business product, keep two SKUs separate:
 
 | SKU | Channel | Best for |
@@ -169,19 +180,37 @@ but Wira Business should stay provider-abstracted. Direct Meta Cloud API and Twi
 WhatsApp are different transports with different credentials, callbacks, and operational
 controls.
 
-## Offering Wira as a Setup
+## Updates
+
+Wira Local stores user-owned config, auth, WhatsApp pairing, memory, drafts, and onboarding
+state in `~/.wira`. The app can be replaced without bundling customer data into the app
+folder.
+
+To update a Local install, download the latest Mac or Windows build from:
+
+```text
+https://github.com/twe-cloud/wira/releases/latest
+```
+
+If a WhatsApp linked-device session expires, reconnect from the Wira window and scan a new
+QR code. The buyer controls their machine, accounts, tools, model/provider cost, and
+message behavior.
+
+## Offering Wira as an Enablement Setup
 
 This repo is the product. Two ways to sell it:
 
 1. **Done-for-you setup.** You run `install.sh` on their box (or a small VPS), link their
-   number, tune `OWNER_NAME` and the persona in `prompts.py` to their voice, hand over the
-   keys. Charge for setup + a monthly minding fee.
-2. **Self-serve.** Hand them this repo and the Quick Start. You sell support and persona
-   tuning.
+   number, tune `OWNER_NAME` and the persona in `prompts.py` to their voice, then hand over
+   control.
+2. **Self-serve.** Hand them the installer and setup guide. After setup, their agent is
+   their responsibility.
 
 The persona in `prompts.py` is the part worth customising per client — that's where Wira
 stops sounding generic and starts sounding like *them*.
 
-## License
+## Buyer-Facing Position
 
-MIT
+Wira Local is sold as enablement: install, connect, scan, configure, and hand control to
+the buyer. Do not describe the buyer relationship as an ongoing software license, managed
+support plan, hosted service, or uptime promise unless a separate written service is sold.

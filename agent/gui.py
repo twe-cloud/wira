@@ -18,14 +18,10 @@ import tkinter as tk
 from io import BytesIO
 from pathlib import Path
 
-# Load .env before anything else
-_env = Path(__file__).parent / ".env"
-if _env.exists():
-    for line in _env.read_text().splitlines():
-        line = line.strip()
-        if line and not line.startswith("#") and "=" in line:
-            key, _, value = line.partition("=")
-            os.environ.setdefault(key.strip(), value.strip())
+from paths import ENV_FILE, RELEASES_URL, SESSION_DB_PATH, load_env, write_env
+
+# Load user-owned config before anything else.
+load_env()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -74,8 +70,7 @@ class WiraApp(tk.Tk):
 
         # Check if already set up
         from auth import is_logged_in
-        session_db = Path(__file__).parent / "session.sqlite3"
-        if is_logged_in() and session_db.exists() and session_db.stat().st_size > 0:
+        if is_logged_in() and SESSION_DB_PATH.exists() and SESSION_DB_PATH.stat().st_size > 0:
             self._show_running()
         else:
             self._show_welcome()
@@ -317,16 +312,14 @@ class WiraApp(tk.Tk):
 
     def _ensure_env(self):
         """Write a minimal .env for first-run if setup.py hasn't been run."""
-        env_file = Path(__file__).parent / ".env"
-        if not env_file.exists():
-            env_file.write_text(
-                "LLM_PROVIDER=chatgpt\n"
-                "OWNER_NAME=there\n"
-                "ASSISTANT_NAME=Wira\n"
-                "APPROVAL_MODE=draft\n"
-                "DISCLOSE_AI=true\n"
-            )
-            env_file.chmod(0o600)
+        if not ENV_FILE.exists():
+            write_env([
+                "LLM_PROVIDER=chatgpt",
+                "OWNER_NAME=there",
+                "ASSISTANT_NAME=Wira",
+                "APPROVAL_MODE=draft",
+                "DISCLOSE_AI=true",
+            ])
 
     def _whatsapp_thread(self):
         try:
@@ -424,6 +417,11 @@ class WiraApp(tk.Tk):
                   activebackground=ACCENT, activeforeground=WHITE, relief="flat",
                   padx=20, pady=8, cursor="hand2",
                   command=self._show_whatsapp).pack(pady=(0, 10))
+
+        tk.Button(f, text="Check for Updates", font=FONT_BODY, fg=TEXT, bg=BG_CARD,
+                  activebackground=ACCENT, activeforeground=WHITE, relief="flat",
+                  padx=20, pady=8, cursor="hand2",
+                  command=lambda: self._open_url(RELEASES_URL)).pack(pady=(0, 10))
 
         tk.Button(f, text="Quit Wira", font=FONT_SMALL, fg=TEXT_DIM, bg=BG_CARD,
                   activebackground="#3a1515", activeforeground="#e74c3c", relief="flat",

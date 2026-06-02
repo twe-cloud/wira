@@ -103,7 +103,7 @@ def build_server() -> ThreadingHTTPServer:
         raise RuntimeError("WHATSAPP_CLOUD_VERIFY_TOKEN is required")
     if config.WHATSAPP_CLOUD_REQUIRE_SIGNATURE and not config.WHATSAPP_CLOUD_APP_SECRET:
         raise RuntimeError("WHATSAPP_CLOUD_APP_SECRET is required when signature verification is enabled")
-    WiraCloudWebhookHandler.brain = Brain(Memory())
+    WiraCloudWebhookHandler.brain = Brain(Memory(), prompt_profile="business_cloud")
     WiraCloudWebhookHandler.transport = CloudApiTransport()
     WiraCloudWebhookHandler.store = CloudMessageStore()
     return ThreadingHTTPServer(

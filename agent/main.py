@@ -5,17 +5,11 @@ Loads config, wires up the brain + memory + WhatsApp transport, and runs.
 """
 
 import logging
-import os
-from pathlib import Path
 
-# Load .env (simple parser, no extra dependency) before importing config.
-_env = Path(__file__).parent / ".env"
-if _env.exists():
-    for line in _env.read_text().splitlines():
-        line = line.strip()
-        if line and not line.startswith("#") and "=" in line:
-            key, _, value = line.partition("=")
-            os.environ.setdefault(key.strip(), value.strip())
+from paths import load_env
+
+# Load user-owned config before importing config.
+load_env()
 
 import config
 from brain import Brain

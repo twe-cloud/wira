@@ -16,6 +16,8 @@ import sqlite3
 import time
 from pathlib import Path
 
+from paths import update_env
+
 logger = logging.getLogger("wira.onboarding")
 
 ONBOARDING_DB = Path.home() / ".wira" / "onboarding.json"
@@ -106,8 +108,7 @@ def process_onboarding_reply(text: str) -> str | None:
 
     if key == "name":
         state["name"] = text.strip()
-        # Update the .env file
-        _update_env("OWNER_NAME", state["name"])
+        update_env("OWNER_NAME", state["name"])
         state["step"] = step + 1
         _save_state(state)
         return get_step_message(step + 1, state)
@@ -117,7 +118,7 @@ def process_onboarding_reply(text: str) -> str | None:
             # Save collected voice samples
             samples = state.get("voice_samples", [])
             voice_text = "\n".join(samples)
-            _update_env("VOICE_SAMPLES", voice_text)
+            update_env("VOICE_SAMPLES", voice_text)
             state["step"] = step + 1
             _save_state(state)
             return get_step_message(step + 1, state)
@@ -136,7 +137,7 @@ def process_onboarding_reply(text: str) -> str | None:
         modes = {"1": "draft", "2": "auto-trusted", "3": "auto-all"}
         mode = modes.get(text.strip(), "draft")
         state["mode"] = mode
-        _update_env("APPROVAL_MODE", mode)
+        update_env("APPROVAL_MODE", mode)
         state["step"] = step + 1
         state["complete"] = True
         _save_state(state)
@@ -147,29 +148,7 @@ def process_onboarding_reply(text: str) -> str | None:
 
 def _update_env(key: str, value: str):
     """Update a key in the .env file."""
-    env_file = Path(__file__).parent / ".env"
-    if not env_file.exists():
-        env_file.write_text(f"{key}={value}\n")
-        env_file.chmod(0o600)
-        return
-
-    lines = env_file.read_text().splitlines()
-    found = False
-    new_lines = []
-    for line in lines:
-        if line.strip().startswith(f"{key}="):
-            new_lines.append(f"{key}={value}")
-            found = True
-        else:
-            new_lines.append(line)
-    if not found:
-        new_lines.append(f"{key}={value}")
-
-    env_file.write_text("\n".join(new_lines) + "\n")
-    env_file.chmod(0o600)
-
-    # Also update the live config
-    os.environ[key] = value
+    update_env(key, value)
 
 
 def send_welcome():
