@@ -29,10 +29,10 @@ Wira is:
   - automation
 
 ### Naming and identity
-- Default in-app/local agent name: **Vera**
-- Renaming is allowed **after install** from settings/preferences
+- In-app/local agent name: **Wira**
+- Do not introduce a second starter agent name; keep Wira as product + agent until Hermes is introduced
 - Hermes should remain the runtime truth and upgrade path
-- Wira/Vera should act as the branded surface that reduces fear and setup friction
+- Wira should act as the branded surface that reduces fear and setup friction
 
 ### Product split
 Two product lanes can still exist, but both must share the same thesis:
@@ -116,7 +116,7 @@ Wira desktop app handles:
 - model/provider connection helper
 - WhatsApp pairing helper
 - local permission onboarding
-- runtime status / reconnect / rename / settings
+- runtime status / reconnect / settings
 - guided discovery of "Open in Hermes Desktop" / "Open CLI"
 
 ### Layer B — Transport bridge
@@ -199,7 +199,7 @@ The product should intentionally create a path from simple phone-first use to ri
 
 ### Discovery path
 1. Buyer installs Wira because it feels simple
-2. Buyer talks to Vera in WhatsApp
+2. Buyer talks to Wira in WhatsApp
 3. Buyer notices settings/pages that explain:
    - this runs on your computer
    - you can give it tools
@@ -260,7 +260,7 @@ These may survive only as optional future modules for a separate responder mode.
 - Hermes runtime adapter module
 - owner-lock / allowed-sender policy module
 - permission model for tools/folders/browser/terminal
-- Wira settings UI for rename + access controls + runtime status
+- Wira settings UI for access controls + runtime status
 - Hermes profile/bootstrapper for Wira-managed local profile
 - WhatsApp command router
 - optional progressive-discovery screen(s) for CLI/Desktop/skills/tools
@@ -281,7 +281,7 @@ With this story:
 - reached from WhatsApp
 - can work with files, apps, browser, terminal, and saved context
 - starts simple, grows with you
-- Vera is your first operator agent
+- Wira is your first operator agent
 
 ### Suggested positioning language
 - "Your first personal agent"
@@ -347,7 +347,7 @@ Wira should bootstrap and manage a real Hermes runtime/profile rather than reinv
 The user should not need agent jargon, but the product must still safely grant power.
 
 ### Onboarding should ask
-- what folders can Vera access?
+- what folders can Wira access?
 - allow browser access?
 - allow terminal access?
 - allow file edits?
@@ -412,9 +412,9 @@ Anyone reading the repo/site should understand Wira as a branded Hermes command 
 
 ### Key rule
 The first supported happy path is:
-- owner sends command to Vera
-- Vera acts on the machine
-- Vera reports result back
+- owner sends command to Wira
+- Wira acts on the machine
+- Wira reports result back
 
 ### Deliverable
 Basic command surface works for private owner use.
@@ -445,7 +445,7 @@ Long-lived dedicated Wira Hermes profile for continuity, memory, and organic dis
 **Goal:** Make power safe and understandable.
 
 ### Scope
-- rename assistant (default Vera)
+- Wira identity stays fixed through first-run
 - owner identity lock controls
 - tool access toggles
 - folder access scoping
@@ -491,7 +491,7 @@ It is a later package/extension for specific business workflows.
 - search the repo for `draft`, `voice`, `reply on your behalf`, `approve reply`
 - categorize each hit as remove / defer / keep only for optional responder mode
 
-### Slice B — Vera-first onboarding rewrite
+### Slice B — Wira-first onboarding rewrite
 **Objective:** Replace voice/reply-mode onboarding with owner-agent onboarding.
 
 **Files:**
@@ -501,7 +501,7 @@ It is a later package/extension for specific business workflows.
 - Modify: `agent/tests.py`
 
 **New onboarding questions:**
-- confirm default name Vera / rename later
+- confirm Wira identity and owner lock
 - choose provider/model path
 - choose owner lock identity
 - choose local permissions
@@ -546,10 +546,10 @@ It is a later package/extension for specific business workflows.
 **Files:**
 - Modify: `agent/gui.py`
 - Add: settings/runtime status modules if needed
-- Add: rename/settings persistence
+- Add: settings persistence
 
 **Verification:**
-- can rename Vera after install
+- Wira remains both the product name and the first agent name until Hermes is introduced
 - can open advanced Hermes surface from Wira
 - permissions/status visible in UI
 
@@ -580,7 +580,7 @@ It is a later package/extension for specific business workflows.
 Wira should not be called complete until all are true:
 
 1. A new buyer can understand Wira as a **personal agent on their computer**, not a WhatsApp drafting bot.
-2. Vera is the default local name, with rename available after setup.
+2. Wira is both the product name and the first local agent name until Hermes is introduced.
 3. Local onboarding asks about permissions/runtime, not voice mimicry/reply mode.
 4. Owner-issued WhatsApp messages are the main supported interaction path.
 5. A real Hermes runtime/profile is doing the agent work.
@@ -608,7 +608,7 @@ That would optimize the wrong product.
 
 The winning move is:
 - keep Wira as the brand and onboarding shell
-- set Vera as the default local identity
+- set Wira as the local identity
 - make Hermes the real runtime underneath
 - make WhatsApp the easiest command surface into local agentic work
 - sell the product as the buyer's first real agent, not as another messaging assistant

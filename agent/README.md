@@ -11,17 +11,17 @@ That means:
 - **Phone-first, computer-real.** You pair over WhatsApp so the first interaction feels familiar, but the real runtime lives on your machine.
 - **A bridge out of plain chat.** The buyer starts from a simple branded surface, then organically discovers Hermes Desktop, CLI, tools, skills, and local access over time.
 - **Owner/operator first.** The primary user is the owner talking to their own agent, not a public customer-reply lane by default.
-- **Vera by default.** The local starter identity can be friendly and branded, with rename available after setup.
+- **Wira by default.** The local starter identity can be friendly and branded, with rename available after setup.
 
 ## What It Looks Like
 
 ```
 You:   what's left on my calendar after 2pm?
-Vera:  You have a client check-in at 3:30 PM and a design review at 5 PM.
+Wira:  You have a client check-in at 3:30 PM and a design review at 5 PM.
        Want a short prep brief for both?
 
 You:   search Downloads for the latest invoice PDF
-Vera:  Found the newest invoice PDF in Downloads. I can open it, summarize it,
+Wira:  Found the newest invoice PDF in Downloads. I can open it, summarize it,
        or prep an email around it next.
 ```
 

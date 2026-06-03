@@ -15,7 +15,7 @@ from pathlib import Path
 
 from paths import ENV_FILE, write_env
 
-DEFAULT_AGENT_NAME = "Vera"
+DEFAULT_AGENT_NAME = "Wira"
 
 
 def banner():

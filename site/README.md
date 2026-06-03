@@ -43,7 +43,7 @@ Set these env vars in **Netlify dashboard → Site settings → Environment vari
 | `STRIPE_WHSEC` | Stripe dashboard → Developers → Webhooks → add endpoint → `https://your-site.netlify.app/.netlify/functions/webhook` → reveal signing secret |
 | `SITE_URL` | Your public URL, e.g. `https://your-site.netlify.app`. Used for Stripe redirects. |
 
-Then in `src/lib/brand.ts` paste your Stripe **Price IDs** (`price_*`) for the monthly and annual plans.
+Then in `src/lib/brand.ts` paste the Stripe **Price ID** (`price_*`) for the Wira Local one-time purchase.
 
 ## Layout
 
@@ -72,8 +72,8 @@ The repo folder is currently `site/` — rename to whatever once the final name 
 
 ## Testing the Stripe loop end to end
 
-1. In Stripe dashboard, create test-mode Products with monthly + annual Prices.
-2. Paste the Price IDs into `src/lib/brand.ts`.
+1. In Stripe dashboard, create a test-mode Product with a one-time Wira Local Price.
+2. Paste the Price ID into `src/lib/brand.ts`.
 3. Run `npm run netlify:dev`.
 4. Click **Get started**. Stripe Checkout opens with test card prefilled — use `4242 4242 4242 4242`, any future expiry, any CVC.
 5. After "payment", you land on `/success?session_id=cs_test_...`.

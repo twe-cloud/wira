@@ -359,7 +359,7 @@ function Step5Done({ state, onBack }: { state: State; onBack: () => void }) {
       </div>
       <h2 className="mt-4 text-3xl">You're set.</h2>
       <p className="mt-2 text-ink-muted">
-        The intended finish line is simple: pair WhatsApp, start with Vera, and
+        The intended finish line is simple: pair WhatsApp, start with Wira, and
         send your first real command into a local agent that can later open into
         Hermes Desktop and CLI.
       </p>

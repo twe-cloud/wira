@@ -49,7 +49,7 @@ The current repo still reflects an older draft/reply assistant thesis in runtime
 
 - **Wira Local** should be a branded WhatsApp command surface for a real local Hermes agent living on the buyer's computer.
 - **Wira Business** should also be owner/operator-first: a branded command surface for a solo operator, not a default customer auto-reply or ops-assistant product.
-- Default local agent name should be **Vera**, with rename available after setup.
+- Keep **Wira** as both the product name and the local agent name until the user naturally discovers Hermes.
 - Hermes CLI/Desktop discovery should happen organically after onboarding rather than being the scary first step.
 
 Source-of-truth re-architecture plan:

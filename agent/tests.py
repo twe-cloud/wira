@@ -375,11 +375,9 @@ class OnboardingTests(unittest.TestCase):
 
         next_msg = onboarding.process_onboarding_reply("Craig")
         self.assertIn(("OWNER_NAME", "Craig"), self.env_updates)
-        self.assertIn("vera", next_msg.lower())
-
-        permissions_prompt = onboarding.process_onboarding_reply("Vera")
-        self.assertIn(("ASSISTANT_NAME", "Vera"), self.env_updates)
-        self.assertIn("access level", permissions_prompt.lower())
+        self.assertIn(("ASSISTANT_NAME", "Wira"), self.env_updates)
+        self.assertIn("wira", next_msg.lower())
+        self.assertIn("access level", next_msg.lower())
 
         confirmation_prompt = onboarding.process_onboarding_reply("2")
         self.assertIn(("WIRA_PERMISSION_PRESET", "balanced"), self.env_updates)
@@ -388,16 +386,17 @@ class OnboardingTests(unittest.TestCase):
         done = onboarding.process_onboarding_reply("1")
         self.assertIn(("WIRA_REQUIRE_CONFIRMATION", "true"), self.env_updates)
         self.assertIn("All set, Craig!", done)
-        self.assertIn("Vera", done)
+        self.assertIn("Wira", done)
         self.assertTrue(onboarding.is_onboarding_complete())
 
-    def test_agent_can_be_renamed_during_onboarding(self):
+    def test_agent_name_stays_wira_during_onboarding(self):
         onboarding.send_welcome()
         onboarding.process_onboarding_reply("Craig")
 
-        permissions_prompt = onboarding.process_onboarding_reply("Musa")
-        self.assertIn(("ASSISTANT_NAME", "Musa"), self.env_updates)
-        self.assertIn("access level", permissions_prompt.lower())
+        onboarding.process_onboarding_reply("3")
+        state = onboarding._load_state()
+        self.assertEqual(state["assistant_name"], "Wira")
+        self.assertIn(("ASSISTANT_NAME", "Wira"), self.env_updates)
 
 
 class RuntimeBridgeTests(unittest.TestCase):

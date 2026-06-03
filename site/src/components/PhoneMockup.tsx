@@ -5,21 +5,21 @@ type Turn = { from: "them" | "you"; text: string; pause?: number };
 
 const SCENES: { who: string; turns: Turn[] }[] = [
   {
-    who: "Vera · your private agent",
+    who: "Wira · your private agent",
     turns: [
       { from: "them", text: "What meetings do I have after 2pm today?" },
       { from: "you", text: "You have a client check-in at 3:30 PM and a design review at 5 PM. Want a shorter briefing for both?" },
     ],
   },
   {
-    who: "Vera · your private agent",
+    who: "Wira · your private agent",
     turns: [
       { from: "them", text: "Search this machine for the latest invoice PDF." },
       { from: "you", text: "Found the newest invoice PDF in Downloads. I can open it, summarize it, or prep an email around it next." },
     ],
   },
   {
-    who: "Vera · your private agent",
+    who: "Wira · your private agent",
     turns: [
       { from: "them", text: "Give me a plan for shipping this feature tonight." },
       { from: "you", text: "I can do that. I'll break it into implementation slices, risks, and a first execution order so you can move immediately." },
@@ -78,7 +78,7 @@ export default function PhoneMockup() {
     <div
       className="relative mx-auto"
       style={{ width: 320, maxWidth: "100%" }}
-      aria-label="Animated example: the owner messages Vera, the local agent responds with real work context."
+      aria-label="Animated example: the owner messages Wira, the local agent responds with real work context."
     >
       <div
         className="bg-ink rounded-[44px] p-3 shadow-2xl"

@@ -9,7 +9,7 @@ AGENT_DIR = Path(__file__).parent
 
 # --- Identity ---
 OWNER_NAME = os.getenv("OWNER_NAME", "Craig")
-ASSISTANT_NAME = os.getenv("ASSISTANT_NAME", "Vera")
+ASSISTANT_NAME = os.getenv("ASSISTANT_NAME", "Wira")
 BUSINESS_NAME = (
     os.getenv("BUSINESS_NAME")
     or os.getenv("CLIENT_BUSINESS_NAME")

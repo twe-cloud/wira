@@ -28,13 +28,13 @@ In both lanes, the primary user is the **owner/operator**, not outside contacts.
 3. Download installer.
 4. Connect ChatGPT, an API key, or a local model.
 5. Scan WhatsApp QR.
-6. Confirm owner lock, default agent identity (Vera), and safe local permissions.
+6. Confirm owner lock, Wira identity, and safe local permissions.
 7. Start issuing real tasks from WhatsApp.
 
 The first delight moment should be:
 - owner sends a task from the phone
-- Vera uses the local runtime on the computer
-- Vera reports back with a real result
+- Wira uses the local runtime on the computer
+- Wira reports back with a real result
 
 ## Business Buyer Experience
 
@@ -52,7 +52,7 @@ Recommended mapping:
 
 | Surface | Name shown |
 | --- | --- |
-| Owner WhatsApp chat | Vera (renameable after setup) |
+| Owner WhatsApp chat | Wira |
 | Desktop app / installer | Wira |
 | Underlying runtime | Hermes (discoverable later, not forced first) |
 

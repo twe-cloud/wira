@@ -10,9 +10,6 @@
  *   https://your-site.netlify.app/.netlify/functions/webhook
  *   Events to listen for (minimum):
  *     - checkout.session.completed
- *     - customer.subscription.updated
- *     - customer.subscription.deleted
- *     - invoice.payment_failed
  */
 import type { Handler } from "@netlify/functions";
 import Stripe from "stripe";
@@ -59,25 +56,11 @@ export const handler: Handler = async (event) => {
         //   - create their account row
         //   - send the magic link email with onboarding URL
         //   - kick off the WhatsApp QR session
-        console.log("New subscriber:", {
+        console.log("Wira Local purchase:", {
           email: session.customer_details?.email,
           customer: session.customer,
-          subscription: session.subscription,
+          paymentStatus: session.payment_status,
         });
-        break;
-      }
-      case "customer.subscription.updated":
-      case "customer.subscription.deleted": {
-        const sub = stripeEvent.data.object as Stripe.Subscription;
-        // TODO(backend): update entitlement so the assistant keeps running
-        //   only for active subscriptions.
-        console.log("Subscription change:", { id: sub.id, status: sub.status });
-        break;
-      }
-      case "invoice.payment_failed": {
-        const inv = stripeEvent.data.object as Stripe.Invoice;
-        // TODO(backend): notify the customer and grace-period their instance.
-        console.log("Payment failed:", { id: inv.id, customer: inv.customer });
         break;
       }
       default:

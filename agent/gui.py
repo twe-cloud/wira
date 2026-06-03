@@ -487,7 +487,7 @@ class WiraApp(tk.Tk):
             write_env([
                 "LLM_PROVIDER=chatgpt",
                 "OWNER_NAME=there",
-                "ASSISTANT_NAME=Vera",
+                "ASSISTANT_NAME=Wira",
                 "WIRA_OWNER_LOCK_ENABLED=true",
                 "WIRA_EXTERNAL_MODE=ignore",
                 "WIRA_PERMISSION_PRESET=balanced",
@@ -559,7 +559,7 @@ class WiraApp(tk.Tk):
         self._eyebrow(f, "Connected")
         tk.Label(f, text="✓", font=("Avenir Next", 64), fg=SUCCESS, bg=PANEL_BG).pack(pady=(8, 6))
         self._headline(f, "Your agent is ready")
-        self._body(f, "Open WhatsApp and send your first message. Vera will answer there.", center=True, pady=(0, 18))
+        self._body(f, "Open WhatsApp and send your first message. Wira will answer there.", center=True, pady=(0, 18))
         self._step_row(f, 1, "Try: What's on my calendar today?", "A fast first proof that your agent can help with real work.")
         self._step_row(f, 2, "Try: Find the latest invoice in Downloads", "A simple way to show that your agent lives on this computer, not just in chat.")
         self._body(f, "You can close this window after this. Wira keeps your local agent available in the background.", small=True, fg=TEXT_DIM, center=True, pady=(18, 14))

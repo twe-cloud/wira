@@ -52,7 +52,7 @@ Target flow per new customer:
 3. Buyer connects a brain.
 4. Buyer pairs WhatsApp.
 5. Buyer confirms owner lock and safe permissions.
-6. Buyer sends the first real command to Vera.
+6. Buyer sends the first real command to Wira.
 
 What you are looking for is not "first reply looks good."
 What you are looking for is:

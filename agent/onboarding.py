@@ -1,6 +1,6 @@
 """Wira onboarding — first private setup conversation happens in WhatsApp.
 
-After the QR scan, Vera messages the owner to finish first-run setup for a
+After the QR scan, Wira messages the owner to finish first-run setup for a
 local Hermes-backed agent that lives on their computer.
 """
 
@@ -14,7 +14,7 @@ from paths import update_env
 logger = logging.getLogger("wira.onboarding")
 
 ONBOARDING_DB = Path.home() / ".wira" / "onboarding.json"
-DEFAULT_AGENT_NAME = "Vera"
+DEFAULT_AGENT_NAME = "Wira"
 
 PERMISSION_PRESETS = {
     "1": ("desk", "Desk mode"),
@@ -31,16 +31,10 @@ STEPS = [
         ),
     },
     {
-        "key": "assistant_name",
-        "message": (
-            f"Nice to meet you, {{name}}. I'll start with the name *{DEFAULT_AGENT_NAME}*.\n\n"
-            f"If you want a different name, send it now. Otherwise just send *{DEFAULT_AGENT_NAME}* to keep it."
-        ),
-    },
-    {
         "key": "permissions",
         "message": (
-            "Choose the access level for your local agent.\n\n"
+            f"Nice to meet you, {{name}}. Your WhatsApp agent is *{DEFAULT_AGENT_NAME}*.\n\n"
+            "Choose the access level for Wira on this computer.\n\n"
             "*1* — Desk mode: lightweight help and memory, no direct machine actions\n"
             "*2* — Balanced mode: can read files and use the web when helpful\n"
             "*3* — Operator mode: can use files, web, and terminal on this machine\n\n"
@@ -64,7 +58,7 @@ DONE_MESSAGE = (
     "• {assistant_name} is a real local agent running on your computer\n"
     "• Your phone is the easiest way to reach it\n"
     "• You can start with commands like: \"check Downloads for the latest invoice\" or \"summarize my day\"\n\n"
-    "You can rename the agent later from settings if you want."
+    "When you're ready for the deeper runtime, Wira can introduce Hermes."
 )
 
 
@@ -121,15 +115,9 @@ def process_onboarding_reply(text: str) -> str | None:
 
     if key == "name":
         state["name"] = value or "there"
+        state["assistant_name"] = DEFAULT_AGENT_NAME
         update_env("OWNER_NAME", state["name"])
-        state["step"] = step + 1
-        _save_state(state)
-        return get_step_message(step + 1, state)
-
-    if key == "assistant_name":
-        assistant_name = value or DEFAULT_AGENT_NAME
-        state["assistant_name"] = assistant_name
-        update_env("ASSISTANT_NAME", assistant_name)
+        update_env("ASSISTANT_NAME", DEFAULT_AGENT_NAME)
         update_env("WIRA_PROMPT_PROFILE", "local")
         update_env("WIRA_EXTERNAL_MODE", "ignore")
         update_env("WIRA_OWNER_LOCK_ENABLED", "true")

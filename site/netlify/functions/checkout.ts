@@ -10,6 +10,8 @@
 import type { Handler } from "@netlify/functions";
 import Stripe from "stripe";
 
+const WIRA_LOCAL_PRICE = "price_1TcrAXRVrXHv0YFpfmw35hIw";
+
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method not allowed" };
@@ -30,7 +32,7 @@ export const handler: Handler = async (event) => {
   } catch {
     return jsonError(400, "Invalid JSON body.");
   }
-  if (!priceId || typeof priceId !== "string" || !priceId.startsWith("price_")) {
+  if (priceId !== WIRA_LOCAL_PRICE) {
     return jsonError(400, "Missing or invalid priceId.");
   }
 
@@ -38,13 +40,17 @@ export const handler: Handler = async (event) => {
 
   try {
     const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
+      mode: "payment",
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/#pricing`,
       allow_promotion_codes: true,
       billing_address_collection: "auto",
       automatic_tax: { enabled: false }, // turn on once you've registered tax IDs
+      metadata: {
+        wira_tier: "local",
+        billing_model: "one_time",
+      },
     });
 
     return {

@@ -12,7 +12,7 @@ After payment you're redirected to **/onboarding**. The target flow is simple:
 
 1. **Connect** — choose the machine and WhatsApp number this agent will live with.
 2. **Brain** — connect ChatGPT, an API key, or a local model.
-3. **Identity** — start with Vera by default, rename later if you want.
+3. **Identity** — start with Wira by default, rename later if you want.
 4. **Access** — choose what the agent can touch: files, browser, terminal, folders.
 5. **Owner lock** — confirm who is allowed to issue commands.
 
@@ -28,7 +28,7 @@ That's it. Your private agent is now reachable from WhatsApp.
 
 ## 4. Test it
 
-Send Vera a real task from your own phone.
+Send Wira a real task from your own phone.
 
 Examples:
 - "Summarize what's in my Downloads folder from today."

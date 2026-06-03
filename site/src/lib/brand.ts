@@ -21,18 +21,16 @@ export const PRODUCT = {
  * Pricing: early positioning should sell the branded local-agent path, not a text-reply bot.
  */
 export const PRICING = {
-  monthly: { price: 29, label: "$29", per: "/month" },
-  annual: { price: 290, label: "$290", per: "/year", saveLabel: "Save $58" },
-  // Live Wira recurring prices in the Ni Biashara Stripe account.
-  stripePriceMonthly: "price_1TcqwKRVrXHv0YFpYNe7Nr7P",
-  stripePriceAnnual: "price_1TcqwNRVrXHv0YFp2X5kMVE6",
+  local: { price: 49, label: "$49", per: "one-time" },
+  // Live Wira Local one-time setup price in the Ni Biashara Stripe account.
+  stripePriceLocal: "price_1TcrAXRVrXHv0YFpfmw35hIw",
   includes: [
+    "One-time Wira Local purchase — no monthly fee for the local install",
     "Lives on your own computer — not trapped in a browser tab",
-    "Reach your agent from WhatsApp with a QR-paired setup",
+    "Reach Wira from WhatsApp with a QR-paired setup",
     "Private owner/operator control surface by default",
     "ChatGPT, Claude, GPT, or local-model brain options",
-    "A guided path into Hermes Desktop and CLI as you grow",
-    "Cancel anytime, no setup fee",
+    "A guided path into Hermes Desktop and CLI when you're ready",
   ],
 };
 
@@ -64,12 +62,8 @@ export const FAQS = [
     a: "Because ChatGPT is still mostly a chat destination. Wira is the bridge into agentic work on your own machine — and it starts from your phone instead of making you learn the whole stack up front.",
   },
   {
-    q: "What does Vera do?",
-    a: "Vera is the default local identity for your agent. The point is not roleplay or texting tricks — it's having a friendlier first surface for real work before you eventually discover the deeper Hermes runtime underneath.",
-  },
-  {
-    q: "Can I rename Vera?",
-    a: "Yes. Vera is the default starter identity, but the product should let you rename your agent after setup.",
+    q: "What does Wira do?",
+    a: "Wira is both the product and the name you talk to on day one. It keeps the first experience simple: WhatsApp on your phone, a local agent on your computer, and a deeper Hermes path when you're ready.",
   },
   {
     q: "Will I be able to use Hermes directly later?",

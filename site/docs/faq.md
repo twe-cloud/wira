@@ -13,14 +13,14 @@ Yes. Wira Local is a local product. The point is that the real agent lives on yo
 
 ## Agent behavior
 
-### What does Vera actually do?
-Vera is your branded agent surface. Under the hood, the goal is a real Hermes runtime: tools, skills, memory, and local access you approve. You should be able to ask for real work, not just drafted text.
+### What does Wira actually do?
+Wira is your branded agent surface. Under the hood, the goal is a real Hermes runtime: tools, skills, memory, and local access you approve. You should be able to ask for real work, not just drafted text.
 
 ### Why not just use ChatGPT?
 Because ChatGPT is still mostly a chat surface. Wira is the bridge into agentic work on your own machine: files, browser, terminal, memory, and growing capabilities — all reachable from your phone.
 
-### Can I rename Vera?
-Yes. Vera is the default local name because it's friendlier than dropping raw agent terminology on day one, but the product should let you rename the agent after setup.
+### Why is the agent also called Wira?
+Keep it simple on day one: Wira is the product and the name you talk to in WhatsApp. Hermes is the deeper runtime the user can discover later.
 
 ### Will I be able to use Hermes directly later?
 Yes — that's part of the goal. Wira should make Hermes Desktop and CLI discoverable organically once you're ready, instead of forcing you to learn the whole stack before you get value.
@@ -50,7 +50,7 @@ Those are reasonable later capabilities, but they are secondary to the core prom
 ## Billing
 
 ### When am I charged?
-On signup, then monthly or yearly depending on the plan.
+Wira Local is charged once at purchase. After the install is done, there is no monthly Wira Local fee. Paid third-party brain/provider costs are separate if you choose them.
 
 ### What am I actually paying for?
 You're paying for a branded, lower-friction way into owning a real agent on your own machine — with setup, pairing, packaging, and a clean path into deeper Hermes use.
@@ -58,7 +58,7 @@ You're paying for a branded, lower-friction way into owning a real agent on your
 ## Limits and roadmap
 
 ### What's on the roadmap?
-- Vera-first local onboarding
+- Wira-first local onboarding
 - owner lock + permission controls
 - real Hermes runtime bridge
 - discoverable Desktop/CLI handoff
