@@ -1,21 +1,21 @@
 const STEPS = [
   {
     n: "01",
-    title: "Connect a brain",
+    title: "Connect ChatGPT",
     body:
-      "Start with ChatGPT, Claude, GPT, or a local model. Wira handles the setup path so you don't need to learn agent infrastructure first.",
+      "Use the ChatGPT subscription you already have. Wira keeps the connection step plain and brings you back into setup when it is done.",
   },
   {
     n: "02",
-    title: "Pair WhatsApp",
+    title: "Connect WhatsApp",
     body:
-      "Scan a QR code from WhatsApp → Linked Devices. Same low-friction move as WhatsApp Web, but now it becomes the doorway into your local agent.",
+      "Scan a QR code from WhatsApp → Linked Devices. Your phone becomes the fastest way to reach the agent on your computer.",
   },
   {
     n: "03",
-    title: "Unlock real work",
+    title: "Start chatting",
     body:
-      "Confirm owner lock and safe permissions. Then start issuing real commands from your phone while the actual runtime lives on your computer.",
+      "Send your first command from WhatsApp: summarize a day, find a file, make a plan, or check what needs attention.",
   },
 ];
 
@@ -23,11 +23,10 @@ export default function HowItWorks() {
   return (
     <section id="how" className="container-prose py-20">
       <div className="max-w-2xl">
-        <h2 className="text-4xl">A softer path into agentic work.</h2>
+        <h2 className="text-4xl">A softer path into real agent work.</h2>
         <p className="mt-3 text-ink-muted text-lg">
-          No need to begin with CLI tabs, profiles, tools, and skills. Wira lets
-          you start from your phone, then grow into the deeper Hermes surfaces
-          when you're ready.
+          Your agent lives on this computer. Wira connects ChatGPT, connects
+          WhatsApp, then lets you start from the phone you already use all day.
         </p>
       </div>
       <ol className="mt-12 grid md:grid-cols-3 gap-5">

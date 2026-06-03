@@ -9,15 +9,15 @@ Wira is not a WhatsApp auto-reply bot.
 Wira is a branded path into real agentic work:
 - a local agent that lives on the buyer's computer
 - reached from the buyer's phone over WhatsApp
-- powered by a real Hermes runtime under Wira branding
-- designed so the buyer can grow naturally into Hermes Desktop, CLI, tools, skills, and local access over time
+- connected to the buyer's existing ChatGPT subscription on day one
+- designed so the buyer can grow naturally into deeper local-agent access over time
 
 ## Product Split
 
 Wira has two activation paths:
 
-- **Wira Local:** owner-controlled install. The buyer downloads Wira, connects a brain, pairs WhatsApp, grants local permissions, and starts talking to their agent from their phone.
-- **Wira Business:** still owner/operator-first. Same branded Hermes command surface, but with business-specific context packs, workflows, and governed access for a solo operator.
+- **Wira Local:** owner-controlled install. The buyer downloads Wira, connects ChatGPT, pairs WhatsApp, chooses safe defaults, and starts talking to their agent from their phone.
+- **Wira Business:** still owner/operator-first. Same Wira command surface, but with business-specific context packs, workflows, and governed access for a solo operator.
 
 In both lanes, the primary user is the **owner/operator**, not outside contacts.
 
@@ -26,7 +26,7 @@ In both lanes, the primary user is the **owner/operator**, not outside contacts.
 1. Buy Wira Local.
 2. Land on `/products/wira/start/?tier=self`.
 3. Download installer.
-4. Connect ChatGPT, an API key, or a local model.
+4. Connect ChatGPT.
 5. Scan WhatsApp QR.
 6. Confirm owner lock, Wira identity, and safe local permissions.
 7. Start issuing real tasks from WhatsApp.
@@ -54,17 +54,17 @@ Recommended mapping:
 | --- | --- |
 | Owner WhatsApp chat | Wira |
 | Desktop app / installer | Wira |
-| Underlying runtime | Hermes (discoverable later, not forced first) |
+| Deeper system | Discoverable later, not forced first |
 
 The product should feel simple on day one while making the deeper Hermes path discoverable over time.
 
 ## Tool Connection Order
 
-1. WhatsApp channel.
-2. Brain/provider connection.
-3. Owner lock.
-4. Local permissions and safe defaults.
-5. Optional folders, browser, terminal, and skills.
+1. Connect ChatGPT.
+2. Connect WhatsApp.
+3. Confirm owner lock.
+4. Choose safe defaults.
+5. Optional deeper local access.
 6. Optional business workflow packs.
 
 Do not force advanced agent jargon in the first activation flow.
@@ -76,4 +76,4 @@ Do not force advanced agent jargon in the first activation flow.
 - One real task runs successfully on the connected machine.
 - Result comes back to WhatsApp clearly.
 - Safe defaults are visible: owner lock, permission boundaries, and reconnect path.
-- Buyer can discover that the same agent can later be opened in Desktop/CLI.
+- Buyer can discover deeper surfaces later without seeing that language first.

@@ -10,13 +10,13 @@ From the landing page, click **Start with Wira**. Stripe will take you through c
 
 After payment you're redirected to **/onboarding**. The target flow is simple:
 
-1. **Connect** — choose the machine and WhatsApp number this agent will live with.
-2. **Brain** — connect ChatGPT, an API key, or a local model.
-3. **Identity** — start with Wira by default, rename later if you want.
-4. **Access** — choose what the agent can touch: files, browser, terminal, folders.
-5. **Owner lock** — confirm who is allowed to issue commands.
+1. **Welcome** — confirm the WhatsApp number you will use to reach Wira.
+2. **Connect ChatGPT** — connect the ChatGPT subscription you already have.
+3. **Connect WhatsApp** — pair your phone through Linked Devices.
+4. **Safety** — choose when Wira should pause before risky actions.
+5. **Ready** — send your first real command from WhatsApp.
 
-The buyer should not need to learn Hermes vocabulary first. Wira should handle the scary bits and reveal the deeper path gradually.
+The buyer should not need to learn technical vocabulary first. Wira should handle the scary bits and reveal deeper power gradually.
 
 ## 3. Pair WhatsApp
 
@@ -41,6 +41,6 @@ The product is working when you get back a real tool-backed result — not just 
 
 - **QR doesn't appear?** Refresh the activation flow. If still nothing, the local runtime may not have finished booting yet.
 - **WhatsApp says "session expired"?** Re-scan the QR from Wira. Multi-device sessions can expire if your phone is offline for too long.
-- **The agent feels too limited.** Open the app settings and expand access deliberately — folders, browser, terminal, or advanced Hermes surfaces.
+- **The agent feels too limited.** Open the app settings and expand access deliberately when you are ready.
 
 See **[FAQ](./faq.md)** for more.

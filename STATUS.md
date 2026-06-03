@@ -1,6 +1,6 @@
 # Wira Status
 
-Updated: 2026-06-01
+Updated: 2026-06-03
 Mode: BUSINESS
 Canonical repo: `/Users/motwe/Wira`
 Remote: `git@github.com:twe-cloud/wira.git`
@@ -9,6 +9,8 @@ Public product page: `https://nibiashara.biz/products/wira/`
 ## Current state
 
 Wira is the productized WhatsApp assistant lane for small businesses.
+
+Product closeout pass on 2026-06-03 moved the public onboarding/site copy onto the Wira Local thesis: Wira runs on this computer, connects to the buyer's existing ChatGPT subscription, and is reached from WhatsApp. The site onboarding flow now follows Welcome → Connect ChatGPT → Connect WhatsApp → Safety → Ready, with human-first blocked-auth copy and no provider/model/tooling jargon in first-run surfaces.
 
 Two lanes stay separate:
 
@@ -57,8 +59,8 @@ Source-of-truth re-architecture plan:
 
 ## Next production closeout
 
-1. Rewrite product/site/runtime copy so Wira is positioned as a branded Hermes command surface, not a drafting bot.
-2. Replace Local onboarding steps centered on voice samples/reply mode with owner-lock, permissions, and Hermes-runtime setup.
+1. Finish the actual runtime bridge hardening so owner WhatsApp commands run through the real Wira/Hermes profile path with durable session/state receipts.
+2. Replace any remaining advanced/admin docs that still describe legacy responder setup as the primary Local flow.
 3. Rework the WhatsApp local transport so owner-issued messages become the primary command path.
 4. Bridge Wira into a real Hermes runtime/profile instead of the current single-prompt reply generator.
 5. Only then re-evaluate whether any responder/draft workflows remain worth keeping as an optional later mode.

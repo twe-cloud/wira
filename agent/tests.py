@@ -188,12 +188,39 @@ class GuiBootstrapTests(unittest.TestCase):
 
 
 class AuthMessageTests(unittest.TestCase):
-    def test_device_auth_help_message_mentions_security_setting_and_codex(self):
+    def test_device_auth_help_message_is_human_first(self):
         msg = auth.device_auth_help_message("Login timed out")
-        self.assertIn("device code authorization", msg)
-        self.assertIn("ChatGPT Security Settings", msg)
-        self.assertIn("codex login --device-auth", msg)
+        self.assertIn("One quick permission is needed", msg)
+        self.assertIn("Open ChatGPT", msg)
+        self.assertIn("Try again", msg)
+        self.assertNotIn("codex login", msg.lower())
+        self.assertNotIn("device code authorization", msg.lower())
         self.assertIn("Login timed out", msg)
+
+
+class SiteCopyTests(unittest.TestCase):
+    def test_first_run_site_copy_stays_nontechnical(self):
+        root = Path(__file__).resolve().parents[1]
+        paths = [
+            root / "site" / "src" / "pages" / "Onboarding.tsx",
+            root / "site" / "src" / "components" / "HowItWorks.tsx",
+            root / "site" / "src" / "lib" / "brand.ts",
+        ]
+        joined = "\n".join(path.read_text() for path in paths)
+        self.assertIn("Connect ChatGPT", joined)
+        self.assertIn("Connect WhatsApp", joined)
+        self.assertIn("Your agent lives on this computer", joined)
+        banned = [
+            "Claude",
+            "local model",
+            "local-model",
+            "provider",
+            "API key",
+            "CLI tabs",
+            "toolsets",
+        ]
+        for phrase in banned:
+            self.assertNotIn(phrase, joined, f"first-run copy leaks technical term: {phrase}")
 
 
 class BrainGuardTests(unittest.TestCase):

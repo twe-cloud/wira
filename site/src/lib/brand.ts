@@ -12,7 +12,7 @@ export const PRODUCT = {
   tagline: "Your first personal agent, reached from WhatsApp.",
   hook: "A real local agent on your computer. Your phone is just the fastest way in.",
   description:
-    "Wira is a branded path into a real Hermes agent that lives on your computer, is reached from WhatsApp, and grows with you from simple phone-first commands into deeper agentic work.",
+    "Wira sets up a personal agent on your computer, connects it to the ChatGPT subscription you already have, and lets you talk to it on WhatsApp.",
   supportEmail: "hello@wira.io",
   city: "Nairobi",
 };
@@ -29,8 +29,8 @@ export const PRICING = {
     "Lives on your own computer — not trapped in a browser tab",
     "Reach Wira from WhatsApp with a QR-paired setup",
     "Private owner/operator control surface by default",
-    "ChatGPT, Claude, GPT, or local-model brain options",
-    "A guided path into Hermes Desktop and CLI when you're ready",
+    "Uses the ChatGPT subscription you already have",
+    "Grows into deeper local agent work when you're ready",
   ],
 };
 
@@ -43,12 +43,12 @@ export const PILLARS = [
   {
     name: "Lives On Your Machine",
     body:
-      "The goal is not another hosted chat toy. Wira is the branded surface for a real local agent on your own computer, with the files, tools, and context you choose to unlock.",
+      "The goal is not another hosted chat toy. Wira is the branded surface for a real local agent on your own computer, with the local access you choose to unlock.",
   },
   {
     name: "Grows Into Hermes",
     body:
-      "You don't need to know about skills, tools, or CLI on day one. But when you're ready, Wira should open the door to the deeper Hermes surfaces instead of trapping you in a simplified shell forever.",
+      "You don't need to learn the deeper system on day one. Start with ChatGPT and WhatsApp; Wira can introduce more power later instead of trapping you in a simplified shell forever.",
   },
 ];
 
@@ -59,19 +59,19 @@ export const FAQS = [
   },
   {
     q: "Why not just use ChatGPT?",
-    a: "Because ChatGPT is still mostly a chat destination. Wira is the bridge into agentic work on your own machine — and it starts from your phone instead of making you learn the whole stack up front.",
+    a: "Because ChatGPT is still mostly a place you go to chat. Wira connects that subscription to an agent on your own computer and lets you reach it from your phone.",
   },
   {
     q: "What does Wira do?",
-    a: "Wira is both the product and the name you talk to on day one. It keeps the first experience simple: WhatsApp on your phone, a local agent on your computer, and a deeper Hermes path when you're ready.",
+    a: "Wira is both the product and the name you talk to on day one. It keeps the first experience simple: WhatsApp on your phone, ChatGPT connected, and a local agent on your computer.",
   },
   {
-    q: "Will I be able to use Hermes directly later?",
-    a: "Yes. That's part of the thesis. Wira should make Hermes Desktop and CLI discoverable organically once you're ready, instead of dropping all the agent jargon on you at the start.",
+    q: "Can it grow beyond the starter flow?",
+    a: "Yes. Wira starts simple on purpose, then can introduce deeper local-agent surfaces once you are ready.",
   },
   {
     q: "What about privacy?",
-    a: "The Local path is meant to run on your own machine with deliberate permissions. The goal is owner control: you choose what files, tools, browser actions, and automations the agent is allowed to touch.",
+    a: "The Local path is meant to run on your own machine with deliberate permissions. The goal is owner control: you choose what the agent is allowed to access and when it must ask first.",
   },
   {
     q: "Can other people talk to my agent?",

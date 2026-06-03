@@ -3,13 +3,13 @@
 Your first personal agent, reached from WhatsApp.
 
 Wira is not meant to be a glorified reply bot. The real thesis is simpler and
-stronger: **Wira** is a branded path into a real local Hermes agent that lives
-on your computer and is easiest to engage from your phone.
+stronger: **Wira** is a branded path into a real local agent that lives on your
+computer, connects to ChatGPT, and is easiest to engage from your phone.
 
 That means:
 
 - **Phone-first, computer-real.** You pair over WhatsApp so the first interaction feels familiar, but the real runtime lives on your machine.
-- **A bridge out of plain chat.** The buyer starts from a simple branded surface, then organically discovers Hermes Desktop, CLI, tools, skills, and local access over time.
+- **A bridge out of plain chat.** The buyer starts from a simple branded surface, then organically discovers deeper local-agent access over time.
 - **Owner/operator first.** The primary user is the owner talking to their own agent, not a public customer-reply lane by default.
 - **Wira by default.** The local starter identity can be friendly and branded, with rename available after setup.
 
@@ -30,11 +30,11 @@ then grows with the user into a deeper Hermes workflow.
 
 ## What Makes Wira Different
 
-- **It's the easiest first step into a real agent.** No need to begin with terminal tabs, profiles, or agent jargon.
-- **It still grows into Hermes.** Wira should not trap the buyer in a toy layer; it should gradually reveal the deeper runtime and tools.
+- **It's the easiest first step into a real agent.** No need to begin with technical setup language.
+- **It still grows.** Wira should not trap the buyer in a toy layer; it should gradually reveal deeper local-agent power.
 - **Lives on the buyer's machine.** The local path is about ownership, not another hosted chat widget.
 - **WhatsApp is the command surface, not the whole product.** The value is the local agent underneath.
-- **Your brain, your choice.** Runs on ChatGPT, Claude, GPT, or a fully local model via Ollama.
+- **Connect ChatGPT first.** Wira starts with the subscription the buyer already understands.
 
 ## Quick Start
 

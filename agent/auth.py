@@ -25,13 +25,13 @@ AUTH_DIR = Path.home() / ".wira"
 AUTH_FILE = AUTH_DIR / "auth.json"
 
 DEVICE_AUTH_ENABLE_HINT = (
-    "Enable device code authorization for Codex in ChatGPT Security Settings, "
-    'then run "codex login --device-auth" again.'
+    "One quick permission is needed.\n\n"
+    "Open ChatGPT, allow app sign-in for Wira on this computer, then return here and choose Try again."
 )
 
 
 def device_auth_help_message(detail: str | None = None) -> str:
-    base = DEVICE_AUTH_ENABLE_HINT
+    base = f"{DEVICE_AUTH_ENABLE_HINT}\n\nOpen ChatGPT\nTry again"
     if detail:
         return f"{base}\n\n{detail}"
     return base
