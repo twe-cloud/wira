@@ -1,6 +1,6 @@
 # Marketing + onboarding site
 
-The customer-facing site for the WhatsApp AI assistant product. Vite + React 19 + Tailwind 4 + Motion. Deploys to Netlify. Stripe Checkout for payments.
+The customer-facing site for Wira: a branded path into a real local Hermes agent that lives on the buyer's computer and is reached from WhatsApp. Vite + React 19 + Tailwind 4 + Motion. Deploys to Netlify. Stripe Checkout for payments.
 
 Designed to be drop-in portable to the main business site (vita) — same stack, same conventions.
 

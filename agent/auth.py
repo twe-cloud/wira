@@ -24,6 +24,18 @@ CODEX_BASE_URL = "https://chatgpt.com/backend-api/codex"
 AUTH_DIR = Path.home() / ".wira"
 AUTH_FILE = AUTH_DIR / "auth.json"
 
+DEVICE_AUTH_ENABLE_HINT = (
+    "Enable device code authorization for Codex in ChatGPT Security Settings, "
+    'then run "codex login --device-auth" again.'
+)
+
+
+def device_auth_help_message(detail: str | None = None) -> str:
+    base = DEVICE_AUTH_ENABLE_HINT
+    if detail:
+        return f"{base}\n\n{detail}"
+    return base
+
 
 def _load_auth() -> dict:
     if AUTH_FILE.exists():
@@ -114,7 +126,10 @@ def device_code_login() -> dict:
             headers={"Content-Type": "application/json"},
         )
     if resp.status_code != 200:
-        raise RuntimeError(f"Device code request failed (HTTP {resp.status_code})")
+        detail = f"Device code request failed (HTTP {resp.status_code})"
+        if resp.status_code in {401, 403}:
+            detail = device_auth_help_message(detail)
+        raise RuntimeError(detail)
 
     data = resp.json()
     user_code = data.get("user_code", "")
@@ -158,7 +173,7 @@ def device_code_login() -> dict:
         raise SystemExit(1)
 
     if code_resp is None:
-        raise RuntimeError("Login timed out")
+        raise RuntimeError(device_auth_help_message("Login timed out"))
 
     # Step 4: Exchange code for tokens
     auth_code = code_resp.get("authorization_code", "")
@@ -180,7 +195,10 @@ def device_code_login() -> dict:
         )
 
     if token_resp.status_code != 200:
-        raise RuntimeError(f"Token exchange failed (HTTP {token_resp.status_code})")
+        detail = f"Token exchange failed (HTTP {token_resp.status_code})"
+        if token_resp.status_code in {401, 403}:
+            detail = device_auth_help_message(detail)
+        raise RuntimeError(detail)
 
     tokens = token_resp.json()
     result = {

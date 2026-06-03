@@ -12,17 +12,17 @@ export default function Hero() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="inline-flex items-center gap-2 bg-accent-soft text-accent rounded-full px-3 py-1 text-xs font-medium">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent" /> Live on your personal WhatsApp
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent" /> Phone-first access to your local agent
           </div>
           <h1 className="mt-5 text-5xl sm:text-6xl leading-[1.02]">
-            Your WhatsApp,
+            Your first personal agent,
             <br />
-            <em className="italic">finally answered.</em>
+            <em className="italic">reached from WhatsApp.</em>
           </h1>
           <p className="mt-5 text-lg text-ink-muted max-w-xl">
-            {PRODUCT.name} is the assistant that replies on your number, in your
-            voice, while you work — and only pings you for the messages that
-            actually need you.
+            {PRODUCT.name} is a branded path into a real local Hermes agent.
+            It lives on your computer, starts from your phone, and grows with
+            you from simple commands into deeper agentic work.
           </p>
           <div className="mt-7 flex items-center gap-3 flex-wrap">
             <a href="#pricing" className="btn-primary">
@@ -33,7 +33,7 @@ export default function Hero() {
             </a>
           </div>
           <p className="mt-4 text-xs text-ink-muted">
-            Pair via QR code · Cancel anytime · Your chats stay yours.
+            Pair via QR code · Starts simple · Discover the deeper Hermes path later.
           </p>
         </motion.div>
 

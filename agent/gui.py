@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Wira — visual setup wizard and background agent.
 
-No terminal. No config files. Three screens:
-1. Sign in to ChatGPT
-2. Scan WhatsApp QR code
-3. "Wira is live — check your WhatsApp!"
+The product promise is simple:
+1. Wira runs on this computer.
+2. It connects to the user's existing ChatGPT account.
+3. It brings their agent to WhatsApp as fast as possible.
 
-After setup, Wira runs silently and onboards the user through WhatsApp itself.
+After setup, Wira keeps the local runtime available in the background.
 """
 
 import logging
@@ -14,9 +14,41 @@ import os
 import queue
 import sys
 import threading
-import tkinter as tk
 from io import BytesIO
 from pathlib import Path
+
+
+def _prime_tcl_tk_paths() -> None:
+    """Help uv-managed Python builds find bundled Tcl/Tk assets.
+
+    On this machine the Hermes venv uses a uv-installed CPython whose Tcl/Tk
+    libraries live under ``sys.base_prefix/lib`` rather than the traditional
+    venv-relative lookup paths Tk expects. Importing ``tkinter`` works, but
+    constructing ``tk.Tk()`` fails unless ``TCL_LIBRARY`` / ``TK_LIBRARY`` are
+    pointed at the real asset directories.
+    """
+    if os.environ.get("TCL_LIBRARY") and os.environ.get("TK_LIBRARY"):
+        return
+
+    base_prefix = Path(getattr(sys, "base_prefix", sys.prefix))
+    candidates = [
+        (base_prefix / "lib" / "tcl9.0", base_prefix / "lib" / "tk9.0"),
+        (base_prefix / "lib" / "tcl8.6", base_prefix / "lib" / "tk8.6"),
+        (base_prefix / "Library" / "lib" / "tcl8.6", base_prefix / "Library" / "lib" / "tk8.6"),
+    ]
+
+    for tcl_dir, tk_dir in candidates:
+        if not os.environ.get("TCL_LIBRARY") and (tcl_dir / "init.tcl").exists():
+            os.environ["TCL_LIBRARY"] = str(tcl_dir)
+        if not os.environ.get("TK_LIBRARY") and (tk_dir / "tk.tcl").exists():
+            os.environ["TK_LIBRARY"] = str(tk_dir)
+        if os.environ.get("TCL_LIBRARY") and os.environ.get("TK_LIBRARY"):
+            return
+
+
+_prime_tcl_tk_paths()
+
+import tkinter as tk
 
 from paths import ENV_FILE, RELEASES_URL, SESSION_DB_PATH, load_env, write_env
 
@@ -30,23 +62,31 @@ logging.basicConfig(
 )
 logger = logging.getLogger("wira.gui")
 
-# Brand colors
-BG = "#0d1a15"
-BG_CARD = "#132922"
-ACCENT = "#2e7d6e"
-ACCENT_LIGHT = "#5ee8c5"
-TEXT = "#e8ece9"
-TEXT_DIM = "#8fa69b"
+# Brand colors — warmer and more business-grade than the old green utility skin.
+BG = "#0d1422"
+BG_SOFT = "#162238"
+PANEL_BG = "#f4eee3"
+PANEL_ALT = "#ebe2d2"
+PANEL_EDGE = "#d8cab1"
+ACCENT = "#9f7a2f"
+ACCENT_DARK = "#6f5318"
+ACCENT_LIGHT = "#d6b268"
+TEXT = "#1a2233"
+TEXT_DIM = "#5f6472"
+TEXT_SOFT = "#8d7550"
 WHITE = "#ffffff"
+SUCCESS = "#35624d"
+ERROR = "#9a3f2f"
 
-FONT_TITLE = ("Helvetica Neue", 28, "bold")
-FONT_HEADING = ("Helvetica Neue", 18, "bold")
-FONT_BODY = ("Helvetica Neue", 14)
-FONT_SMALL = ("Helvetica Neue", 12)
-FONT_CODE = ("Menlo", 22, "bold")
+FONT_TITLE = ("Avenir Next", 30, "bold")
+FONT_HEADING = ("Avenir Next", 20, "bold")
+FONT_BODY = ("Avenir Next", 14)
+FONT_SMALL = ("Avenir Next", 12)
+FONT_EYEBROW = ("Avenir Next", 11, "bold")
+FONT_CODE = ("Menlo", 24, "bold")
 FONT_MONO = ("Menlo", 12)
 
-WIN_W, WIN_H = 520, 620
+WIN_W, WIN_H = 560, 700
 
 
 class WiraApp(tk.Tk):
@@ -82,6 +122,112 @@ class WiraApp(tk.Tk):
         for w in self.container.winfo_children():
             w.destroy()
 
+    def _panel(self):
+        panel = tk.Frame(
+            self.container,
+            bg=PANEL_BG,
+            highlightbackground=PANEL_EDGE,
+            highlightthickness=1,
+            bd=0,
+            padx=28,
+            pady=24,
+        )
+        panel.pack(fill="both", expand=True, padx=8, pady=10)
+        return panel
+
+    def _eyebrow(self, parent, text):
+        tk.Label(
+            parent,
+            text=text.upper(),
+            font=FONT_EYEBROW,
+            fg=TEXT_SOFT,
+            bg=PANEL_BG,
+            anchor="w",
+        ).pack(fill="x", pady=(0, 10))
+
+    def _headline(self, parent, text):
+        tk.Label(
+            parent,
+            text=text,
+            font=FONT_TITLE,
+            fg=TEXT,
+            bg=PANEL_BG,
+            justify="left",
+            anchor="w",
+            wraplength=460,
+        ).pack(fill="x", pady=(0, 10))
+
+    def _body(self, parent, text, *, small=False, fg=None, center=False, pady=(0, 12)):
+        tk.Label(
+            parent,
+            text=text,
+            font=FONT_SMALL if small else FONT_BODY,
+            fg=fg or TEXT_DIM,
+            bg=PANEL_BG,
+            justify="center" if center else "left",
+            anchor="center" if center else "w",
+            wraplength=460,
+        ).pack(fill="x", pady=pady)
+
+    def _bullet_row(self, parent, title, body):
+        row = tk.Frame(parent, bg=PANEL_ALT, padx=14, pady=12)
+        row.pack(fill="x", pady=6)
+        dot = tk.Canvas(row, width=14, height=14, bg=PANEL_ALT, highlightthickness=0)
+        dot.create_oval(2, 2, 12, 12, fill=ACCENT, outline=ACCENT)
+        dot.pack(side="left", padx=(0, 10), pady=3)
+        text_col = tk.Frame(row, bg=PANEL_ALT)
+        text_col.pack(side="left", fill="x", expand=True)
+        tk.Label(text_col, text=title, font=("Avenir Next", 13, "bold"), fg=TEXT, bg=PANEL_ALT, anchor="w").pack(fill="x")
+        tk.Label(text_col, text=body, font=FONT_SMALL, fg=TEXT_DIM, bg=PANEL_ALT, anchor="w", justify="left", wraplength=390).pack(fill="x", pady=(2, 0))
+
+    def _step_row(self, parent, number, title, body):
+        row = tk.Frame(parent, bg=PANEL_ALT, padx=14, pady=12)
+        row.pack(fill="x", pady=6)
+        badge = tk.Label(row, text=str(number), font=("Avenir Next", 13, "bold"), fg=WHITE, bg=ACCENT_DARK, width=2)
+        badge.pack(side="left", padx=(0, 12), pady=2)
+        text_col = tk.Frame(row, bg=PANEL_ALT)
+        text_col.pack(side="left", fill="x", expand=True)
+        tk.Label(text_col, text=title, font=("Avenir Next", 13, "bold"), fg=TEXT, bg=PANEL_ALT, anchor="w").pack(fill="x")
+        tk.Label(text_col, text=body, font=FONT_SMALL, fg=TEXT_DIM, bg=PANEL_ALT, anchor="w", justify="left", wraplength=390).pack(fill="x", pady=(2, 0))
+
+    def _primary_button(self, parent, text, command, *, pady=(10, 0)):
+        btn = tk.Button(
+            parent,
+            text=text,
+            font=("Avenir Next", 14, "bold"),
+            fg=WHITE,
+            bg=ACCENT_DARK,
+            activebackground=ACCENT,
+            activeforeground=WHITE,
+            relief="flat",
+            bd=0,
+            padx=20,
+            pady=12,
+            cursor="hand2",
+            command=command,
+        )
+        btn.pack(fill="x", pady=pady)
+        return btn
+
+    def _secondary_button(self, parent, text, command, *, pady=(10, 0)):
+        btn = tk.Button(
+            parent,
+            text=text,
+            font=FONT_BODY,
+            fg=TEXT,
+            bg=PANEL_ALT,
+            activebackground=PANEL_EDGE,
+            activeforeground=TEXT,
+            relief="flat",
+            bd=0,
+            padx=20,
+            pady=10,
+            cursor="hand2",
+            command=command,
+        )
+        btn.pack(fill="x", pady=pady)
+        return btn
+
     def _poll_events(self):
         try:
             while True:
@@ -107,42 +253,44 @@ class WiraApp(tk.Tk):
 
     def _show_welcome(self):
         self._clear()
-        f = self.container
+        f = self._panel()
 
-        tk.Label(f, text="Wira", font=FONT_TITLE, fg=ACCENT_LIGHT, bg=BG).pack(pady=(40, 5))
-        tk.Label(f, text="Your AI assistant on WhatsApp", font=FONT_BODY, fg=TEXT_DIM, bg=BG).pack(pady=(0, 40))
+        self._eyebrow(f, "Wira Local")
+        self._headline(f, "Talk to your agent on WhatsApp")
+        self._body(
+            f,
+            "Wira sets up a personal agent on this computer, connects it to your ChatGPT subscription, and brings it to WhatsApp as fast as possible.",
+            pady=(0, 18),
+        )
 
-        tk.Label(f, text="Two quick steps:", font=FONT_HEADING, fg=TEXT, bg=BG, anchor="w").pack(fill="x", pady=(0, 15))
+        self._bullet_row(f, "Runs on this computer", "That is what lets your agent do real work for you instead of acting like a toy chat window.")
+        self._bullet_row(f, "Uses the ChatGPT account you already pay for", "You connect once, then Wira keeps using that subscription as your agent's brain.")
+        self._bullet_row(f, "Starts on WhatsApp", "Your phone becomes the easiest way to talk to your agent while the actual work happens here.")
 
-        steps_frame = tk.Frame(f, bg=BG)
-        steps_frame.pack(fill="x", pady=(0, 30))
-        for i, step in enumerate(["Sign in to ChatGPT", "Scan WhatsApp QR code"], 1):
-            row = tk.Frame(steps_frame, bg=BG)
-            row.pack(fill="x", pady=5)
-            tk.Label(row, text=f"{i}", font=("Helvetica Neue", 14, "bold"),
-                     fg=BG, bg=ACCENT_LIGHT, width=2, height=1).pack(side="left", padx=(0, 12))
-            tk.Label(row, text=step, font=FONT_BODY, fg=TEXT, bg=BG, anchor="w").pack(side="left")
+        self._body(f, "Setup takes two steps.", fg=TEXT, small=True, pady=(20, 8))
+        self._step_row(f, 1, "Connect ChatGPT", "Approve Wira to use your existing ChatGPT subscription.")
+        self._step_row(f, 2, "Connect WhatsApp", "Scan one code so you can start texting your agent immediately.")
 
-        tk.Label(f, text="Then Wira handles your WhatsApp.\nIt learns your voice, drafts replies, and never\nsends without your say-so.",
-                 font=FONT_SMALL, fg=TEXT_DIM, bg=BG, justify="center").pack(pady=(0, 30))
-
-        btn = tk.Button(f, text="Get Started", font=FONT_HEADING, fg=BG, bg=ACCENT_LIGHT,
-                        activebackground=ACCENT, activeforeground=WHITE, relief="flat",
-                        padx=40, pady=12, cursor="hand2", command=self._start_chatgpt_login)
-        btn.pack()
+        self._primary_button(f, "Set up my agent", self._start_chatgpt_login, pady=(22, 0))
 
     # ─── Screen: ChatGPT sign-in ───────────────────────────────
 
     def _start_chatgpt_login(self):
         self._clear()
-        f = self.container
+        f = self._panel()
 
-        tk.Label(f, text="Step 1 of 2", font=FONT_SMALL, fg=TEXT_DIM, bg=BG).pack(pady=(20, 5))
-        tk.Label(f, text="Sign in to ChatGPT", font=FONT_HEADING, fg=TEXT, bg=BG).pack(pady=(0, 20))
-        tk.Label(f, text="Connecting to OpenAI...", font=FONT_BODY, fg=TEXT_DIM, bg=BG).pack(pady=20)
+        self._eyebrow(f, "Step 1 of 2")
+        self._headline(f, "Connect ChatGPT")
+        self._body(
+            f,
+            "Wira is opening a secure sign-in flow so it can use your existing ChatGPT subscription as your agent's brain.",
+            pady=(0, 18),
+        )
+        self._bullet_row(f, "One-time connection", "You approve Wira once, then come straight back here.")
+        self._bullet_row(f, "No technical setup", "You do not need to learn tools, models, or settings to finish this step.")
 
-        self._chatgpt_status = tk.Label(f, text="", font=FONT_SMALL, fg=TEXT_DIM, bg=BG)
-        self._chatgpt_status.pack(pady=10)
+        self._chatgpt_status = tk.Label(f, text="Preparing your sign-in code…", font=FONT_BODY, fg=TEXT_SOFT, bg=PANEL_BG)
+        self._chatgpt_status.pack(fill="x", pady=(18, 0))
 
         # Start login in background
         threading.Thread(target=self._chatgpt_login_thread, daemon=True).start()
@@ -151,7 +299,7 @@ class WiraApp(tk.Tk):
         try:
             from auth import (
                 OAUTH_ISSUER, OAUTH_CLIENT_ID, OAUTH_TOKEN_URL,
-                _save_auth, is_logged_in, get_access_token,
+                _save_auth, is_logged_in, get_access_token, device_auth_help_message,
             )
             import httpx
             import time
@@ -172,7 +320,10 @@ class WiraApp(tk.Tk):
                     headers={"Content-Type": "application/json"},
                 )
             if resp.status_code != 200:
-                self.event_queue.put(("chatgpt_error", f"Could not reach OpenAI (HTTP {resp.status_code})"))
+                detail = f"Could not reach OpenAI (HTTP {resp.status_code})"
+                if resp.status_code in {401, 403}:
+                    detail = device_auth_help_message(detail)
+                self.event_queue.put(("chatgpt_error", detail))
                 return
 
             data = resp.json()
@@ -201,7 +352,7 @@ class WiraApp(tk.Tk):
                         continue
 
             if code_resp is None:
-                self.event_queue.put(("chatgpt_error", "Sign-in timed out. Please restart and try again."))
+                self.event_queue.put(("chatgpt_error", device_auth_help_message("Sign-in timed out.")))
                 return
 
             # Exchange code for tokens
@@ -222,7 +373,10 @@ class WiraApp(tk.Tk):
                 )
 
             if token_resp.status_code != 200:
-                self.event_queue.put(("chatgpt_error", "Token exchange failed. Please try again."))
+                detail = f"Token exchange failed (HTTP {token_resp.status_code})"
+                if token_resp.status_code in {401, 403}:
+                    detail = device_auth_help_message(detail)
+                self.event_queue.put(("chatgpt_error", detail))
                 return
 
             tokens = token_resp.json()
@@ -241,35 +395,40 @@ class WiraApp(tk.Tk):
 
     def _show_chatgpt_code(self, data):
         self._clear()
-        f = self.container
+        f = self._panel()
         code = data["code"]
         url = data["url"]
 
-        tk.Label(f, text="Step 1 of 2", font=FONT_SMALL, fg=TEXT_DIM, bg=BG).pack(pady=(20, 5))
-        tk.Label(f, text="Sign in to ChatGPT", font=FONT_HEADING, fg=TEXT, bg=BG).pack(pady=(0, 25))
-
-        tk.Label(f, text="Enter this code:", font=FONT_BODY, fg=TEXT_DIM, bg=BG).pack(pady=(0, 10))
+        self._eyebrow(f, "Step 1 of 2")
+        self._headline(f, "Finish connecting ChatGPT")
+        self._body(f, "Open ChatGPT in your browser, enter this code, and come right back here.", pady=(0, 18))
 
         # Big code display
-        code_frame = tk.Frame(f, bg=BG_CARD, padx=30, pady=15)
+        code_frame = tk.Frame(f, bg=BG_SOFT, padx=30, pady=18)
         code_frame.pack(pady=(0, 20))
-        code_label = tk.Label(code_frame, text=code, font=FONT_CODE, fg=ACCENT_LIGHT, bg=BG_CARD)
+        code_label = tk.Label(code_frame, text=code, font=FONT_CODE, fg=WHITE, bg=BG_SOFT)
         code_label.pack()
 
-        tk.Label(f, text="at", font=FONT_BODY, fg=TEXT_DIM, bg=BG).pack(pady=(0, 5))
+        self._body(f, "Use this page:", small=True, fg=TEXT_SOFT, pady=(0, 6))
 
         # URL (clickable)
-        url_label = tk.Label(f, text=url, font=FONT_MONO, fg=ACCENT_LIGHT, bg=BG,
+        url_label = tk.Label(f, text=url, font=FONT_MONO, fg=ACCENT_DARK, bg=PANEL_BG,
                              cursor="hand2")
-        url_label.pack(pady=(0, 15))
+        url_label.pack(pady=(0, 10))
         url_label.bind("<Button-1>", lambda e: self._open_url(url))
 
-        btn = tk.Button(f, text="Open Browser", font=FONT_BODY, fg=BG, bg=ACCENT_LIGHT,
-                        activebackground=ACCENT, activeforeground=WHITE, relief="flat",
-                        padx=20, pady=8, cursor="hand2", command=lambda: self._open_url(url))
-        btn.pack(pady=(0, 25))
+        self._body(
+            f,
+            "If ChatGPT says app sign-in is blocked, open ChatGPT settings, allow app sign-in, then come back here and try again.",
+            small=True,
+            fg=TEXT_DIM,
+            pady=(0, 14),
+        )
 
-        self._waiting_label = tk.Label(f, text="Waiting for sign-in...", font=FONT_SMALL, fg=TEXT_DIM, bg=BG)
+        self._primary_button(f, "Open ChatGPT", lambda: self._open_url(url), pady=(0, 12))
+        self._secondary_button(f, "Try again", self._start_chatgpt_login, pady=(0, 18))
+
+        self._waiting_label = tk.Label(f, text="Waiting for sign-in...", font=FONT_SMALL, fg=TEXT_SOFT, bg=PANEL_BG)
         self._waiting_label.pack()
         self._animate_waiting()
 
@@ -283,26 +442,38 @@ class WiraApp(tk.Tk):
 
     def _show_chatgpt_error(self, msg):
         self._clear()
-        f = self.container
-        tk.Label(f, text="Something went wrong", font=FONT_HEADING, fg="#e74c3c", bg=BG).pack(pady=(60, 20))
-        tk.Label(f, text=msg, font=FONT_BODY, fg=TEXT_DIM, bg=BG, wraplength=400).pack(pady=(0, 30))
-        tk.Button(f, text="Try Again", font=FONT_BODY, fg=BG, bg=ACCENT_LIGHT,
-                  relief="flat", padx=20, pady=8, cursor="hand2",
-                  command=self._start_chatgpt_login).pack()
+        f = self._panel()
+        self._eyebrow(f, "Connection issue")
+        self._headline(f, "One quick permission is needed")
+        self._body(
+            f,
+            "Your ChatGPT account is blocking app sign-in right now. This is usually a normal account setting, not a problem with your computer.",
+            pady=(0, 16),
+        )
+        self._body(f, str(msg), small=True, fg=TEXT_DIM, pady=(0, 18))
+        self._step_row(f, 1, "Open ChatGPT settings", "Allow app sign-in for ChatGPT, then come back here.")
+        self._step_row(f, 2, "Try again", "Wira will request a fresh code and keep waiting for you.")
+        self._primary_button(f, "Try again", self._start_chatgpt_login, pady=(18, 8))
+        self._secondary_button(f, "Open ChatGPT", lambda: self._open_url("https://chatgpt.com/"), pady=(0, 0))
 
     # ─── Screen: WhatsApp QR ───────────────────────────────────
 
     def _show_whatsapp(self):
         self._clear()
-        f = self.container
+        f = self._panel()
 
-        tk.Label(f, text="Step 2 of 2", font=FONT_SMALL, fg=TEXT_DIM, bg=BG).pack(pady=(20, 5))
-        tk.Label(f, text="Connect WhatsApp", font=FONT_HEADING, fg=TEXT, bg=BG).pack(pady=(0, 15))
-        tk.Label(f, text="Scan this QR code with WhatsApp", font=FONT_BODY, fg=TEXT_DIM, bg=BG).pack(pady=(0, 5))
-        tk.Label(f, text="Settings > Linked Devices > Link a Device", font=FONT_SMALL, fg=TEXT_DIM, bg=BG).pack(pady=(0, 15))
+        self._eyebrow(f, "Step 2 of 2")
+        self._headline(f, "Connect WhatsApp")
+        self._body(f, "Scan this code from WhatsApp to start talking to your agent.", pady=(0, 16))
+        self._step_row(f, 1, "Open WhatsApp", "Go to Settings, then Linked Devices.")
+        self._step_row(f, 2, "Tap Link a Device", "Point your phone at the code shown here.")
 
-        self._qr_label = tk.Label(f, text="Generating QR code...", font=FONT_SMALL, fg=TEXT_DIM, bg=BG)
-        self._qr_label.pack(pady=20)
+        qr_shell = tk.Frame(f, bg=PANEL_ALT, padx=18, pady=18)
+        qr_shell.pack(pady=18)
+        self._qr_label = tk.Label(qr_shell, text="Generating QR code...", font=FONT_SMALL, fg=TEXT_SOFT, bg=PANEL_ALT)
+        self._qr_label.pack()
+
+        self._body(f, "WhatsApp is simply the chat window. Your agent itself still lives on this computer.", small=True, fg=TEXT_DIM, center=True, pady=(4, 0))
 
         # Write default .env if none exists
         self._ensure_env()
@@ -316,8 +487,11 @@ class WiraApp(tk.Tk):
             write_env([
                 "LLM_PROVIDER=chatgpt",
                 "OWNER_NAME=there",
-                "ASSISTANT_NAME=Wira",
-                "APPROVAL_MODE=draft",
+                "ASSISTANT_NAME=Vera",
+                "WIRA_OWNER_LOCK_ENABLED=true",
+                "WIRA_EXTERNAL_MODE=ignore",
+                "WIRA_PERMISSION_PRESET=balanced",
+                "WIRA_REQUIRE_CONFIRMATION=true",
                 "DISCLOSE_AI=true",
             ])
 
@@ -365,7 +539,7 @@ class WiraApp(tk.Tk):
                                 error_correction=qrcode.constants.ERROR_CORRECT_M)
             qr.add_data(qr_data)
             qr.make(fit=True)
-            img = qr.make_image(fill_color="#ffffff", back_color=BG_CARD)
+            img = qr.make_image(fill_color="#111111", back_color="#f7f0e4")
             img = img.resize((280, 280), Image.NEAREST)
 
             self._qr_photo = ImageTk.PhotoImage(img)
@@ -373,26 +547,23 @@ class WiraApp(tk.Tk):
 
         except ImportError:
             # Fallback: show the data as text
-            self._qr_label.config(text="QR code ready.\nOpen WhatsApp > Linked Devices\nand scan the code in the terminal.",
+            self._qr_label.config(text="QR code ready.\nOpen WhatsApp > Linked Devices\nand scan the code shown in this window.",
                                   font=FONT_SMALL, fg=TEXT_DIM)
 
     # ─── Screen: Live ──────────────────────────────────────────
 
     def _show_live(self):
         self._clear()
-        f = self.container
+        f = self._panel()
 
-        tk.Label(f, text="✓", font=("Helvetica Neue", 64), fg=ACCENT_LIGHT, bg=BG).pack(pady=(50, 10))
-        tk.Label(f, text="Wira is live!", font=FONT_TITLE, fg=TEXT, bg=BG).pack(pady=(0, 15))
-        tk.Label(f, text="Check your WhatsApp — Wira will\nmessage you to finish setting up.",
-                 font=FONT_BODY, fg=TEXT_DIM, bg=BG, justify="center").pack(pady=(0, 30))
-        tk.Label(f, text="You can close this window.\nWira keeps running in the background.",
-                 font=FONT_SMALL, fg=TEXT_DIM, bg=BG, justify="center").pack(pady=(0, 30))
-
-        tk.Button(f, text="Close", font=FONT_BODY, fg=TEXT_DIM, bg=BG_CARD,
-                  activebackground=ACCENT, activeforeground=WHITE, relief="flat",
-                  padx=20, pady=8, cursor="hand2",
-                  command=self._minimize_and_run).pack()
+        self._eyebrow(f, "Connected")
+        tk.Label(f, text="✓", font=("Avenir Next", 64), fg=SUCCESS, bg=PANEL_BG).pack(pady=(8, 6))
+        self._headline(f, "Your agent is ready")
+        self._body(f, "Open WhatsApp and send your first message. Vera will answer there.", center=True, pady=(0, 18))
+        self._step_row(f, 1, "Try: What's on my calendar today?", "A fast first proof that your agent can help with real work.")
+        self._step_row(f, 2, "Try: Find the latest invoice in Downloads", "A simple way to show that your agent lives on this computer, not just in chat.")
+        self._body(f, "You can close this window after this. Wira keeps your local agent available in the background.", small=True, fg=TEXT_DIM, center=True, pady=(18, 14))
+        self._primary_button(f, "I'll message my agent now", self._minimize_and_run, pady=(0, 0))
 
         # Auto-start on login
         self._install_autostart()
@@ -406,27 +577,17 @@ class WiraApp(tk.Tk):
     def _show_running(self):
         """Shown when app opens and Wira is already set up."""
         self._clear()
-        f = self.container
+        f = self._panel()
 
-        tk.Label(f, text="Wira", font=FONT_TITLE, fg=ACCENT_LIGHT, bg=BG).pack(pady=(50, 10))
-        tk.Label(f, text="Running", font=FONT_HEADING, fg=ACCENT_LIGHT, bg=BG).pack(pady=(0, 20))
-        tk.Label(f, text="Wira is connected to your WhatsApp\nand handling messages.",
-                 font=FONT_BODY, fg=TEXT_DIM, bg=BG, justify="center").pack(pady=(0, 30))
+        self._eyebrow(f, "Wira Local")
+        self._headline(f, "Your agent is already running")
+        self._body(f, "Wira is connected and ready for WhatsApp messages from you.", pady=(0, 18))
+        self._bullet_row(f, "Talk on WhatsApp", "That stays the simplest way to reach your agent from anywhere.")
+        self._bullet_row(f, "Leave Wira installed", "Your computer is where the work happens, so keeping Wira available keeps your agent available.")
 
-        tk.Button(f, text="Reconnect WhatsApp", font=FONT_BODY, fg=BG, bg=ACCENT_LIGHT,
-                  activebackground=ACCENT, activeforeground=WHITE, relief="flat",
-                  padx=20, pady=8, cursor="hand2",
-                  command=self._show_whatsapp).pack(pady=(0, 10))
-
-        tk.Button(f, text="Check for Updates", font=FONT_BODY, fg=TEXT, bg=BG_CARD,
-                  activebackground=ACCENT, activeforeground=WHITE, relief="flat",
-                  padx=20, pady=8, cursor="hand2",
-                  command=lambda: self._open_url(RELEASES_URL)).pack(pady=(0, 10))
-
-        tk.Button(f, text="Quit Wira", font=FONT_SMALL, fg=TEXT_DIM, bg=BG_CARD,
-                  activebackground="#3a1515", activeforeground="#e74c3c", relief="flat",
-                  padx=15, pady=6, cursor="hand2",
-                  command=self.destroy).pack(pady=(10, 0))
+        self._primary_button(f, "Reconnect WhatsApp", self._show_whatsapp, pady=(18, 8))
+        self._secondary_button(f, "Check for Updates", lambda: self._open_url(RELEASES_URL), pady=(0, 8))
+        self._secondary_button(f, "Quit Wira", self.destroy, pady=(0, 0))
 
         # Start agent in background
         threading.Thread(target=self._start_agent, daemon=True).start()
@@ -438,15 +599,13 @@ class WiraApp(tk.Tk):
             import config as _cfg
             importlib.reload(_cfg)
 
-            from brain import Brain
             from drafts import Drafts
-            from memory import Memory
+            from runtime_bridge import HermesRuntime
             from whatsapp import WhatsApp
 
-            memory = Memory()
+            runtime = HermesRuntime()
             drafts = Drafts()
-            brain = Brain(memory)
-            wa = WhatsApp(brain, drafts)
+            wa = WhatsApp(runtime, drafts)
             wa.run()
         except Exception as e:
             logger.exception("Agent error: %s", e)

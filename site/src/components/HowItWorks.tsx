@@ -1,21 +1,21 @@
 const STEPS = [
   {
     n: "01",
-    title: "Connect your WhatsApp",
+    title: "Connect a brain",
     body:
-      "Scan a QR code from WhatsApp → Linked Devices. Same way you'd connect WhatsApp Web. Takes about 60 seconds.",
+      "Start with ChatGPT, Claude, GPT, or a local model. Wira handles the setup path so you don't need to learn agent infrastructure first.",
   },
   {
     n: "02",
-    title: "Teach it your voice",
+    title: "Pair WhatsApp",
     body:
-      "Paste three recent replies you've written. It picks up your phrasing, your emojis, your “lol noted.” Or skip and use a warm default.",
+      "Scan a QR code from WhatsApp → Linked Devices. Same low-friction move as WhatsApp Web, but now it becomes the doorway into your local agent.",
   },
   {
     n: "03",
-    title: "Choose who it answers",
+    title: "Unlock real work",
     body:
-      "By default, it drafts a reply for every message and pings you to approve. Promote contacts to auto-send once you trust it with them.",
+      "Confirm owner lock and safe permissions. Then start issuing real commands from your phone while the actual runtime lives on your computer.",
   },
 ];
 
@@ -23,10 +23,11 @@ export default function HowItWorks() {
   return (
     <section id="how" className="container-prose py-20">
       <div className="max-w-2xl">
-        <h2 className="text-4xl">Live in five minutes.</h2>
+        <h2 className="text-4xl">A softer path into agentic work.</h2>
         <p className="mt-3 text-ink-muted text-lg">
-          No new app for your contacts. No new number to share. Same WhatsApp
-          they already use to reach you.
+          No need to begin with CLI tabs, profiles, tools, and skills. Wira lets
+          you start from your phone, then grow into the deeper Hermes surfaces
+          when you're ready.
         </p>
       </div>
       <ol className="mt-12 grid md:grid-cols-3 gap-5">

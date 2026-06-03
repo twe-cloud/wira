@@ -41,7 +41,7 @@ function save(s: State) {
   }
 }
 
-const STEPS = ["Connect", "Voice", "Contacts", "Approval", "First reply"];
+const STEPS = ["Connect", "Brain", "Permissions", "Safety", "Pairing"];
 
 export default function Onboarding() {
   const [state, setState] = useState<State>(load);
@@ -121,8 +121,9 @@ export default function Onboarding() {
         </AnimatePresence>
 
         <p className="mt-6 text-xs text-ink-muted text-center">
-          Your answers are saved locally as you go. Nothing's submitted until
-          you click finish.
+          This preview flow is being realigned around the branded-Hermes thesis.
+          The important promise is a local agent you can grow with — not a draft
+          bot disguised as one.
         </p>
       </main>
       <Footer />
@@ -141,10 +142,11 @@ function Step1Connect({
 }) {
   return (
     <>
-      <h2 className="text-3xl">Connect your WhatsApp</h2>
+      <h2 className="text-3xl">Choose where your agent will live</h2>
       <p className="mt-2 text-ink-muted">
-        Enter the WhatsApp number {PRODUCT.name} will live on. We'll send you a
-        magic link to scan the QR code from your phone.
+        Enter the WhatsApp number you will use to reach {PRODUCT.name}. This is
+        the control surface, not the whole product — the real runtime should
+        live on your computer.
       </p>
       <label className="block mt-6 text-sm font-medium">WhatsApp number</label>
       <input
@@ -157,8 +159,8 @@ function Step1Connect({
         className="mt-2 w-full bg-canvas border border-border rounded-xl px-4 py-3 text-base focus:outline-none"
       />
       <p className="mt-2 text-xs text-ink-muted">
-        Include the country code. We never message this number — only use it to
-        link your assistant.
+        Include the country code. This number is how you reach your agent after
+        pairing.
       </p>
       <div className="mt-6 flex justify-end">
         <button
@@ -166,7 +168,7 @@ function Step1Connect({
           onClick={onNext}
           className="btn-primary disabled:opacity-40"
         >
-          Send me the link →
+          Continue →
         </button>
       </div>
     </>
@@ -186,16 +188,18 @@ function Step2Voice({
 }) {
   return (
     <>
-      <h2 className="text-3xl">Teach it your voice</h2>
+      <h2 className="text-3xl">Connect a brain</h2>
       <p className="mt-2 text-ink-muted">
-        Paste 3-5 recent replies you've sent on WhatsApp. {PRODUCT.name} will
-        mirror your phrasing, emojis, and pacing. You can update this later.
+        This screen is still using older preview fields underneath, but the
+        product direction is now clear: the setup should connect a real brain
+        and local runtime, not teach a texting persona. For now, think of this
+        as the placeholder step where your model/provider path gets wired in.
       </p>
       <textarea
         value={samples}
         onChange={(e) => setSamples(e.target.value)}
         rows={8}
-        placeholder={"e.g.\n\nsure, sending now 🤝\nhaha yes lemme check\nWill loop back tomorrow AM, sound good?"}
+        placeholder={"Temporary preview field.\n\nFinal flow should connect ChatGPT, Claude, GPT, or a local model here."}
         className="mt-6 w-full bg-canvas border border-border rounded-xl px-4 py-3 text-base focus:outline-none font-mono"
       />
       <div className="mt-6 flex justify-between">
@@ -203,7 +207,7 @@ function Step2Voice({
           Back
         </button>
         <button onClick={onNext} className="btn-primary">
-          {samples.trim() ? "Continue →" : "Skip — use default warm tone"}
+          Continue →
         </button>
       </div>
     </>
@@ -224,26 +228,28 @@ function Step3Contacts({
   const options: { id: State["contactPolicy"]; title: string; body: string }[] = [
     {
       id: "whitelist",
-      title: "Only specific contacts (recommended)",
-      body: "Pick who can get replies. Safest start — promote contacts as you build trust.",
+      title: "Tight access (recommended)",
+      body: "This placeholder maps closest to the future owner-lock + narrow-permissions setup.",
     },
     {
       id: "all-except",
-      title: "Everyone except a blocklist",
-      body: "Replies to all incoming DMs except contacts you explicitly exclude.",
+      title: "Wider access with exceptions",
+      body: "Useful only as a future advanced mode. The default product should remain owner-first and private.",
     },
     {
       id: "everyone",
-      title: "Everyone who DMs you",
-      body: "Maximum coverage. Best for high-volume operators who triage later.",
+      title: "Open surface",
+      body: "Not the intended Local default. Public access should stay out of the main product thesis.",
     },
   ];
 
   return (
     <>
-      <h2 className="text-3xl">Who can it answer?</h2>
+      <h2 className="text-3xl">Set access boundaries</h2>
       <p className="mt-2 text-ink-muted">
-        Group chats are off by default. You can change this any time.
+        The real product needs owner lock plus deliberate access boundaries for
+        files, tools, browser, and terminal. This preview still shows the older
+        choice structure, but the meaning has changed.
       </p>
       <div className="mt-6 space-y-3">
         {options.map((o) => (
@@ -291,26 +297,27 @@ function Step4Approval({
   const options: { id: State["approvalMode"]; title: string; body: string }[] = [
     {
       id: "draft",
-      title: "Always draft, ask me to send",
-      body: "Safest. You approve every reply with one tap. Recommended for week one.",
+      title: "Most cautious",
+      body: "Closest to the future permission-first posture: safer defaults before deeper autonomy is unlocked.",
     },
     {
       id: "auto-trusted",
-      title: "Auto-send for trusted contacts, draft for everyone else",
-      body: "Best of both. Promote contacts to trusted as you build confidence.",
+      title: "Balanced trust",
+      body: "Represents a later mode where the agent can do more once the owner is confident in it.",
     },
     {
       id: "auto-all",
-      title: "Auto-send for everyone",
-      body: "Hands-free. We still escalate edge cases to you.",
+      title: "Advanced autonomy",
+      body: "Should only come after the real Hermes runtime, owner lock, and permission controls are working clearly.",
     },
   ];
 
   return (
     <>
-      <h2 className="text-3xl">How much trust to start with?</h2>
+      <h2 className="text-3xl">Choose a safe starting posture</h2>
       <p className="mt-2 text-ink-muted">
-        You can change this mid-conversation. Every reply has an edit button.
+        The long-term product should talk about permissions and autonomy, not
+        draft replies. This preview step is being repurposed in that direction.
       </p>
       <div className="mt-6 space-y-3">
         {options.map((o) => (
@@ -352,16 +359,17 @@ function Step5Done({ state, onBack }: { state: State; onBack: () => void }) {
       </div>
       <h2 className="mt-4 text-3xl">You're set.</h2>
       <p className="mt-2 text-ink-muted">
-        We've emailed a one-time link to activate {PRODUCT.name} on{" "}
-        <span className="text-ink font-medium">{state.phone || "your number"}</span>.
-        Open it from your phone to scan the QR — that's the final step.
+        The intended finish line is simple: pair WhatsApp, start with Vera, and
+        send your first real command into a local agent that can later open into
+        Hermes Desktop and CLI.
       </p>
       <div className="mt-6 bg-canvas border border-border rounded-xl p-4 text-sm">
-        <div className="font-medium mb-2">Your settings</div>
+        <div className="font-medium mb-2">Current preview summary</div>
         <ul className="text-ink-muted space-y-1">
-          <li>Voice: {state.voiceSamples.trim() ? "trained from samples" : "default warm tone"}</li>
-          <li>Contacts: {state.contactPolicy}</li>
-          <li>Approval: {state.approvalMode}</li>
+          <li>Control surface: {state.phone || "your WhatsApp"}</li>
+          <li>Brain step placeholder: {state.voiceSamples.trim() ? "configured in preview" : "still to be wired"}</li>
+          <li>Access posture: {state.contactPolicy}</li>
+          <li>Safety posture: {state.approvalMode}</li>
         </ul>
       </div>
       <div className="mt-6 flex justify-between">

@@ -24,10 +24,10 @@ export default function Pricing() {
   return (
     <section id="pricing" className="container-prose py-20">
       <div className="max-w-2xl mx-auto text-center">
-        <h2 className="text-4xl">One price. No upsell.</h2>
+        <h2 className="text-4xl">One price. No fake simplification.</h2>
         <p className="mt-3 text-ink-muted text-lg">
-          Cancel anytime. Includes everything {PRODUCT.name} does today and
-          everything we ship next.
+          You're paying for the easiest path into owning a real local agent —
+          not for another hosted chat widget.
         </p>
       </div>
 
@@ -69,7 +69,7 @@ export default function Pricing() {
           <span className="text-ink-muted">{tier.per}</span>
         </div>
         <p className="mt-1 text-sm text-ink-muted">
-          Billed {annual ? "yearly" : "monthly"} · USD · cancel from your account at any time
+          Billed {annual ? "yearly" : "monthly"} · USD · your bridge into local agent ownership
         </p>
 
         <ul className="mt-6 space-y-3">

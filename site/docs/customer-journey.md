@@ -1,17 +1,25 @@
 # Wira Customer Journey
 
-Updated: 2026-06-01
+Updated: 2026-06-03
+
+## Product thesis
+
+Wira is not a WhatsApp auto-reply bot.
+
+Wira is a branded path into real agentic work:
+- a local agent that lives on the buyer's computer
+- reached from the buyer's phone over WhatsApp
+- powered by a real Hermes runtime under Wira branding
+- designed so the buyer can grow naturally into Hermes Desktop, CLI, tools, skills, and local access over time
 
 ## Product Split
 
 Wira has two activation paths:
 
-- **Wira Local:** owner-controlled install. The buyer downloads Wira, connects
-  a brain, scans a WhatsApp Linked Devices QR code, and finishes setup in
-  WhatsApp.
-- **Wira Business:** managed hosted setup. Stripe payment starts provisioning,
-  then Ni Biashara confirms the business map, WhatsApp number/provider path,
-  approval policy, and launch checks before widening automation.
+- **Wira Local:** owner-controlled install. The buyer downloads Wira, connects a brain, pairs WhatsApp, grants local permissions, and starts talking to their agent from their phone.
+- **Wira Business:** still owner/operator-first. Same branded Hermes command surface, but with business-specific context packs, workflows, and governed access for a solo operator.
+
+In both lanes, the primary user is the **owner/operator**, not outside contacts.
 
 ## Local Buyer Experience
 
@@ -20,54 +28,52 @@ Wira has two activation paths:
 3. Download installer.
 4. Connect ChatGPT, an API key, or a local model.
 5. Scan WhatsApp QR.
-6. Wira asks for owner name, voice samples, and reply mode.
+6. Confirm owner lock, default agent identity (Vera), and safe local permissions.
+7. Start issuing real tasks from WhatsApp.
 
-Fastest safe default: `APPROVAL_MODE=draft` until the owner trusts the replies.
+The first delight moment should be:
+- owner sends a task from the phone
+- Vera uses the local runtime on the computer
+- Vera reports back with a real result
 
-## Hosted Buyer Experience
+## Business Buyer Experience
 
 1. Buy Wira Business or scope first.
 2. Land on `/products/wira/start/?tier=managed`.
-3. Stripe webhook confirms paid checkout and starts provisioning.
-4. Ni Biashara collects:
-   - business display name
-   - current WhatsApp number and account ownership
-   - first workflow
-   - business facts and policies
-   - stop points and owner escalation rules
-   - optional tool add-ons
-5. Launch starts draft-first.
-6. Auto-send widens only after real message smoke tests pass.
+3. Complete the same local/owner-first setup path.
+4. Add business context and optional workflow packs.
+5. Start using Wira as the private operating surface for the founder or solo operator.
+
+Business mode is still not a default customer auto-reply product. Customer-facing workflows, if any, are later extensions—not the core thesis.
 
 ## Customer-Visible Identity
-
-End customers see the client business's WhatsApp display name. They should not
-see Wira or Hermes unless the business explicitly chooses a customer-facing
-assistant name.
 
 Recommended mapping:
 
 | Surface | Name shown |
 | --- | --- |
-| Customer WhatsApp chat | Client business name |
-| Owner/admin product | Wira |
-| Internal engine/runtime | Hidden |
+| Owner WhatsApp chat | Vera (renameable after setup) |
+| Desktop app / installer | Wira |
+| Underlying runtime | Hermes (discoverable later, not forced first) |
+
+The product should feel simple on day one while making the deeper Hermes path discoverable over time.
 
 ## Tool Connection Order
 
 1. WhatsApp channel.
-2. Business facts and reply policy.
-3. Payment/deposit link or website/order form.
-4. CRM, booking, SMS, or voice.
+2. Brain/provider connection.
+3. Owner lock.
+4. Local permissions and safe defaults.
+5. Optional folders, browser, terminal, and skills.
+6. Optional business workflow packs.
 
-Do not force optional tools into first activation unless the first workflow
-depends on them.
+Do not force advanced agent jargon in the first activation flow.
 
-## Smoke Checks Before Wider Automation
+## Smoke Checks Before Expansion
 
-- Webhook challenge passes.
-- Signed inbound message verification passes where configured.
-- Business prompt uses `BUSINESS_NAME`.
-- Draft creation works for the first workflow.
-- Owner approves one outbound send.
-- Sensitive data exclusions are visible and honored.
+- WhatsApp pairing succeeds.
+- Owner-issued messages reach the local runtime.
+- One real task runs successfully on the connected machine.
+- Result comes back to WhatsApp clearly.
+- Safe defaults are visible: owner lock, permission boundaries, and reconnect path.
+- Buyer can discover that the same agent can later be opened in Desktop/CLI.

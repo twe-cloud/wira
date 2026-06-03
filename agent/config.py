@@ -9,7 +9,7 @@ AGENT_DIR = Path(__file__).parent
 
 # --- Identity ---
 OWNER_NAME = os.getenv("OWNER_NAME", "Craig")
-ASSISTANT_NAME = os.getenv("ASSISTANT_NAME", "Wira")
+ASSISTANT_NAME = os.getenv("ASSISTANT_NAME", "Vera")
 BUSINESS_NAME = (
     os.getenv("BUSINESS_NAME")
     or os.getenv("CLIENT_BUSINESS_NAME")
@@ -48,7 +48,25 @@ REPLY_TO_GROUPS = os.getenv("REPLY_TO_GROUPS", "false").lower() in ("1", "true",
 _raw_allow = os.getenv("ALLOWLIST", "").strip()
 ALLOWLIST = {n.strip().lstrip("+") for n in _raw_allow.split(",") if n.strip()}
 
+# --- Wira local runtime policy ---
+WIRA_OWNER_LOCK_ENABLED = os.getenv("WIRA_OWNER_LOCK_ENABLED", "true").lower() in ("1", "true", "yes")
+WIRA_EXTERNAL_MODE = os.getenv("WIRA_EXTERNAL_MODE", "ignore").strip().lower()
+WIRA_PERMISSION_PRESET = os.getenv("WIRA_PERMISSION_PRESET", "balanced").strip().lower()
+WIRA_REQUIRE_CONFIRMATION = os.getenv("WIRA_REQUIRE_CONFIRMATION", "true").lower() in ("1", "true", "yes")
+WIRA_HERMES_PROFILE = os.getenv("WIRA_HERMES_PROFILE", "wira-local").strip() or "wira-local"
+WIRA_HERMES_COMMAND = os.getenv("WIRA_HERMES_COMMAND", "").strip()
+WIRA_HERMES_WORKDIR = os.getenv("WIRA_HERMES_WORKDIR", str(Path.home())).strip() or str(Path.home())
+
+_PERMISSION_TOOLSETS = {
+    "desk": ["session_search", "skills"],
+    "balanced": ["file", "web", "session_search", "skills"],
+    "operator": ["file", "terminal", "web", "session_search", "skills", "vision"],
+}
+WIRA_ALLOWED_TOOLSETS = _PERMISSION_TOOLSETS.get(WIRA_PERMISSION_PRESET, _PERMISSION_TOOLSETS["balanced"])
+
 # --- Approval mode ---
+# Legacy responder-mode controls. Local owner-command mode ignores these unless
+# WIRA_EXTERNAL_MODE is switched away from "ignore" for an optional later workflow.
 # "auto-all"     : Wira sends every reply it generates (fastest, riskiest)
 # "auto-trusted" : Wira auto-sends to contacts in AUTO_SEND_TO; drafts for everyone else
 # "draft"        : Wira drafts but never auto-sends — operator/customer reviews drafts

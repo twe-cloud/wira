@@ -16,9 +16,9 @@ export default function Success() {
         </div>
         <h1 className="mt-6 text-5xl">You're in.</h1>
         <p className="mt-4 text-lg text-ink-muted">
-          Welcome to {PRODUCT.name}. Next step: connect your WhatsApp and teach
-          it your voice. Takes about five minutes — your assistant is ready to
-          take its first message right after.
+          Welcome to {PRODUCT.name}. Next step: pair WhatsApp and connect the
+          local runtime path. The goal is not a reply bot — it's your first real
+          agent, living on your computer and reachable from your phone.
         </p>
 
         <div className="mt-8 flex justify-center gap-3 flex-wrap">

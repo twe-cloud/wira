@@ -43,9 +43,22 @@ Avoid this language until a specific customer deployment has been provisioned an
 - “Fully unattended WhatsApp replies are production-ready.”
 - “No owner review needed.”
 
+## Product-direction reset
+
+The current repo still reflects an older draft/reply assistant thesis in runtime, docs, and site copy. The active founder direction is different:
+
+- **Wira Local** should be a branded WhatsApp command surface for a real local Hermes agent living on the buyer's computer.
+- **Wira Business** should also be owner/operator-first: a branded command surface for a solo operator, not a default customer auto-reply or ops-assistant product.
+- Default local agent name should be **Vera**, with rename available after setup.
+- Hermes CLI/Desktop discovery should happen organically after onboarding rather than being the scary first step.
+
+Source-of-truth re-architecture plan:
+- `docs/plans/2026-06-03-wira-hermes-command-surface.md`
+
 ## Next production closeout
 
-1. Add or confirm `WHATSAPP_APP_SECRET` in the governed Meta WhatsApp credential profile or each deployment’s secret store.
-2. Start Wira Business in draft-first mode for the first customer deployment.
-3. Run one real Meta webhook challenge verification, one signed inbound message test, one draft creation test, and one owner-approved outbound send.
-4. Only then label that specific customer deployment as live unattended-capable.
+1. Rewrite product/site/runtime copy so Wira is positioned as a branded Hermes command surface, not a drafting bot.
+2. Replace Local onboarding steps centered on voice samples/reply mode with owner-lock, permissions, and Hermes-runtime setup.
+3. Rework the WhatsApp local transport so owner-issued messages become the primary command path.
+4. Bridge Wira into a real Hermes runtime/profile instead of the current single-prompt reply generator.
+5. Only then re-evaluate whether any responder/draft workflows remain worth keeping as an optional later mode.

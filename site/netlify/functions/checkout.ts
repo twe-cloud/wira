@@ -44,7 +44,6 @@ export const handler: Handler = async (event) => {
       cancel_url: `${siteUrl}/#pricing`,
       allow_promotion_codes: true,
       billing_address_collection: "auto",
-      customer_creation: "always",
       automatic_tax: { enabled: false }, // turn on once you've registered tax IDs
     });
 
