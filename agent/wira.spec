@@ -39,6 +39,7 @@ a = Analysis(
         'config',
         'brain',
         'local_models',
+        'providers',
         'memory',
         'whatsapp',
         'drafts',

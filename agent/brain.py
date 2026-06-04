@@ -65,9 +65,46 @@ class Brain:
             from ollama import Client
 
             return Client(host=config.OLLAMA_HOST)
+        elif self.provider in config.OPENAI_COMPATIBLE_PROVIDERS:
+            return self._build_openai_compatible_client()
         raise RuntimeError(
-            f"Unknown LLM_PROVIDER: {self.provider!r} (use 'chatgpt', 'anthropic', 'openai', or 'ollama')"
+            f"Unknown LLM_PROVIDER: {self.provider!r} (use 'chatgpt', 'anthropic', "
+            f"'openai', 'ollama', or an OpenAI-compatible provider such as "
+            f"'openrouter', 'groq', 'deepseek', 'lmstudio')"
         )
+
+    def _build_openai_compatible_client(self):
+        """Build an OpenAI SDK client pointed at any OpenAI-compatible endpoint.
+
+        Every provider in OPENAI_COMPATIBLE_PROVIDERS (OpenRouter, Groq, DeepSeek,
+        xAI, Together, Fireworks, Mistral, Gemini, LM Studio, custom) shares this
+        one path — only the base_url and key source differ.
+        """
+        import os
+
+        from openai import OpenAI
+
+        cfg = config.OPENAI_COMPATIBLE_PROVIDERS[self.provider]
+        base_url = cfg["base_url"] or config.OPENAI_BASE_URL
+        if not base_url:
+            raise RuntimeError(
+                f"LLM_PROVIDER={self.provider} but no base URL is set. "
+                "Set OPENAI_BASE_URL in .env."
+            )
+
+        key_env = cfg["key_env"]
+        if key_env:
+            api_key = os.getenv(key_env, "")
+            if not api_key:
+                raise RuntimeError(
+                    f"LLM_PROVIDER={self.provider} but {key_env} is not set. "
+                    f"Add {key_env} to .env, or pick a provider that needs no key."
+                )
+        else:
+            # Local servers (LM Studio) accept any non-empty key.
+            api_key = "not-needed"
+
+        return OpenAI(api_key=api_key, base_url=base_url)
 
     def reply(self, chat: str, sender_name: str, text: str) -> str:
         """Generate Wira' reply to one message and persist the exchange."""
@@ -115,7 +152,13 @@ class Brain:
                 messages=messages,
             )
             return "".join(block.text for block in resp.content if block.type == "text")
-        elif self.provider == "openai":
+        elif self.provider == "ollama":
+            messages = [{"role": "system", "content": sys}]
+            messages += history
+            messages.append({"role": "user", "content": text})
+            resp = self._client.chat(model=config.LLM_MODEL, messages=messages)
+            return resp.message.content
+        else:  # openai + every OpenAI-compatible provider — one shared path
             messages = [{"role": "system", "content": sys}]
             messages += history
             messages.append({"role": "user", "content": text})
@@ -125,12 +168,6 @@ class Brain:
                 messages=messages,
             )
             return resp.choices[0].message.content or ""
-        else:  # ollama
-            messages = [{"role": "system", "content": sys}]
-            messages += history
-            messages.append({"role": "user", "content": text})
-            resp = self._client.chat(model=config.LLM_MODEL, messages=messages)
-            return resp.message.content
 
     def _generate_chatgpt(self, sys: str, history: list[dict], text: str) -> str:
         """Generate via ChatGPT subscription with automatic token refresh."""

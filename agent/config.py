@@ -23,11 +23,83 @@ WIRA_PROMPT_PROFILE = os.getenv("WIRA_PROMPT_PROFILE", "local").strip().lower()
 # "anthropic" = Claude API (needs ANTHROPIC_API_KEY)
 # "openai"    = GPT API (needs OPENAI_API_KEY)
 # "ollama"    = local model (private, free, needs Ollama running)
+# Plus any OpenAI-compatible provider below (just a base_url + key swap):
+# "openrouter", "groq", "deepseek", "xai", "together", "fireworks",
+# "mistral", "gemini", "lmstudio" (local), "openai-compatible" (custom URL).
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "chatgpt").lower()
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+# Base URL for the generic "openai-compatible" provider (any OpenAI-shaped API).
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "")
+
+# OpenAI-compatible providers — all reuse the OpenAI SDK with a different
+# base_url, so adding one is a config entry, not new client code. key_env=None
+# means no API key is required (local servers like LM Studio). base_url=None
+# means the URL is taken from OPENAI_BASE_URL at runtime (the custom path).
+OPENAI_COMPATIBLE_PROVIDERS = {
+    "openrouter": {
+        "label": "OpenRouter",
+        "base_url": "https://openrouter.ai/api/v1",
+        "key_env": "OPENROUTER_API_KEY",
+        "default_model": "openai/gpt-4o-mini",
+    },
+    "groq": {
+        "label": "Groq",
+        "base_url": "https://api.groq.com/openai/v1",
+        "key_env": "GROQ_API_KEY",
+        "default_model": "llama-3.3-70b-versatile",
+    },
+    "deepseek": {
+        "label": "DeepSeek",
+        "base_url": "https://api.deepseek.com",
+        "key_env": "DEEPSEEK_API_KEY",
+        "default_model": "deepseek-chat",
+    },
+    "xai": {
+        "label": "xAI Grok",
+        "base_url": "https://api.x.ai/v1",
+        "key_env": "XAI_API_KEY",
+        "default_model": "grok-2-latest",
+    },
+    "together": {
+        "label": "Together AI",
+        "base_url": "https://api.together.xyz/v1",
+        "key_env": "TOGETHER_API_KEY",
+        "default_model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    },
+    "fireworks": {
+        "label": "Fireworks AI",
+        "base_url": "https://api.fireworks.ai/inference/v1",
+        "key_env": "FIREWORKS_API_KEY",
+        "default_model": "accounts/fireworks/models/llama-v3p3-70b-instruct",
+    },
+    "mistral": {
+        "label": "Mistral",
+        "base_url": "https://api.mistral.ai/v1",
+        "key_env": "MISTRAL_API_KEY",
+        "default_model": "mistral-small-latest",
+    },
+    "gemini": {
+        "label": "Google Gemini",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "key_env": "GEMINI_API_KEY",
+        "default_model": "gemini-2.0-flash",
+    },
+    "lmstudio": {
+        "label": "LM Studio (local)",
+        "base_url": "http://localhost:1234/v1",
+        "key_env": None,
+        "default_model": "local-model",
+    },
+    "openai-compatible": {
+        "label": "Custom (OpenAI-compatible)",
+        "base_url": None,  # read from OPENAI_BASE_URL
+        "key_env": "OPENAI_API_KEY",
+        "default_model": "gpt-4o-mini",
+    },
+}
 
 # Default model per provider (overridable with LLM_MODEL)
 _DEFAULT_MODEL = {
@@ -36,7 +108,18 @@ _DEFAULT_MODEL = {
     "openai": "gpt-4o-mini",
     "ollama": "llama3.2:3b",
 }
-LLM_MODEL = os.getenv("LLM_MODEL") or _DEFAULT_MODEL.get(LLM_PROVIDER, "gpt-4o")
+
+
+def _default_model_for(provider: str) -> str:
+    if provider in _DEFAULT_MODEL:
+        return _DEFAULT_MODEL[provider]
+    cfg = OPENAI_COMPATIBLE_PROVIDERS.get(provider)
+    if cfg:
+        return cfg["default_model"]
+    return "gpt-4o"
+
+
+LLM_MODEL = os.getenv("LLM_MODEL") or _default_model_for(LLM_PROVIDER)
 
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "400"))
 

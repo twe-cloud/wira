@@ -240,6 +240,8 @@ class WiraApp(tk.Tk):
                     self._show_whatsapp()
                 elif event_type == "local_error":
                     self._show_local_error(data)
+                elif event_type == "provider_result":
+                    self._render_provider_result(data)
                 elif event_type == "chatgpt_code":
                     self._show_chatgpt_code(data)
                 elif event_type == "chatgpt_done":
@@ -326,6 +328,35 @@ class WiraApp(tk.Tk):
         self._local_status.pack(fill="x", pady=(8, 6))
         self._local_action = tk.Frame(self._local_card, bg=PANEL_ALT)
         self._local_action.pack(fill="x")
+
+        # Bring-a-key card — OpenAI-compatible providers, best value first.
+        import providers as _providers
+        key_card = tk.Frame(f, bg=PANEL_ALT, padx=16, pady=14)
+        key_card.pack(fill="x", pady=(0, 10))
+        tk.Label(
+            key_card, text="BEST VALUE · BRING A KEY", font=FONT_EYEBROW,
+            fg=ACCENT_DARK, bg=PANEL_ALT, anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            key_card, text="Connect an API provider", font=("Avenir Next", 16, "bold"),
+            fg=TEXT, bg=PANEL_ALT, anchor="w",
+        ).pack(fill="x", pady=(2, 2))
+        tk.Label(
+            key_card,
+            text="One key, far cheaper than a subscription. Pick one and paste a key.",
+            font=FONT_SMALL, fg=TEXT_DIM, bg=PANEL_ALT, anchor="w",
+            justify="left", wraplength=420,
+        ).pack(fill="x", pady=(0, 8))
+        btn_row = tk.Frame(key_card, bg=PANEL_ALT)
+        btn_row.pack(fill="x")
+        for pid in _providers.ONBOARDING_PRESETS:
+            p = _providers.preset(pid)
+            tk.Button(
+                btn_row, text=p["label"], font=FONT_SMALL, fg=TEXT, bg=PANEL_BG,
+                activebackground=PANEL_EDGE, relief="flat", bd=0, padx=14, pady=8,
+                cursor="hand2", command=lambda i=pid: self._show_api_provider(i),
+            ).pack(side="left", padx=(0, 8))
+        self._secondary_button(key_card, "See all providers", self._show_all_providers, pady=(10, 0))
 
         # ChatGPT option card — always available.
         cg = tk.Frame(f, bg=PANEL_ALT, padx=16, pady=14)
@@ -460,6 +491,104 @@ class WiraApp(tk.Tk):
         self._body(f, str(msg), pady=(0, 16))
         self._primary_button(f, "Back to brain choice", self._show_brain_choice, pady=(8, 8))
         self._secondary_button(f, "Use ChatGPT instead", self._start_chatgpt_login, pady=(0, 0))
+
+    # ─── Screen: API providers (OpenAI-compatible) ─────────────
+
+    def _show_all_providers(self):
+        import providers as _providers
+        self._clear()
+        f = self._panel()
+        self._eyebrow(f, "Step 1 of 2")
+        self._headline(f, "Connect an API provider")
+        self._body(
+            f,
+            "Wira works with any OpenAI-compatible provider. Pick one to connect.",
+            pady=(0, 12),
+        )
+        for p in _providers.all_presets():
+            row = tk.Frame(f, bg=PANEL_ALT, padx=14, pady=10)
+            row.pack(fill="x", pady=4)
+            tk.Label(row, text=p["label"], font=("Avenir Next", 14, "bold"),
+                     fg=TEXT, bg=PANEL_ALT, anchor="w").pack(fill="x")
+            tk.Label(row, text=p["tagline"], font=FONT_SMALL, fg=TEXT_DIM,
+                     bg=PANEL_ALT, anchor="w", justify="left", wraplength=420).pack(fill="x")
+            self._secondary_button(row, f"Connect {p['label']}",
+                                   lambda i=p["id"]: self._show_api_provider(i), pady=(8, 0))
+        self._secondary_button(f, "Back", self._show_brain_choice, pady=(12, 0))
+
+    def _show_api_provider(self, provider_id):
+        import providers as _providers
+        p = _providers.preset(provider_id)
+        self._api_provider = provider_id
+        self._clear()
+        f = self._panel()
+        self._eyebrow(f, "Step 1 of 2")
+        self._headline(f, f"Connect {p['label']}")
+        self._body(f, p["tagline"], pady=(0, 14))
+
+        if p["needs_key"] and p["key_url"]:
+            link = tk.Label(f, text=f"Get a key → {p['key_url']}", font=FONT_MONO,
+                            fg=ACCENT_DARK, bg=PANEL_BG, cursor="hand2", anchor="w")
+            link.pack(fill="x", pady=(0, 10))
+            link.bind("<Button-1>", lambda e, u=p["key_url"]: self._open_url(u))
+
+        self._api_key_entry = None
+        self._api_base_entry = None
+        if p["needs_key"]:
+            tk.Label(f, text="API key", font=FONT_SMALL, fg=TEXT, bg=PANEL_BG, anchor="w").pack(fill="x")
+            self._api_key_entry = tk.Entry(f, font=FONT_MONO, show="•", relief="flat", bd=6)
+            self._api_key_entry.pack(fill="x", pady=(2, 10))
+
+        if p["needs_base_url"]:
+            tk.Label(f, text="Base URL", font=FONT_SMALL, fg=TEXT, bg=PANEL_BG, anchor="w").pack(fill="x")
+            self._api_base_entry = tk.Entry(f, font=FONT_MONO, relief="flat", bd=6)
+            self._api_base_entry.insert(0, "https://")
+            self._api_base_entry.pack(fill="x", pady=(2, 10))
+
+        tk.Label(f, text="Model (optional)", font=FONT_SMALL, fg=TEXT, bg=PANEL_BG, anchor="w").pack(fill="x")
+        self._api_model_entry = tk.Entry(f, font=FONT_MONO, relief="flat", bd=6)
+        self._api_model_entry.insert(0, p["default_model"])
+        self._api_model_entry.pack(fill="x", pady=(2, 12))
+
+        self._api_status = tk.Label(f, text="", font=FONT_SMALL, fg=ERROR, bg=PANEL_BG,
+                                    anchor="w", justify="left", wraplength=440)
+        self._api_status.pack(fill="x")
+
+        self._api_connect_btn = self._primary_button(f, "Connect & test", self._connect_api_provider, pady=(6, 8))
+        self._secondary_button(f, "Back", self._show_brain_choice, pady=(0, 0))
+
+    def _connect_api_provider(self):
+        key = self._api_key_entry.get().strip() if self._api_key_entry else None
+        base = self._api_base_entry.get().strip() if self._api_base_entry else None
+        model = self._api_model_entry.get().strip() or None
+        self._api_status.config(fg=TEXT_SOFT, text="Testing the connection…")
+        self._api_connect_btn.config(state="disabled")
+        threading.Thread(
+            target=self._api_test_thread,
+            args=(self._api_provider, key, base, model),
+            daemon=True,
+        ).start()
+
+    def _api_test_thread(self, provider_id, key, base, model):
+        try:
+            import providers as _providers
+            ok, msg = _providers.test_provider(provider_id, api_key=key, base_url=base, model=model)
+            if ok:
+                _providers.save_provider(provider_id, api_key=key, model=model, base_url=base)
+            self.event_queue.put(("provider_result", (ok, msg)))
+        except Exception as e:
+            logger.exception("Provider test error")
+            self.event_queue.put(("provider_result", (False, str(e))))
+
+    def _render_provider_result(self, data):
+        ok, msg = data
+        if ok:
+            self._show_whatsapp()
+            return
+        if hasattr(self, "_api_status") and self._api_status.winfo_exists():
+            self._api_status.config(fg=ERROR, text=msg)
+        if hasattr(self, "_api_connect_btn") and self._api_connect_btn.winfo_exists():
+            self._api_connect_btn.config(state="normal")
 
     # ─── Screen: ChatGPT sign-in ───────────────────────────────
 
