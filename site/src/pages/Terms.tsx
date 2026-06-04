@@ -8,9 +8,7 @@ export default function Terms() {
       <Nav />
       <main className="container-narrow py-16">
         <h1 className="text-5xl">Wira Local Terms</h1>
-        <p className="mt-2 text-ink-muted">
-          Last updated: {new Date().toISOString().slice(0, 10)}
-        </p>
+        <p className="mt-2 text-ink-muted">Last updated: 2026-06-03</p>
 
         <Block title="Plain summary">
           <p>
@@ -78,7 +76,7 @@ export default function Terms() {
             Updates are manual. Wira can open the latest release page, and you
             can download and install a newer build. Local settings, auth,
             WhatsApp session, memory, drafts, and onboarding state are kept in
-            your local Wira folder.
+            your local Wira folder (<code>~/.wira</code>).
           </p>
         </Block>
 

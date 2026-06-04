@@ -13,9 +13,7 @@ export default function Privacy() {
       <Nav />
       <main className="container-narrow py-16 prose-spacing">
         <h1 className="text-5xl">Privacy</h1>
-        <p className="mt-2 text-ink-muted">
-          Last updated: {new Date().toISOString().slice(0, 10)}
-        </p>
+        <p className="mt-2 text-ink-muted">Last updated: 2026-06-03</p>
 
         <Block title="In one paragraph">
           <p>

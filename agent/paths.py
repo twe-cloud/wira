@@ -13,6 +13,11 @@ RELEASES_URL = "https://github.com/twe-cloud/wira/releases/latest"
 
 def ensure_wira_dir() -> None:
     WIRA_DIR.mkdir(parents=True, exist_ok=True)
+    # The dir holds .env (secrets) and the session DB — lock it down.
+    try:
+        WIRA_DIR.chmod(0o700)
+    except OSError:
+        pass
 
 
 def migrate_legacy_state() -> None:
