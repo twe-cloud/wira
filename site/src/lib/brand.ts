@@ -12,7 +12,7 @@ export const PRODUCT = {
   tagline: "Your first personal agent, reached from WhatsApp.",
   hook: "A real local agent on your computer. Your phone is just the fastest way in.",
   description:
-    "Wira sets up a personal agent on your computer, runs it on a private local model or the ChatGPT subscription you already have, and lets you talk to it on WhatsApp.",
+    "Wira sets up a personal agent on your computer, runs it on a private local model, a low-cost API key, or the ChatGPT subscription you already have, and lets you talk to it on WhatsApp.",
   supportEmail: "hello@wira.io",
   city: "Nairobi",
   // Direct download for the signed + notarized macOS app (GitHub Release asset).
@@ -35,7 +35,7 @@ export const PRICING = {
     "Lives on your own computer — not trapped in a browser tab",
     "Reach Wira from WhatsApp with a QR-paired setup",
     "Private owner/operator control surface by default",
-    "Run it fully private on your Mac, or use the ChatGPT subscription you already have",
+    "Run it free and fully private on your Mac, connect a low-cost API key, or use the ChatGPT subscription you already have",
     "Grows into deeper local agent work when you're ready",
   ],
 };
@@ -81,7 +81,11 @@ export const FAQS = [
   },
   {
     q: "Can it run without ChatGPT?",
-    a: "Yes. During setup Wira can install a private local model that runs entirely on your Mac — free to run, with nothing leaving your computer. Prefer the brain you already pay for? Connect your ChatGPT subscription instead. You can switch later.",
+    a: "Yes. During setup Wira can install a private local model that runs entirely on your Mac — free to run, with nothing leaving your computer. You can also paste in a low-cost API key (OpenRouter, Groq, DeepSeek and more), or connect the ChatGPT subscription you already have. You can switch later.",
+  },
+  {
+    q: "What's the fastest way to get going?",
+    a: "Two free or near-free paths. The local model installs in one step and runs entirely on your Mac for free — best for privacy. Or paste a key from a provider like Groq or DeepSeek; their free and low-cost tiers get you a fast cloud brain in seconds without a monthly subscription.",
   },
   {
     q: "Can other people talk to my agent?",

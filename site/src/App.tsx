@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
+import Learn from "./pages/Learn";
 import NotFound from "./pages/NotFound";
 import Onboarding from "./pages/Onboarding";
 import Privacy from "./pages/Privacy";
@@ -10,6 +11,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/learn" element={<Learn />} />
       <Route path="/success" element={<Success />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/privacy" element={<Privacy />} />

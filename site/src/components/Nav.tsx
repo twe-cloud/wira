@@ -17,6 +17,9 @@ export default function Nav() {
           <a href="#how" className="hidden sm:inline px-3 py-2 text-ink-muted hover:text-ink">
             How it works
           </a>
+          <Link to="/learn" className="hidden sm:inline px-3 py-2 text-ink-muted hover:text-ink">
+            Learn
+          </Link>
           <a href="#pricing" className="hidden sm:inline px-3 py-2 text-ink-muted hover:text-ink">
             Pricing
           </a>

@@ -95,7 +95,8 @@ export default function Onboarding() {
 
         <p className="mt-6 text-center text-xs text-ink-muted">
           {PRODUCT.name} keeps day one simple: your agent lives on this computer,
-          runs on a private local model or ChatGPT, and answers you on WhatsApp.
+          runs on a private local model, a low-cost API key, or ChatGPT, and
+          answers you on WhatsApp.
         </p>
       </main>
       <Footer />
@@ -173,12 +174,21 @@ function Step2ChatGPT({
         you can switch later.
       </p>
       <div className="mt-6 rounded-xl border border-border bg-accent-soft/40 p-4">
-        <div className="text-xs font-semibold text-accent">RECOMMENDED · PRIVATE</div>
+        <div className="text-xs font-semibold text-accent">RECOMMENDED · PRIVATE · FREE</div>
         <div className="mt-1 font-medium">Run it on this Mac</div>
         <p className="mt-1 text-sm text-ink-muted">
           Wira installs a private local model and runs it entirely on your
           computer — free to run, with nothing leaving your Mac. One quick
           install and it's yours.
+        </p>
+      </div>
+      <div className="mt-3 rounded-xl border border-border bg-canvas p-4">
+        <div className="text-xs font-semibold text-ink-muted">BEST VALUE · BRING A KEY</div>
+        <div className="mt-1 font-medium">Paste a low-cost API key</div>
+        <p className="mt-1 text-sm text-ink-muted">
+          Connect any OpenAI-compatible provider — OpenRouter, Groq, DeepSeek,
+          Gemini and more. Free and low-cost tiers get you a fast cloud brain in
+          seconds, no monthly subscription. Wira tests the key before it saves.
         </p>
       </div>
       <div className="mt-3 rounded-xl border border-border bg-canvas p-4">
