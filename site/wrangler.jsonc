@@ -15,6 +15,6 @@
     "run_worker_first": ["/api/*"]
   },
   "vars": {
-    "SITE_URL": "https://wira-local-agent.workers.dev"
+    "SITE_URL": "https://wira-local-agent.nibiashara.workers.dev"
   }
 }
