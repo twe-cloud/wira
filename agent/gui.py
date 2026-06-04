@@ -3,7 +3,7 @@
 
 The product promise is simple:
 1. Wira runs on this computer.
-2. It connects to the user's existing ChatGPT account.
+2. The buyer can start free, use ChatGPT, or keep it private on this Mac.
 3. It brings their agent to WhatsApp as fast as possible.
 
 After setup, Wira keeps the local runtime available in the background.
@@ -265,20 +265,20 @@ class WiraApp(tk.Tk):
         self._clear()
         f = self._panel()
 
-        self._eyebrow(f, "Wira Local")
+        self._eyebrow(f, "Wira")
         self._headline(f, "Talk to your agent on WhatsApp")
         self._body(
             f,
-            "Wira sets up a personal agent on this computer, connects it to your ChatGPT subscription, and brings it to WhatsApp as fast as possible.",
+            "Wira sets up a personal agent on this computer and brings it to WhatsApp as fast as possible.",
             pady=(0, 18),
         )
 
-        self._bullet_row(f, "Runs on this computer", "That is what lets your agent do real work for you instead of acting like a toy chat window.")
-        self._bullet_row(f, "Uses the ChatGPT account you already pay for", "You connect once, then Wira keeps using that subscription as your agent's brain.")
-        self._bullet_row(f, "Starts on WhatsApp", "Your phone becomes the easiest way to talk to your agent while the actual work happens here.")
+        self._bullet_row(f, "Start free in under a minute", "Pick a free brain — like Groq — or connect your ChatGPT subscription.")
+        self._bullet_row(f, "Your agent lives on this computer", "That is what lets it do real work for you instead of acting like a toy chat window.")
+        self._bullet_row(f, "Talk on WhatsApp", "Your phone becomes the easiest way to reach your agent while the actual work happens here.")
 
         self._body(f, "Setup takes two steps.", fg=TEXT, small=True, pady=(20, 8))
-        self._step_row(f, 1, "Choose your agent's brain", "Run it privately on this Mac, or connect your existing ChatGPT subscription.")
+        self._step_row(f, 1, "Choose your agent's brain", "Start free, connect ChatGPT, or run it privately on this Mac.")
         self._step_row(f, 2, "Connect WhatsApp", "Scan one code so you can start texting your agent immediately.")
 
         self._primary_button(f, "Set up my agent", self._show_brain_choice, pady=(22, 0))
@@ -286,11 +286,11 @@ class WiraApp(tk.Tk):
     # ─── Screen: Choose the brain ──────────────────────────────
 
     def _show_brain_choice(self):
-        """Let the buyer pick a private local brain or the ChatGPT subscription.
+        """Let the buyer pick how their agent thinks.
 
-        Local-first: Wira runs entirely on this Mac via Ollama — no subscription,
-        no per-message cost, nothing leaving the computer. We detect Ollama in the
-        background and recommend the local path when it's available.
+        Order: free API path first (fastest start), ChatGPT subscription
+        second (easy, use what you have), local/Ollama third (private but
+        requires extra setup).
         """
         self._clear()
         f = self._panel()
@@ -299,51 +299,25 @@ class WiraApp(tk.Tk):
         self._headline(f, "Choose your agent's brain")
         self._body(
             f,
-            "Wira can think entirely on this Mac, or use the ChatGPT account you "
-            "already pay for. You can change this later.",
+            "Pick the fastest way to get started. You can always change this later.",
             pady=(0, 16),
         )
 
-        # Local option card (state filled in once detection finishes).
-        self._local_card = tk.Frame(f, bg=PANEL_ALT, padx=16, pady=14)
-        self._local_card.pack(fill="x", pady=(0, 10))
-        tk.Label(
-            self._local_card, text="RECOMMENDED · PRIVATE", font=FONT_EYEBROW,
-            fg=ACCENT_DARK, bg=PANEL_ALT, anchor="w",
-        ).pack(fill="x")
-        tk.Label(
-            self._local_card, text="Run it on this Mac", font=("Avenir Next", 16, "bold"),
-            fg=TEXT, bg=PANEL_ALT, anchor="w",
-        ).pack(fill="x", pady=(2, 2))
-        tk.Label(
-            self._local_card,
-            text="Free to run, fully private — your messages never leave this computer.",
-            font=FONT_SMALL, fg=TEXT_DIM, bg=PANEL_ALT, anchor="w",
-            justify="left", wraplength=420,
-        ).pack(fill="x")
-        self._local_status = tk.Label(
-            self._local_card, text="Checking this Mac for local AI…", font=FONT_SMALL,
-            fg=TEXT_SOFT, bg=PANEL_ALT, anchor="w", justify="left", wraplength=420,
-        )
-        self._local_status.pack(fill="x", pady=(8, 6))
-        self._local_action = tk.Frame(self._local_card, bg=PANEL_ALT)
-        self._local_action.pack(fill="x")
-
-        # Bring-a-key card — OpenAI-compatible providers, best value first.
+        # ── Free API path — fastest start, shown first ──────────
         import providers as _providers
         key_card = tk.Frame(f, bg=PANEL_ALT, padx=16, pady=14)
         key_card.pack(fill="x", pady=(0, 10))
         tk.Label(
-            key_card, text="BEST VALUE · BRING A KEY", font=FONT_EYEBROW,
+            key_card, text="FREE · FASTEST START", font=FONT_EYEBROW,
             fg=ACCENT_DARK, bg=PANEL_ALT, anchor="w",
         ).pack(fill="x")
         tk.Label(
-            key_card, text="Connect an API provider", font=("Avenir Next", 16, "bold"),
+            key_card, text="Start free with an API key", font=("Avenir Next", 16, "bold"),
             fg=TEXT, bg=PANEL_ALT, anchor="w",
         ).pack(fill="x", pady=(2, 2))
         tk.Label(
             key_card,
-            text="One key, far cheaper than a subscription. Pick one and paste a key.",
+            text="Groq has a generous free tier. Or pick another provider and paste a key.",
             font=FONT_SMALL, fg=TEXT_DIM, bg=PANEL_ALT, anchor="w",
             justify="left", wraplength=420,
         ).pack(fill="x", pady=(0, 8))
@@ -358,12 +332,12 @@ class WiraApp(tk.Tk):
             ).pack(side="left", padx=(0, 8))
         self._secondary_button(key_card, "See all providers", self._show_all_providers, pady=(10, 0))
 
-        # ChatGPT option card — always available.
+        # ── ChatGPT subscription — easy, familiar ───────────────
         cg = tk.Frame(f, bg=PANEL_ALT, padx=16, pady=14)
-        cg.pack(fill="x", pady=(0, 6))
+        cg.pack(fill="x", pady=(0, 10))
         tk.Label(
-            cg, text="USE WHAT YOU HAVE", font=FONT_EYEBROW,
-            fg=TEXT_SOFT, bg=PANEL_ALT, anchor="w",
+            cg, text="EASY · USE WHAT YOU HAVE", font=FONT_EYEBROW,
+            fg=ACCENT_DARK, bg=PANEL_ALT, anchor="w",
         ).pack(fill="x")
         tk.Label(
             cg, text="Use my ChatGPT subscription", font=("Avenir Next", 16, "bold"),
@@ -371,13 +345,38 @@ class WiraApp(tk.Tk):
         ).pack(fill="x", pady=(2, 2))
         tk.Label(
             cg,
-            text="Connect the ChatGPT account you already pay for as your agent's brain.",
+            text="Connect the ChatGPT account you already pay for. One sign-in and you're done.",
             font=FONT_SMALL, fg=TEXT_DIM, bg=PANEL_ALT, anchor="w",
             justify="left", wraplength=420,
         ).pack(fill="x", pady=(0, 8))
-        self._secondary_button(cg, "Connect ChatGPT instead", self._start_chatgpt_login, pady=(0, 0))
+        self._primary_button(cg, "Connect ChatGPT", self._start_chatgpt_login, pady=(0, 0))
 
-        # Kick off detection without blocking the UI.
+        # ── Local / Ollama — private, optional ──────────────────
+        self._local_card = tk.Frame(f, bg=PANEL_ALT, padx=16, pady=14)
+        self._local_card.pack(fill="x", pady=(0, 6))
+        tk.Label(
+            self._local_card, text="PRIVATE · RUNS ON THIS MAC", font=FONT_EYEBROW,
+            fg=TEXT_SOFT, bg=PANEL_ALT, anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            self._local_card, text="Run it locally with Ollama", font=("Avenir Next", 16, "bold"),
+            fg=TEXT, bg=PANEL_ALT, anchor="w",
+        ).pack(fill="x", pady=(2, 2))
+        tk.Label(
+            self._local_card,
+            text="Nothing leaves this computer. Requires Ollama installed and enough RAM.",
+            font=FONT_SMALL, fg=TEXT_DIM, bg=PANEL_ALT, anchor="w",
+            justify="left", wraplength=420,
+        ).pack(fill="x")
+        self._local_status = tk.Label(
+            self._local_card, text="Checking this Mac…", font=FONT_SMALL,
+            fg=TEXT_SOFT, bg=PANEL_ALT, anchor="w", justify="left", wraplength=420,
+        )
+        self._local_status.pack(fill="x", pady=(8, 6))
+        self._local_action = tk.Frame(self._local_card, bg=PANEL_ALT)
+        self._local_action.pack(fill="x")
+
+        # Kick off local detection without blocking the UI.
         threading.Thread(target=self._brain_detect_thread, daemon=True).start()
 
     def _brain_detect_thread(self):

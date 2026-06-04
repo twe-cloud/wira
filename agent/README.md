@@ -4,7 +4,8 @@ Your first personal agent, reached from WhatsApp.
 
 Wira is not meant to be a glorified reply bot. The real thesis is simpler and
 stronger: **Wira** is a branded path into a real local agent that lives on your
-computer, connects to ChatGPT, and is easiest to engage from your phone.
+computer, can start free or use ChatGPT or a private local model, and is
+easiest to engage from your phone.
 
 That means:
 
@@ -34,7 +35,7 @@ then grows with the user into a deeper Hermes workflow.
 - **It still grows.** Wira should not trap the buyer in a toy layer; it should gradually reveal deeper local-agent power.
 - **Lives on the buyer's machine.** The local path is about ownership, not another hosted chat widget.
 - **WhatsApp is the command surface, not the whole product.** The value is the local agent underneath.
-- **Connect ChatGPT first.** Wira starts with the subscription the buyer already understands.
+- **Start free first, then go deeper if you want.** Pick a free API tier (Groq is fastest), use ChatGPT if you already subscribe, or keep it private on your own machine — all paths stay easy.
 
 ## Quick Start
 
@@ -44,13 +45,17 @@ cd claude-creations/wira-whatsapp
 ./scripts/install.sh
 ```
 
-Set your key:
+Set your brain:
 
 ```bash
 nano .env
-# LLM_PROVIDER=anthropic
-# ANTHROPIC_API_KEY=sk-ant-...
+# Fastest free start — get a key at console.groq.com/keys:
+# LLM_PROVIDER=groq
+# GROQ_API_KEY=gsk_...
 # OWNER_NAME=Craig
+
+# Or use your ChatGPT subscription (no API key needed — run setup.py):
+# LLM_PROVIDER=chatgpt
 ```
 
 Start Wira and link your phone:
@@ -77,9 +82,10 @@ Everything lives in `.env`:
 
 | Setting | What it does | Default |
 |---|---|---|
-| `LLM_PROVIDER` | `anthropic` (Claude) or `ollama` (local) | `anthropic` |
-| `ANTHROPIC_API_KEY` | Your Claude API key | — |
-| `LLM_MODEL` | Override the model | `claude-sonnet-4-6` |
+| `LLM_PROVIDER` | `chatgpt` (subscription), `groq` / `openrouter` (free tier), `anthropic`, `openai`, `ollama`, or any OpenAI-compatible provider | `chatgpt` |
+| `GROQ_API_KEY` | Groq free-tier key (fastest start) | — |
+| `ANTHROPIC_API_KEY` | Claude API key | — |
+| `LLM_MODEL` | Override the model | provider default |
 | `OWNER_NAME` | Who Wira represents | `Craig` |
 | `REPLY_TO_GROUPS` | Answer in group chats too | `false` (DMs only) |
 | `ALLOWLIST` | Only reply to these numbers (digits, comma-separated) | everyone |
@@ -100,7 +106,7 @@ Nothing leaves the machine. Slower and a little less sharp than Claude, but your
 | Component | Tool |
 |---|---|
 | WhatsApp link | neonize (whatsmeow) — QR multi-device |
-| Brain | Claude (Anthropic) or Ollama (local) |
+| Brain | ChatGPT subscription, Groq/OpenRouter (free tier), Claude (Anthropic), Ollama (local), or any OpenAI-compatible provider |
 | Memory | SQLite, per-contact |
 | Runtime | Python 3.10+ |
 

@@ -1,6 +1,6 @@
 # Wira Customer Journey
 
-Updated: 2026-06-03
+Updated: 2026-06-04
 
 ## Product thesis
 
@@ -9,27 +9,27 @@ Wira is not a WhatsApp auto-reply bot.
 Wira is a branded path into real agentic work:
 - a local agent that lives on the buyer's computer
 - reached from the buyer's phone over WhatsApp
-- connected to the buyer's existing ChatGPT subscription on day one
+- powered by the buyer's choice of brain: the fastest free API path first, the ChatGPT subscription they already have, or a fully private local model on their own Mac
 - designed so the buyer can grow naturally into deeper local-agent access over time
 
 ## Product Split
 
 Wira has two activation paths:
 
-- **Wira Local:** owner-controlled install. The buyer downloads Wira, connects ChatGPT, pairs WhatsApp, chooses safe defaults, and starts talking to their agent from their phone.
+- **Wira Local:** owner-controlled install. The buyer downloads Wira, picks a brain (fast free API path, ChatGPT, or fully private local model), pairs WhatsApp, chooses safe defaults, and starts talking to their agent from their phone.
 - **Wira Business:** still owner/operator-first. Same Wira command surface, but with business-specific context packs, workflows, and governed access for a solo operator.
 
 In both lanes, the primary user is the **owner/operator**, not outside contacts.
 
 ## Local Buyer Experience
 
-1. Buy Wira Local.
-2. Land on `/products/wira/start/?tier=self`.
-3. Download installer.
-4. Connect ChatGPT.
-5. Scan WhatsApp QR.
-6. Confirm owner lock, Wira identity, and safe local permissions.
-7. Start issuing real tasks from WhatsApp.
+1. Buy Wira Local (or start the free path).
+2. Land on `/success` with clear next steps.
+3. Download the macOS app and open it.
+4. Pick a brain: fastest free API path first, ChatGPT if they already use it, or a fully private local model on the Mac.
+5. Scan WhatsApp QR to pair.
+6. Confirm owner lock and safe local permissions.
+7. Send first real task from WhatsApp.
 
 The first delight moment should be:
 - owner sends a task from the phone
@@ -58,9 +58,9 @@ Recommended mapping:
 
 The product should feel simple on day one while making the deeper Hermes path discoverable over time.
 
-## Tool Connection Order
+## Setup Order
 
-1. Connect ChatGPT.
+1. Pick a brain (fast free API path / ChatGPT / fully private local model).
 2. Connect WhatsApp.
 3. Confirm owner lock.
 4. Choose safe defaults.

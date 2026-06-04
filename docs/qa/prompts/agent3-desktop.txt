@@ -1,0 +1,30 @@
+You are lane agent3-desktop for the Wira repo.
+
+Workdir: this isolated worktree only.
+Required handoff file: HANDOFF_AGENT3.md in the worktree root.
+
+Mission
+Audit the desktop onboarding and manual fallback path so a buyer is not nudged into a misleading ChatGPT-first default.
+
+Priority files to inspect
+- agent/gui.py
+- agent/tests.py
+- agent/setup.py
+- agent/config.py
+- agent/README.md
+- any nearby files used by first-run setup
+
+Focus
+- free path first
+- ChatGPT still easy to choose
+- private local path remains optional
+- WhatsApp pairing copy is clear and human
+- manual CLI/setup path matches the packaged GUI promise
+
+Do
+1. Fix onboarding or setup drift.
+2. Add or improve tests where needed.
+3. Write HANDOFF_AGENT3.md with files changed, validations, and unresolved caveats.
+
+Validation
+- python3 -m unittest -q

@@ -1,21 +1,21 @@
 const STEPS = [
   {
     n: "01",
-    title: "Connect ChatGPT",
+    title: "Download Wira",
     body:
-      "Use the ChatGPT subscription you already have. Wira keeps the connection step plain and brings you back into setup when it is done.",
+      "Download the Mac app, drag it to Applications, and open it. Wira lives on your computer — not in a browser tab.",
   },
   {
     n: "02",
-    title: "Connect WhatsApp",
+    title: "Pick your brain",
     body:
-      "Scan a QR code from WhatsApp → Linked Devices. Your phone becomes the fastest way to reach the agent on your computer.",
+      "Start free in seconds with Groq or DeepSeek, connect the ChatGPT subscription you already have, or use a private local brain on your Mac.",
   },
   {
     n: "03",
-    title: "Start chatting",
+    title: "Connect WhatsApp",
     body:
-      "Send your first command from WhatsApp: summarize a day, find a file, make a plan, or check what needs attention.",
+      "Scan the QR code from WhatsApp → Settings → Linked Devices, then send your first command from your phone.",
   },
 ];
 
@@ -25,7 +25,7 @@ export default function HowItWorks() {
       <div className="max-w-2xl">
         <h2 className="text-4xl">A softer path into real agent work.</h2>
         <p className="mt-3 text-ink-muted text-lg">
-          Your agent lives on this computer. Wira connects ChatGPT, connects
+          Your agent lives on this computer. Wira connects a brain, connects
           WhatsApp, then lets you start from the phone you already use all day.
         </p>
       </div>

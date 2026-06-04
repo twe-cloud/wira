@@ -6,12 +6,18 @@ Get your first real agent live on your computer — and reachable from your phon
 
 From the landing page, click **Start with Wira**. Stripe will take you through checkout — use a test card (`4242 4242 4242 4242`, any future expiry, any CVC) if you're trying it out.
 
-## 2. Onboarding
+## 2. After payment
 
-After payment you're redirected to **/onboarding**. The target flow is simple:
+After payment you're redirected to **/success** with the short path in front of you:
+
+1. **Download & open Wira** — install the Mac app and launch it.
+2. **Pick how it should think** — start free, connect ChatGPT, or keep it private on your Mac.
+3. **Scan the WhatsApp QR** — pair your phone through Linked Devices.
+
+If you want the longer walkthrough, click through to **/onboarding**. The guided flow is:
 
 1. **Welcome** — confirm the WhatsApp number you will use to reach Wira.
-2. **Connect ChatGPT** — connect the ChatGPT subscription you already have.
+2. **Pick a brain** — start free, connect ChatGPT, or keep it private on your Mac.
 3. **Connect WhatsApp** — pair your phone through Linked Devices.
 4. **Safety** — choose when Wira should pause before risky actions.
 5. **Ready** — send your first real command from WhatsApp.
@@ -39,7 +45,7 @@ The product is working when you get back a real tool-backed result — not just 
 
 ## Troubleshooting
 
-- **QR doesn't appear?** Refresh the activation flow. If still nothing, the local runtime may not have finished booting yet.
+- **QR doesn't appear?** Refresh the activation flow. If still nothing, reopen Wira and make sure setup finished loading.
 - **WhatsApp says "session expired"?** Re-scan the QR from Wira. Multi-device sessions can expire if your phone is offline for too long.
 - **The agent feels too limited.** Open the app settings and expand access deliberately when you are ready.
 

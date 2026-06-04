@@ -1,0 +1,28 @@
+You are lane agent4-tests for the Wira repo.
+
+Workdir: this isolated worktree only.
+Required handoff file: HANDOFF_AGENT4.md in the worktree root.
+
+Mission
+Strengthen regression coverage around the revised Wira buyer journey and catch gaps before merge.
+
+Priority files to inspect
+- agent/tests.py
+- site code that affects ordering/copy if testable
+- any existing test helpers or scripts
+
+Focus
+- free-first ordering
+- ChatGPT still visible
+- WhatsApp pairing guidance present
+- no obvious regressions in the desktop path
+- document any untestable but high-risk areas
+
+Do
+1. Add the most valuable regression tests you can without overbuilding.
+2. If you find a real product bug while testing, fix it in this worktree if small and directly related.
+3. Write HANDOFF_AGENT4.md with added coverage and remaining blind spots.
+
+Validation
+- python3 -m unittest -q
+- npm run build if you touch site code

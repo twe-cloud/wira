@@ -174,8 +174,21 @@ class GuiBootstrapTests(unittest.TestCase):
             welcome = collect_texts(app.container)
             self.assertIn("Talk to your agent on WhatsApp", welcome)
             self.assertIn("Set up my agent", welcome)
-            self.assertIn("Connect ChatGPT", welcome)
+            # Welcome step row mentions ChatGPT as an option (not the only path).
+            self.assertTrue(
+                any("chatgpt" in t.lower() for t in welcome),
+                "Welcome screen should mention ChatGPT as an option",
+            )
             self.assertIn("Connect WhatsApp", welcome)
+
+            # Brain-choice screen: free path first, ChatGPT easy to find.
+            app._show_brain_choice()
+            brain_texts = collect_texts(app.container)
+            self.assertIn("Connect ChatGPT", brain_texts)
+            self.assertTrue(
+                any("free" in t.lower() for t in brain_texts),
+                "Brain-choice screen should surface a free path",
+            )
 
             app._show_chatgpt_code({"code": "ABCD-1234", "url": "https://auth.openai.com/codex/device"})
             auth_texts = collect_texts(app.container)
@@ -701,6 +714,86 @@ class WhatsAppCloudTests(unittest.TestCase):
         self.assertEqual(headers["Authorization"], "Bearer token")
         self.assertEqual(payload["to"], "15551234567")
         self.assertEqual(payload["text"]["body"], "hello")
+
+
+class SetupMenuTests(unittest.TestCase):
+    """Verify the CLI brain menu matches the GUI's free-first / ChatGPT-second ordering."""
+
+    def _capture_menu(self):
+        """Run step_brain with an invalid choice and return printed output."""
+        import io
+        import setup
+
+        lines = []
+        with patch("builtins.print", side_effect=lambda *a, **k: lines.append(" ".join(str(x) for x in a))):
+            with patch("builtins.input", return_value="99"):
+                try:
+                    setup.step_brain()
+                except SystemExit:
+                    pass
+        return "\n".join(lines)
+
+    def test_free_groq_path_appears_in_menu(self):
+        output = self._capture_menu()
+        self.assertIn("Groq", output, "Free path (Groq) must appear in the CLI brain menu")
+
+    def test_chatgpt_still_in_menu(self):
+        output = self._capture_menu()
+        self.assertIn("ChatGPT", output, "ChatGPT must still appear as an option in the brain menu")
+
+    def test_free_path_listed_before_chatgpt(self):
+        output = self._capture_menu()
+        groq_pos = output.index("Groq")
+        chatgpt_pos = output.index("ChatGPT")
+        self.assertLess(
+            groq_pos, chatgpt_pos,
+            "Free option (Groq) must be listed before ChatGPT in the brain menu",
+        )
+
+    def test_chatgpt_is_not_option_1(self):
+        output = self._capture_menu()
+        self.assertNotIn("[1] ChatGPT", output, "ChatGPT must not be the first (default) option")
+
+    def test_chatgpt_not_labelled_recommended(self):
+        output = self._capture_menu()
+        # Guard against re-introducing "recommended" label on ChatGPT
+        lower = output.lower()
+        chatgpt_idx = lower.index("chatgpt")
+        # Look for "recommended" within 60 chars of "chatgpt"
+        nearby = lower[max(0, chatgpt_idx - 10):chatgpt_idx + 80]
+        self.assertNotIn("recommended", nearby, "ChatGPT must not be labelled (recommended)")
+
+    def test_groq_choice_returns_correct_provider_and_key(self):
+        import setup
+
+        with patch("builtins.print"):
+            with patch("builtins.input", side_effect=["1", "gsk_test_key"]):
+                provider, extra_env = setup.step_brain()
+
+        self.assertEqual(provider, "groq")
+        self.assertIn("GROQ_API_KEY", extra_env)
+        self.assertEqual(extra_env["GROQ_API_KEY"], "gsk_test_key")
+
+    def test_chatgpt_choice_returns_correct_provider(self):
+        import setup
+
+        with patch("builtins.print"):
+            with patch("builtins.input", side_effect=["2"]):
+                with patch("auth.is_logged_in", return_value=False):
+                    with patch("auth.device_code_login", return_value={}):
+                        provider, extra_env = setup.step_brain()
+
+        self.assertEqual(provider, "chatgpt")
+        self.assertEqual(extra_env, {})
+
+    def test_ollama_is_last_option(self):
+        output = self._capture_menu()
+        # Groq and ChatGPT must both appear before Ollama
+        ollama_pos = output.index("Ollama")
+        chatgpt_pos = output.index("ChatGPT")
+        groq_pos = output.index("Groq")
+        self.assertLess(groq_pos, ollama_pos, "Groq must appear before Ollama")
+        self.assertLess(chatgpt_pos, ollama_pos, "ChatGPT must appear before Ollama")
 
 
 if __name__ == "__main__":

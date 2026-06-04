@@ -19,7 +19,8 @@ CUSTOMER_VISIBLE_ASSISTANT_NAME = os.getenv("CUSTOMER_VISIBLE_ASSISTANT_NAME", "
 WIRA_PROMPT_PROFILE = os.getenv("WIRA_PROMPT_PROFILE", "local").strip().lower()
 
 # --- Brain (LLM provider) ---
-# "chatgpt"   = Uses your ChatGPT subscription (default, no API key needed)
+# "chatgpt"   = easy ChatGPT subscription path (kept as the env fallback if no
+#                onboarding choices have been saved yet)
 # "anthropic" = Claude API (needs ANTHROPIC_API_KEY)
 # "openai"    = GPT API (needs OPENAI_API_KEY)
 # "ollama"    = local model (private, free, needs Ollama running)

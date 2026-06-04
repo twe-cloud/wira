@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Wira setup — connect the local runtime and go.
 
-1. Connect a brain
+1. Connect a brain (start free, or use ChatGPT, or run it locally)
 2. Confirm owner + agent identity
 3. Pick a local access level
 4. Scan the WhatsApp QR code
@@ -31,18 +31,25 @@ def step_brain():
     print("  STEP 1 — Connect your brain")
     print("  ─────────────────────────────")
     print()
-    print("  Wira needs a brain for the local Hermes runtime.")
-    print("  The easiest option is your ChatGPT subscription (no API key needed).")
+    print("  Pick the fastest way to get started. You can change this later.")
     print()
-    print("  [1] ChatGPT subscription (recommended)")
-    print("  [2] Anthropic Claude API key")
-    print("  [3] OpenAI API key")
-    print("  [4] Local Ollama (private, runs on your machine)")
+    print("  [1] Free API key — Groq (fast free tier, no subscription needed)")
+    print("  [2] ChatGPT subscription (use what you already pay for)")
+    print("  [3] Anthropic Claude API key")
+    print("  [4] OpenAI API key")
+    print("  [5] Local Ollama (private, runs on your machine)")
     print()
 
-    choice = input("  Choose [1-4, default 1]: ").strip() or "1"
+    choice = input("  Choose [1-5, default 1]: ").strip() or "1"
 
     if choice == "1":
+        key = input("  Groq API key (free tier at console.groq.com/keys): ").strip()
+        if not key:
+            print("  No key entered. Aborting.")
+            sys.exit(1)
+        return "groq", {"GROQ_API_KEY": key}
+
+    if choice == "2":
         provider = "chatgpt"
         print()
         print("  Signing in to ChatGPT...")
@@ -57,21 +64,21 @@ def step_brain():
         print("  ChatGPT connected!")
         return provider, {}
 
-    if choice == "2":
+    if choice == "3":
         key = input("  Anthropic API key: ").strip()
         if not key:
             print("  No key entered. Aborting.")
             sys.exit(1)
         return "anthropic", {"ANTHROPIC_API_KEY": key}
 
-    if choice == "3":
+    if choice == "4":
         key = input("  OpenAI API key: ").strip()
         if not key:
             print("  No key entered. Aborting.")
             sys.exit(1)
         return "openai", {"OPENAI_API_KEY": key}
 
-    if choice == "4":
+    if choice == "5":
         host = input("  Ollama host [http://localhost:11434]: ").strip() or "http://localhost:11434"
         return "ollama", {"OLLAMA_HOST": host}
 

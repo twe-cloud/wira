@@ -37,6 +37,11 @@ npm run deploy
 Config lives in `wrangler.jsonc`. `SITE_URL` (used for Stripe redirects) is a
 `[vars]` entry there — update it to the production URL/custom domain.
 
+The buyer-facing Mac download should point at the Worker-owned route
+`/download/wira-mac`, not directly at a raw GitHub release URL. That keeps the
+public link stable, lets the Worker cache the DMG at the edge, and gives ops a
+single surface to update if the release origin changes.
+
 | Value | Where to get it | How it's set |
 |---|---|---|
 | `STRIPE_SECRET_KEY` | Stripe dashboard → Developers → API keys (`sk_test_*` / `sk_live_*`) | `wrangler secret put` |
@@ -74,10 +79,10 @@ The repo folder is currently `site/` — rename to whatever once the final name 
 
 1. In Stripe dashboard, create a test-mode Product with a one-time Wira Local Price.
 2. Paste the Price ID into `src/lib/brand.ts`.
-3. Run `npm run netlify:dev`.
+3. Run `npm run cf:dev`.
 4. Click **Get started**. Stripe Checkout opens with test card prefilled — use `4242 4242 4242 4242`, any future expiry, any CVC.
 5. After "payment", you land on `/success?session_id=cs_test_...`.
-6. To test the webhook: `stripe listen --forward-to localhost:8888/.netlify/functions/webhook` then trigger an event with `stripe trigger checkout.session.completed`.
+6. To test the webhook locally, run `npm run cf:dev`, then forward Stripe to `http://localhost:8787/api/webhook` with `stripe listen --forward-to http://localhost:8787/api/webhook`, then trigger an event with `stripe trigger checkout.session.completed`.
 
 ## Porting to the main business site
 

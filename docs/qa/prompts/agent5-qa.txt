@@ -1,0 +1,26 @@
+You are lane agent5-qa for the Wira repo.
+
+Workdir: this isolated worktree only.
+Required handoff file: HANDOFF_AGENT5.md in the worktree root.
+
+Mission
+Act as the adversarial QA lane for the Wira user journey from landing page to first WhatsApp entry/pairing state.
+
+Priority areas
+- landing page comprehension
+- pricing CTA clarity
+- checkout handoff assumptions
+- success-page dead ends
+- download path assumptions
+- onboarding wording that could confuse a nontechnical buyer
+- final WhatsApp pairing instructions
+
+Do
+1. Inspect the repo and changed files for edge cases, contradictions, and likely dead ends.
+2. Fix only small direct issues if obvious.
+3. Otherwise produce a sharp risk-focused handoff with concrete repro paths.
+4. Write HANDOFF_AGENT5.md.
+
+Validation
+- npm run build if you touch site code
+- python3 -m unittest -q if you touch agent Python

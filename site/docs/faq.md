@@ -3,7 +3,7 @@
 ## Setup
 
 ### How long does setup take?
-About five to ten minutes for the first install: connect ChatGPT, pair WhatsApp, confirm safe permissions, and send the first command.
+About five to ten minutes for the first install: pick the fastest free brain or connect ChatGPT, pair WhatsApp, confirm safe permissions, and send the first command.
 
 ### Is this a WhatsApp bot for replying to customers?
 No — not by default. Wira is a private agent surface for the owner/operator. It lives on your computer and you talk to it from your phone. Customer-facing workflows are a separate later extension, not the main product thesis.
@@ -14,16 +14,16 @@ Yes. Wira Local is a local product. The point is that the real agent lives on yo
 ## Agent behavior
 
 ### What does Wira actually do?
-Wira is your branded agent surface. It connects ChatGPT to an agent on your computer so you can ask for real work from WhatsApp, not just drafted text.
+Wira is your branded agent surface. It connects the brain you choose — free, ChatGPT, or private local — to an agent on your computer so you can ask for real work from WhatsApp, not just drafted text.
 
 ### Why not just use ChatGPT?
-Because ChatGPT is still mostly a place you go to chat. Wira connects that subscription to an agent on your own computer and makes WhatsApp the easiest way to reach it.
+Because ChatGPT is still mostly a place you go to chat. Wira turns that into a real agent on your own computer, still reachable from your phone — and if you want to start free instead, you can.
 
 ### Why is the agent also called Wira?
 Keep it simple on day one: Wira is the product and the name you talk to in WhatsApp. Deeper local-agent power can be discovered later.
 
 ### Can Wira grow beyond the starter flow?
-Yes — that's part of the goal. Wira starts with ChatGPT and WhatsApp, then can introduce deeper local-agent surfaces once you're ready.
+Yes — that's part of the goal. Wira starts with the fastest free path, ChatGPT if you already use it, and WhatsApp on your phone, then can introduce deeper local-agent surfaces once you're ready.
 
 ## Privacy and safety
 
@@ -50,7 +50,7 @@ Those are reasonable later capabilities, but they are secondary to the core prom
 ## Billing
 
 ### When am I charged?
-Wira Local is charged once at purchase. After the install is done, there is no monthly Wira Local fee. Your ChatGPT subscription remains separate.
+Wira Local is charged once at purchase. After the install is done, there is no monthly Wira Local fee. Any paid ChatGPT or API-provider cost stays separate.
 
 ### What am I actually paying for?
 You're paying for a branded, lower-friction way into owning a real agent on your own machine — with setup, pairing, packaging, and a clean path into deeper Hermes use.

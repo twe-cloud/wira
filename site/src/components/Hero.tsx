@@ -20,9 +20,9 @@ export default function Hero() {
             <em className="italic">reached from WhatsApp.</em>
           </h1>
           <p className="mt-5 text-lg text-ink-muted max-w-xl">
-            {PRODUCT.name} is a branded path into a real local Hermes agent.
-            It lives on your computer, starts from your phone, and grows with
-            you from simple commands into deeper agentic work.
+            {PRODUCT.name} sets up a personal agent on your computer and lets
+            you reach it from WhatsApp. Start simple, then grow into deeper
+            agentic work when you're ready.
           </p>
           <div className="mt-7 flex items-center gap-3 flex-wrap">
             <a href="#pricing" className="btn-primary">
@@ -33,7 +33,7 @@ export default function Hero() {
             </a>
           </div>
           <p className="mt-4 text-xs text-ink-muted">
-            Pair via QR code · Starts simple · Discover the deeper Hermes path later.
+            Pair via QR code · Apple Silicon Mac only · Starts simple · Grows with you.
           </p>
         </motion.div>
 

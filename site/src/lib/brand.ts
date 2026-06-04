@@ -12,12 +12,13 @@ export const PRODUCT = {
   tagline: "Your first personal agent, reached from WhatsApp.",
   hook: "A real local agent on your computer. Your phone is just the fastest way in.",
   description:
-    "Wira sets up a personal agent on your computer, runs it on a private local model, a low-cost API key, or the ChatGPT subscription you already have, and lets you talk to it on WhatsApp.",
+    "Wira sets up a personal agent on your computer, connects it to a free or paid brain of your choice, and lets you talk to it on WhatsApp.",
   supportEmail: "hello@wira.io",
-  city: "Nairobi",
-  // Direct download for the signed + notarized macOS app (GitHub Release asset).
+  city: "Dallas, TX",
+  // Stable product-controlled download route fronted by the Cloudflare Worker.
+  // The Worker caches the DMG at the edge and can fall back to a pinned GitHub asset.
   downloadMacUrl:
-    "https://github.com/twe-cloud/wira/releases/latest/download/Wira.dmg",
+    "https://wira-local-agent.nibiashara.workers.dev/download/wira-mac",
   // The app is an Apple Silicon (arm64) build — it will not launch on Intel Macs.
   // Browser JS can't reliably tell the two apart, so we state the requirement.
   systemRequirement: "Requires an Apple Silicon Mac (M1 or newer), macOS 12+.",
@@ -35,7 +36,7 @@ export const PRICING = {
     "Lives on your own computer — not trapped in a browser tab",
     "Reach Wira from WhatsApp with a QR-paired setup",
     "Private owner/operator control surface by default",
-    "Run it free and fully private on your Mac, connect a low-cost API key, or use the ChatGPT subscription you already have",
+    "Start free in seconds, use the ChatGPT subscription you already have, or run fully private on your Mac",
     "Grows into deeper local agent work when you're ready",
   ],
 };
@@ -54,7 +55,7 @@ export const PILLARS = [
   {
     name: "Grows Into Hermes",
     body:
-      "You don't need to learn the deeper system on day one. Start with ChatGPT and WhatsApp; Wira can introduce more power later instead of trapping you in a simplified shell forever.",
+      "You don't need to learn the deeper system on day one. Start with the fastest free brain or the ChatGPT subscription you already have, then let Wira introduce more power later instead of trapping you in a simplified shell forever.",
   },
 ];
 
@@ -65,11 +66,11 @@ export const FAQS = [
   },
   {
     q: "Why not just use ChatGPT?",
-    a: "Because ChatGPT is still mostly a place you go to chat. Wira connects that subscription to an agent on your own computer and lets you reach it from your phone.",
+    a: "Because ChatGPT is still mostly a place you go to chat. Wira turns that into a real agent on your own computer, reachable from your phone — and if you want to start free instead, you can.",
   },
   {
     q: "What does Wira do?",
-    a: "Wira is both the product and the name you talk to on day one. It keeps the first experience simple: WhatsApp on your phone, ChatGPT connected, and a local agent on your computer.",
+    a: "Wira is both the product and the name you talk to on day one. It keeps the first experience simple: WhatsApp on your phone, a brain you choose, and a local agent on your computer.",
   },
   {
     q: "Can it grow beyond the starter flow?",
@@ -81,11 +82,11 @@ export const FAQS = [
   },
   {
     q: "Can it run without ChatGPT?",
-    a: "Yes. During setup Wira can install a private local model that runs entirely on your Mac — free to run, with nothing leaving your computer. You can also paste in a low-cost API key (OpenRouter, Groq, DeepSeek and more), or connect the ChatGPT subscription you already have. You can switch later.",
+    a: "Yes. The fastest free option is to sign up with a service like Groq or DeepSeek and paste the key Wira asks for — free tiers get you running in seconds. You can also connect the ChatGPT subscription you already have, or run fully private on your Mac. You can switch any time.",
   },
   {
     q: "What's the fastest way to get going?",
-    a: "Two free or near-free paths. The local model installs in one step and runs entirely on your Mac for free — best for privacy. Or paste a key from a provider like Groq or DeepSeek; their free and low-cost tiers get you a fast cloud brain in seconds without a monthly subscription.",
+    a: "Sign up free with a service like Groq or DeepSeek, paste the key Wira asks for, and you are chatting in under a minute — no subscription needed. Or connect the ChatGPT subscription you already have. Both paths work right away.",
   },
   {
     q: "Can other people talk to my agent?",

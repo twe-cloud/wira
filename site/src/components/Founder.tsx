@@ -1,19 +1,15 @@
 import { PRODUCT } from "@/lib/brand";
 
-/**
- * Pre-testimonial trust block. The marketing brief calls this out as the
- * "byline wall" social-proof angle. Replace the placeholder copy and avatar
- * with the real founder before launch.
- */
+/** Founder byline block. */
 export default function Founder() {
   return (
     <section className="container-narrow py-16">
       <div className="card p-7 sm:p-10 flex flex-col sm:flex-row gap-6 items-start">
         <div
           aria-hidden
-          className="flex-none w-16 h-16 rounded-full bg-accent-soft text-accent flex items-center justify-center font-display text-3xl"
+          className="flex-none w-16 h-16 rounded-full bg-accent-soft text-accent flex items-center justify-center font-display text-2xl"
         >
-          C
+          CN
         </div>
         <div>
           <p className="text-lg leading-relaxed">
@@ -25,7 +21,7 @@ export default function Founder() {
             stack when you're ready.”
           </p>
           <p className="mt-4 text-sm text-ink-muted">
-            — Craig, founder of {PRODUCT.name}. Based in {PRODUCT.city}.
+            — Craig, founder of {PRODUCT.name}. Kenyan, based in {PRODUCT.city}.
           </p>
         </div>
       </div>

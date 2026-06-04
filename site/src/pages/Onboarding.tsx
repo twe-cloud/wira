@@ -6,18 +6,16 @@ import { PRODUCT } from "@/lib/brand";
 
 type State = {
   step: number;
-  phone: string;
-  chatgptConnected: boolean;
+  brainChosen: boolean;
   whatsappPaired: boolean;
   safetyMode: "ask" | "fast";
 };
 
-const STORAGE_KEY = "onboarding.v2";
+const STORAGE_KEY = "onboarding.v3";
 
 const EMPTY: State = {
   step: 1,
-  phone: "",
-  chatgptConnected: false,
+  brainChosen: false,
   whatsappPaired: false,
   safetyMode: "ask",
 };
@@ -54,7 +52,7 @@ export default function Onboarding() {
 
   return (
     <>
-      <Nav />
+      <Nav hideGetStarted />
       <main className="container-narrow py-12">
         <div className="mb-8 flex items-center gap-2" aria-label="Progress">
           {STEPS.map((label, i) => {
@@ -85,8 +83,8 @@ export default function Onboarding() {
             transition={{ duration: 0.22 }}
             className="card p-7"
           >
-            {state.step === 1 && <Step1Welcome phone={state.phone} setPhone={(v) => set("phone", v)} onNext={next} />}
-            {state.step === 2 && <Step2ChatGPT connected={state.chatgptConnected} setConnected={(v) => set("chatgptConnected", v)} onNext={next} onBack={back} />}
+            {state.step === 1 && <Step1Welcome onNext={next} />}
+            {state.step === 2 && <Step2Brain chosen={state.brainChosen} setChosen={(v) => set("brainChosen", v)} onNext={next} onBack={back} />}
             {state.step === 3 && <Step3WhatsApp setPaired={(v) => set("whatsappPaired", v)} onNext={next} onBack={back} />}
             {state.step === 4 && <Step4Safety value={state.safetyMode} setValue={(v) => set("safetyMode", v)} onNext={next} onBack={back} />}
             {state.step === 5 && <Step5Done state={state} onBack={back} />}
@@ -95,8 +93,8 @@ export default function Onboarding() {
 
         <p className="mt-6 text-center text-xs text-ink-muted">
           {PRODUCT.name} keeps day one simple: your agent lives on this computer,
-          runs on a private local model, a low-cost API key, or ChatGPT, and
-          answers you on WhatsApp.
+          connects to a free or paid brain of your choice, and answers you on
+          WhatsApp.
         </p>
       </main>
       <Footer />
@@ -105,12 +103,8 @@ export default function Onboarding() {
 }
 
 function Step1Welcome({
-  phone,
-  setPhone,
   onNext,
 }: {
-  phone: string;
-  setPhone: (v: string) => void;
   onNext: () => void;
 }) {
   return (
@@ -118,9 +112,9 @@ function Step1Welcome({
       <p className="text-sm font-semibold text-accent">Your agent lives on this computer</p>
       <h2 className="mt-2 text-3xl">Talk to your agent on WhatsApp</h2>
       <p className="mt-2 text-ink-muted">
-        Wira sets up a personal agent on this computer, runs it on a private
-        local model or the ChatGPT subscription you already have, and brings it
-        to WhatsApp.
+        Wira sets up a personal agent on this computer, connects it to a brain
+        you choose — free, ChatGPT, or fully private — and brings it to
+        WhatsApp.
       </p>
       <div className="mt-6 rounded-xl border border-border bg-canvas p-4">
         <div className="font-medium">First, download the app</div>
@@ -133,21 +127,13 @@ function Step1Welcome({
         </a>
         <p className="mt-2 text-xs text-ink-muted">{PRODUCT.systemRequirement}</p>
       </div>
-      <label className="mt-6 block text-sm font-medium">Your WhatsApp number</label>
-      <input
-        type="tel"
-        inputMode="tel"
-        autoComplete="tel"
-        placeholder="+254 700 000 000"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        className="mt-2 w-full rounded-xl border border-border bg-canvas px-4 py-3 text-base focus:outline-none"
-      />
-      <p className="mt-2 text-xs text-ink-muted">
-        This is the phone number you will use to reach Wira after pairing.
-      </p>
+      <div className="mt-6 rounded-xl border border-border bg-canvas p-4 text-sm text-ink-muted">
+        Pair the same WhatsApp account you plan to use every day. You do not
+        need to register the number here — the real connection happens when you
+        scan the QR code inside the Wira app.
+      </div>
       <div className="mt-6 flex justify-end">
-        <button disabled={!phone.trim()} onClick={onNext} className="btn-primary disabled:opacity-40">
+        <button onClick={onNext} className="btn-primary">
           Set up my agent →
         </button>
       </div>
@@ -155,14 +141,14 @@ function Step1Welcome({
   );
 }
 
-function Step2ChatGPT({
-  connected,
-  setConnected,
+function Step2Brain({
+  chosen,
+  setChosen,
   onNext,
   onBack,
 }: {
-  connected: boolean;
-  setConnected: (v: boolean) => void;
+  chosen: boolean;
+  setChosen: (v: boolean) => void;
   onNext: () => void;
   onBack: () => void;
 }) {
@@ -174,39 +160,48 @@ function Step2ChatGPT({
         you can switch later.
       </p>
       <div className="mt-6 rounded-xl border border-border bg-accent-soft/40 p-4">
-        <div className="text-xs font-semibold text-accent">RECOMMENDED · PRIVATE · FREE</div>
-        <div className="mt-1 font-medium">Run it on this Mac</div>
+        <div className="text-xs font-semibold text-accent">FASTEST · FREE</div>
+        <div className="mt-1 font-medium">Start free in seconds</div>
         <p className="mt-1 text-sm text-ink-muted">
-          Wira installs a private local model and runs it entirely on your
-          computer — free to run, with nothing leaving your Mac. One quick
-          install and it's yours.
+          Sign up free with a service like Groq or DeepSeek, paste the key Wira
+          asks for, and start chatting in under a minute. No subscription
+          needed — free tiers are enough to get going.
+        </p>
+        <a
+          href="https://console.groq.com/keys"
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 inline-flex text-sm text-accent underline underline-offset-2"
+        >
+          Get a free Groq key
+        </a>
+      </div>
+      <div className="mt-3 rounded-xl border border-border bg-accent-soft/20 p-4">
+        <div className="text-xs font-semibold text-accent">SIMPLE · USE WHAT YOU HAVE</div>
+        <div className="mt-1 font-medium">Connect ChatGPT</div>
+        <p className="mt-1 text-sm text-ink-muted">
+          Already subscribe to ChatGPT Plus or Pro? Approve Wira on this
+          computer in a quick browser step. You get the brain you already know
+          and trust, connected to your own agent.
         </p>
       </div>
       <div className="mt-3 rounded-xl border border-border bg-canvas p-4">
-        <div className="text-xs font-semibold text-ink-muted">BEST VALUE · BRING A KEY</div>
-        <div className="mt-1 font-medium">Paste a low-cost API key</div>
+        <div className="text-xs font-semibold text-ink-muted">PRIVATE · ON YOUR MAC</div>
+        <div className="mt-1 font-medium">Run it entirely on this computer</div>
         <p className="mt-1 text-sm text-ink-muted">
-          Connect any OpenAI-compatible provider — OpenRouter, Groq, DeepSeek,
-          Gemini and more. Free and low-cost tiers get you a fast cloud brain in
-          seconds, no monthly subscription. Wira tests the key before it saves.
-        </p>
-      </div>
-      <div className="mt-3 rounded-xl border border-border bg-canvas p-4">
-        <div className="text-xs font-semibold text-ink-muted">USE WHAT YOU HAVE</div>
-        <div className="mt-1 font-medium">Use your ChatGPT subscription</div>
-        <p className="mt-1 text-sm text-ink-muted">
-          Prefer the brain you already pay for? Approve Wira on this computer in
-          a quick browser step, then come back to the app.
+          Prefer a fully private path? Install Ollama on your Mac first, then
+          let Wira use it as the brain. Best when you want everything to stay on
+          your own machine.
         </p>
       </div>
       <div className="mt-4 flex flex-wrap gap-3">
-        <button type="button" onClick={() => setConnected(true)} className="btn-primary">
-          I chose my brain
+        <button type="button" onClick={() => setChosen(true)} className="btn-primary">
+          Got it — I'll choose it in Wira
         </button>
       </div>
       <div className="mt-6 flex justify-between">
         <button onClick={onBack} className="btn-ghost">Back</button>
-        <button onClick={onNext} className="btn-primary" disabled={!connected}>
+        <button onClick={onNext} className="btn-primary" disabled={!chosen}>
           Continue →
         </button>
       </div>
@@ -230,15 +225,18 @@ function Step3WhatsApp({
         Pairing works like WhatsApp Web. Once paired, WhatsApp becomes the
         easiest way to talk to Wira while the agent runs on this computer.
       </p>
-      <ol className="mt-6 space-y-3 text-sm text-ink-muted">
+      <div className="mt-6 rounded-xl border border-border bg-accent-soft/20 p-4 text-sm text-ink-muted">
+        Make sure Wira is open on your Mac first — the QR code appears in the app window.
+      </div>
+      <ol className="mt-4 space-y-3 text-sm text-ink-muted">
         <li><strong className="text-ink">1.</strong> Open WhatsApp on your phone.</li>
-        <li><strong className="text-ink">2.</strong> Go to Linked Devices.</li>
+        <li><strong className="text-ink">2.</strong> Go to Settings → Linked Devices.</li>
         <li><strong className="text-ink">3.</strong> Tap Link a Device.</li>
-        <li><strong className="text-ink">4.</strong> Scan the code Wira shows.</li>
+        <li><strong className="text-ink">4.</strong> Scan the code shown in the Wira window.</li>
       </ol>
       <div className="mt-6 rounded-xl border border-border bg-canvas p-4 text-sm text-ink-muted">
-        When the code is scanned, send Wira a first message like “summarize my day”
-        or “find the latest invoice in Downloads.”
+        When the code is scanned, start with something Wira can do right away —
+        like “what's in my Downloads folder?” or “find the latest invoice PDF.”
       </div>
       <div className="mt-6 flex justify-between">
         <button onClick={onBack} className="btn-ghost">Back</button>
@@ -323,18 +321,19 @@ function Step5Done({ state, onBack }: { state: State; onBack: () => void }) {
       <div className="mt-6 rounded-xl border border-border bg-canvas p-4 text-sm">
         <div className="mb-2 font-medium">Ready for first message</div>
         <ul className="space-y-2 text-ink-muted">
-          <li>• “Summarize my day.”</li>
+          <li>• “What's in my Downloads folder?”</li>
           <li>• “Find my latest invoice PDF.”</li>
           <li>• “Make a shipping plan for this project.”</li>
-          <li>• “Remind me what I was working on.”</li>
+          <li>• “What time is it in Dallas?”</li>
         </ul>
         <div className="mt-4 text-xs text-ink-muted">
-          Number: {state.phone || "your WhatsApp"} · Safety: {state.safetyMode === "ask" ? "ask first" : "move fast carefully"}
+          Next: open Wira on your Mac, choose the same safety mode there, then
+          send your first WhatsApp command. Safety: {state.safetyMode === "ask" ? "ask first" : "move fast carefully"}
         </div>
       </div>
       <div className="mt-6 flex justify-between">
         <button onClick={onBack} className="btn-ghost">Back</button>
-        <a href="/" className="btn-primary">Done</a>
+        <a href={PRODUCT.downloadMacUrl} className="btn-primary">Download / reopen Wira →</a>
       </div>
     </>
   );

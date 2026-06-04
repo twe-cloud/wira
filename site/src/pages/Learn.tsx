@@ -1,6 +1,7 @@
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import { PRODUCT } from "@/lib/brand";
+import { Link } from "react-router-dom";
 
 /**
  * Plain-language explainer page. Deliberately NOT a sales page — it lives off
@@ -88,32 +89,31 @@ export default function Learn() {
           </p>
         </Block>
 
-        <Block title="The brain — and the fastest free way in">
+        <Block title="The brain — fastest free first">
           <p>
             Every agent needs a "brain" — the AI model that does the thinking.{" "}
             {PRODUCT.name} lets you choose, and you can switch any time:
           </p>
           <ul>
             <li>
-              <b>Local model (free &amp; private)</b> — {PRODUCT.name} installs an
-              open model that runs entirely on your Mac. Nothing leaves your
-              computer, and there's nothing to pay. One quick install and you're
-              going. Best if privacy matters to you.
-            </li>
-            <li>
-              <b>A low-cost API key (best value)</b> — paste a key from a provider
-              like Groq or DeepSeek. Their free and cheap tiers give you a fast
-              cloud brain in seconds, with no monthly subscription. {PRODUCT.name}{" "}
-              tests the key before saving it.
+              <b>A low-cost API key (fastest free start)</b> — paste a key from a
+              provider like Groq or DeepSeek. Their free and cheap tiers give you
+              a fast cloud brain in seconds, with no monthly subscription.{" "}
+              {PRODUCT.name} tests the key before saving it.
             </li>
             <li>
               <b>Your ChatGPT subscription</b> — already pay for ChatGPT? Connect
               it and use the brain you've got.
             </li>
+            <li>
+              <b>Local model (private option)</b> — {PRODUCT.name} can also use an
+              open model that runs entirely on your Mac. Best when you want
+              everything to stay on your own machine.
+            </li>
           </ul>
           <p>
-            The local model and the free provider tiers mean you can be up and
-            running for <b>$0</b> — no subscription, no waiting.
+            The free provider tiers mean you can be up and running for <b>$0</b>
+            without assuming a local server is already set up.
           </p>
         </Block>
 
@@ -123,9 +123,9 @@ export default function Learn() {
             code, and send your first message.
           </p>
           <div className="not-prose mt-4 flex flex-wrap gap-3">
-            <a href="/onboarding" className="btn-primary">
+            <Link to="/onboarding" className="btn-primary">
               Start setup
-            </a>
+            </Link>
             <a href="/#pricing" className="btn-ghost">
               See pricing
             </a>

@@ -1,0 +1,32 @@
+You are lane agent2-checkout for the Wira repo.
+
+Workdir: this isolated worktree only.
+Required handoff file: HANDOFF_AGENT2.md in the worktree root.
+
+Mission
+Harden the buyer journey around checkout, success, email, and download routing.
+
+Priority files to inspect
+- site/cloudflare/worker.ts
+- site/src/pages/Success.tsx
+- site/src/lib/brand.ts
+- site/wrangler.jsonc
+- site/README.md
+- site/docs/customer-journey.md
+
+Focus
+- checkout product/submit copy truthfulness
+- success-page clarity and step order
+- stable first-party download path
+- promo-code support stays intact
+- any brittle or confusing post-payment text gets fixed
+
+Do
+1. Audit the checkout/session creation code and post-payment messaging.
+2. Improve structural reliability if you find a real weak point.
+3. Do not remove existing payment features unless clearly broken.
+4. Write HANDOFF_AGENT2.md with exact validations and remaining risks.
+
+Validation
+- npm run build
+- any targeted curl or local checks that prove the download/success flow logic

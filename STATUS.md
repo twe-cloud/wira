@@ -1,6 +1,6 @@
 # Wira Status
 
-Updated: 2026-06-03
+Updated: 2026-06-04
 Mode: BUSINESS
 Canonical repo: `/Users/motwe/Wira`
 Remote: `git@github.com:twe-cloud/wira.git`
@@ -11,7 +11,7 @@ Operating surface (live): `https://wira-local-agent.nibiashara.workers.dev` (Clo
 
 Wira is the productized WhatsApp assistant lane for small businesses.
 
-Product closeout pass on 2026-06-03 moved the public onboarding/site copy onto the Wira Local thesis: Wira runs on this computer, connects to the buyer's existing ChatGPT subscription, and is reached from WhatsApp. The site onboarding flow now follows Welcome → Connect ChatGPT → Connect WhatsApp → Safety → Ready, with human-first blocked-auth copy and no provider/model/tooling jargon in first-run surfaces.
+Product closeout pass on 2026-06-04 tightened the public onboarding/site copy around the fastest path to first WhatsApp use. Wira still lives on the buyer's computer and is reached from WhatsApp, but the buyer is now steered toward the fastest free start first, with the ChatGPT-subscription path also kept obvious and easy. The site onboarding flow now follows Welcome → Pick a brain → Connect WhatsApp → Safety → Ready, and the post-payment success page gives a numbered download → brain → QR path instead of dropping the buyer into ambiguity.
 
 Hosting moved off Netlify onto Cloudflare Workers on 2026-06-03. `site/` now serves the built Vite SPA from the Worker's static-assets binding and handles the two Stripe routes (`/api/checkout`, `/api/webhook`) in `site/cloudflare/worker.ts` (Workers-compatible async signature verification). Config in `site/wrangler.jsonc`; security headers in `site/public/_headers`. The Netlify config + functions were removed. Live operating surface: `https://wira-local-agent.nibiashara.workers.dev`.
 

@@ -1,0 +1,37 @@
+You are lane agent1-copy for the Wira repo.
+
+Workdir: this isolated worktree only.
+Required handoff file: HANDOFF_AGENT1.md in the worktree root.
+
+Mission
+Audit and fix user-facing copy drift so the product consistently says:
+- fastest free option first
+- ChatGPT still easy and visible
+- fully private local path available but not the default expectation
+- WhatsApp is the main everyday surface
+
+Priority files to inspect
+- site/src/lib/brand.ts
+- site/src/components/Hero.tsx
+- site/src/components/HowItWorks.tsx
+- site/src/components/Pricing.tsx
+- site/src/pages/Onboarding.tsx
+- site/src/pages/Success.tsx
+- site/docs/faq.md
+- site/docs/customer-journey.md
+- site/docs/quickstart.md
+- agent/README.md
+- agent/setup.py
+- agent/config.py
+- agent/auth.py
+
+Do
+1. Find remaining copy that still implies ChatGPT-first or contradicts the new free-first positioning.
+2. Fix only the drift.
+3. Preserve truthful caveats and do not invent capabilities.
+4. Write HANDOFF_AGENT1.md with changed files, validation, and remaining drift if any.
+
+Validation
+- run targeted rg searches for old wording
+- run npm run build if you touch site code
+- run python3 -m unittest -q in agent if you touch agent Python
