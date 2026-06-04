@@ -1,0 +1,8 @@
+# Local Worker secrets for `wrangler dev`. Copy to .dev.vars (gitignored) and fill in.
+# In production these are set with: wrangler secret put STRIPE_SECRET_KEY / STRIPE_WHSEC
+STRIPE_SECRET_KEY=sk_test_REPLACE_ME
+STRIPE_WHSEC=whsec_REPLACE_ME
+
+# Public site URL used for Stripe success/cancel redirects.
+# Set as a [vars] entry in wrangler.jsonc for production; only needed here for local dev.
+SITE_URL=http://localhost:8787

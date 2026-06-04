@@ -21,12 +21,13 @@ export default function SocialProof() {
             ))}
           </div>
           <p className="text-sm text-ink-muted">
-            Trusted by solopreneurs to answer the messages they used to dread.
+            Built for solo operators who want a real agent without having to
+            start from terminals and jargon.
           </p>
         </div>
         <p className="text-sm text-ink-muted">
-          <span className="text-ink font-medium">{PRODUCT.name}</span> hands the
-          5% back to you, handles the 95% itself.
+          <span className="text-ink font-medium">{PRODUCT.name}</span> starts on
+          WhatsApp, but the real value is the local agent growing underneath.
         </p>
       </div>
     </section>

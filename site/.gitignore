@@ -3,5 +3,7 @@ dist/
 .env
 .env.local
 .netlify/
+.dev.vars
+.wrangler/
 *.log
 .DS_Store

@@ -1,42 +1,40 @@
 # Wira
 
-Your AI assistant, living on your WhatsApp.
+Your first personal agent, reached from WhatsApp.
 
-People message your number. **Wira** answers — in your voice, instantly, around the
-clock. It remembers every conversation, handles the small stuff, and knows when to hand a
-chat back to you. *Wira* is Swahili for hero — the kind that quietly does the work.
+Wira is not meant to be a glorified reply bot. The real thesis is simpler and
+stronger: **Wira** is a branded path into a real local agent that lives on your
+computer, connects to ChatGPT, and is easiest to engage from your phone.
 
-No new app for anyone to install. No new number to share. It runs on the WhatsApp people
-already use to reach you.
+That means:
+
+- **Phone-first, computer-real.** You pair over WhatsApp so the first interaction feels familiar, but the real runtime lives on your machine.
+- **A bridge out of plain chat.** The buyer starts from a simple branded surface, then organically discovers deeper local-agent access over time.
+- **Owner/operator first.** The primary user is the owner talking to their own agent, not a public customer-reply lane by default.
+- **Wira by default.** The local starter identity can be friendly and branded, with rename available after setup.
 
 ## What It Looks Like
 
 ```
-Friend:  yo is craig around this weekend? thinking of pulling up
-Wira:  He's mostly free Saturday — Sunday's looking packed though. Want me to
-         flag it to him so he locks it in?
-Friend:  yeah do that
-Wira:  Done, he'll confirm a time with you directly. 🤝
+You:   what's left on my calendar after 2pm?
+Wira:  You have a client check-in at 3:30 PM and a design review at 5 PM.
+       Want a short prep brief for both?
 
-Client:  Hi, are you available for a quick call tomorrow?
-Wira:  Likely yes — mornings are better for him. I'll have Craig confirm the exact
-         slot so nothing clashes. What's the call about, so I can brief him?
+You:   search Downloads for the latest invoice PDF
+Wira:  Found the newest invoice PDF in Downloads. I can open it, summarize it,
+       or prep an email around it next.
 ```
 
-Short, warm, on-brand. It mirrors how each person talks to you, and it never makes a
-promise it shouldn't — anything real gets escalated back to you.
+Short, useful, grounded in real work. The goal is that Wira starts simple and
+then grows with the user into a deeper Hermes workflow.
 
 ## What Makes Wira Different
 
-- **It's your actual number.** Links to your personal WhatsApp via QR, like WhatsApp Web.
-  Nobody downloads anything. That's why the demo lands every time.
-- **Remembers per person.** Every contact gets their own thread of memory, so conversations
-  pick up where they left off — not goldfish-brained like most bots.
-- **Knows its lane.** Built-in guardrails: never commits to meetings/money/promises on your
-  behalf, never leaks your private details, escalates anything sensitive to you.
-- **Your brain, your choice.** Runs on Claude (best quality) or a fully local model via
-  Ollama (private, free, never leaves your machine).
-- **Ignores manipulation.** Messages that try "ignore your instructions" tricks get shut down.
+- **It's the easiest first step into a real agent.** No need to begin with technical setup language.
+- **It still grows.** Wira should not trap the buyer in a toy layer; it should gradually reveal deeper local-agent power.
+- **Lives on the buyer's machine.** The local path is about ownership, not another hosted chat widget.
+- **WhatsApp is the command surface, not the whole product.** The value is the local agent underneath.
+- **Connect ChatGPT first.** Wira starts with the subscription the buyer already understands.
 
 ## Quick Start
 
@@ -157,6 +155,17 @@ The webhook verifies Meta's challenge token, verifies `X-Hub-Signature-256` by d
 ignores delivery-status callbacks, deduplicates inbound message IDs, and routes customer
 text into the same Wira brain/memory/draft policy as the local QR version.
 
+Customer-facing identity is different on the Cloud path. `cloud_webhook.py` forces the
+`business_cloud` prompt profile:
+
+- WhatsApp customers see and hear from the client's business identity, controlled by the
+  WhatsApp Business display name and `BUSINESS_NAME`.
+- Wira is the owner/admin product name and operator feed, not the default customer-facing
+  speaker.
+- Hermes is internal plumbing only and must not appear in customer or client-facing chat.
+- Set `CUSTOMER_VISIBLE_ASSISTANT_NAME` only when the business explicitly wants a named
+  assistant such as Nia.
+
 For the managed small-business product, keep two SKUs separate:
 
 | SKU | Channel | Best for |
@@ -169,19 +178,37 @@ but Wira Business should stay provider-abstracted. Direct Meta Cloud API and Twi
 WhatsApp are different transports with different credentials, callbacks, and operational
 controls.
 
-## Offering Wira as a Setup
+## Updates
+
+Wira Local stores user-owned config, auth, WhatsApp pairing, memory, drafts, and onboarding
+state in `~/.wira`. The app can be replaced without bundling customer data into the app
+folder.
+
+To update a Local install, download the latest Mac or Windows build from:
+
+```text
+https://github.com/twe-cloud/wira/releases/latest
+```
+
+If a WhatsApp linked-device session expires, reconnect from the Wira window and scan a new
+QR code. The buyer controls their machine, accounts, tools, model/provider cost, and
+message behavior.
+
+## Offering Wira as an Enablement Setup
 
 This repo is the product. Two ways to sell it:
 
 1. **Done-for-you setup.** You run `install.sh` on their box (or a small VPS), link their
-   number, tune `OWNER_NAME` and the persona in `prompts.py` to their voice, hand over the
-   keys. Charge for setup + a monthly minding fee.
-2. **Self-serve.** Hand them this repo and the Quick Start. You sell support and persona
-   tuning.
+   number, tune `OWNER_NAME` and the persona in `prompts.py` to their voice, then hand over
+   control.
+2. **Self-serve.** Hand them the installer and setup guide. After setup, their agent is
+   their responsibility.
 
 The persona in `prompts.py` is the part worth customising per client — that's where Wira
 stops sounding generic and starts sounding like *them*.
 
-## License
+## Buyer-Facing Position
 
-MIT
+Wira Local is sold as enablement: install, connect, scan, configure, and hand control to
+the buyer. Do not describe the buyer relationship as an ongoing software license, managed
+support plan, hosted service, or uptime promise unless a separate written service is sold.

@@ -6,20 +6,20 @@ import { PRODUCT } from "@/lib/brand";
 
 type State = {
   step: number;
-  voiceSamples: string;
-  contactPolicy: "whitelist" | "all-except" | "everyone";
-  approvalMode: "draft" | "auto-trusted" | "auto-all";
   phone: string;
+  chatgptConnected: boolean;
+  whatsappPaired: boolean;
+  safetyMode: "ask" | "fast";
 };
 
-const STORAGE_KEY = "onboarding.v1";
+const STORAGE_KEY = "onboarding.v2";
 
 const EMPTY: State = {
   step: 1,
-  voiceSamples: "",
-  contactPolicy: "whitelist",
-  approvalMode: "draft",
   phone: "",
+  chatgptConnected: false,
+  whatsappPaired: false,
+  safetyMode: "ask",
 };
 
 function load(): State {
@@ -41,7 +41,7 @@ function save(s: State) {
   }
 }
 
-const STEPS = ["Connect", "Voice", "Contacts", "Approval", "First reply"];
+const STEPS = ["Welcome", "ChatGPT", "WhatsApp", "Safety", "Ready"];
 
 export default function Onboarding() {
   const [state, setState] = useState<State>(load);
@@ -56,15 +56,15 @@ export default function Onboarding() {
     <>
       <Nav />
       <main className="container-narrow py-12">
-        <div className="flex items-center gap-2 mb-8" aria-label="Progress">
+        <div className="mb-8 flex items-center gap-2" aria-label="Progress">
           {STEPS.map((label, i) => {
             const n = i + 1;
             const done = n < state.step;
             const active = n === state.step;
             return (
-              <div key={label} className="flex-1 flex items-center gap-2">
+              <div key={label} className="flex flex-1 items-center gap-2">
                 <div
-                  className={`flex-1 h-1.5 rounded-full ${
+                  className={`h-1.5 flex-1 rounded-full ${
                     done || active ? "bg-accent" : "bg-border"
                   }`}
                 />
@@ -72,7 +72,7 @@ export default function Onboarding() {
             );
           })}
         </div>
-        <p className="text-sm text-ink-muted mb-2">
+        <p className="mb-2 text-sm text-ink-muted">
           Step {state.step} of {STEPS.length} · {STEPS[state.step - 1]}
         </p>
 
@@ -85,44 +85,17 @@ export default function Onboarding() {
             transition={{ duration: 0.22 }}
             className="card p-7"
           >
-            {state.step === 1 && (
-              <Step1Connect
-                phone={state.phone}
-                setPhone={(v) => set("phone", v)}
-                onNext={next}
-              />
-            )}
-            {state.step === 2 && (
-              <Step2Voice
-                samples={state.voiceSamples}
-                setSamples={(v) => set("voiceSamples", v)}
-                onNext={next}
-                onBack={back}
-              />
-            )}
-            {state.step === 3 && (
-              <Step3Contacts
-                value={state.contactPolicy}
-                setValue={(v) => set("contactPolicy", v)}
-                onNext={next}
-                onBack={back}
-              />
-            )}
-            {state.step === 4 && (
-              <Step4Approval
-                value={state.approvalMode}
-                setValue={(v) => set("approvalMode", v)}
-                onNext={next}
-                onBack={back}
-              />
-            )}
+            {state.step === 1 && <Step1Welcome phone={state.phone} setPhone={(v) => set("phone", v)} onNext={next} />}
+            {state.step === 2 && <Step2ChatGPT connected={state.chatgptConnected} setConnected={(v) => set("chatgptConnected", v)} onNext={next} onBack={back} />}
+            {state.step === 3 && <Step3WhatsApp setPaired={(v) => set("whatsappPaired", v)} onNext={next} onBack={back} />}
+            {state.step === 4 && <Step4Safety value={state.safetyMode} setValue={(v) => set("safetyMode", v)} onNext={next} onBack={back} />}
             {state.step === 5 && <Step5Done state={state} onBack={back} />}
           </motion.div>
         </AnimatePresence>
 
-        <p className="mt-6 text-xs text-ink-muted text-center">
-          Your answers are saved locally as you go. Nothing's submitted until
-          you click finish.
+        <p className="mt-6 text-center text-xs text-ink-muted">
+          {PRODUCT.name} keeps day one simple: your agent lives on this computer,
+          connects to ChatGPT, and answers you on WhatsApp.
         </p>
       </main>
       <Footer />
@@ -130,7 +103,7 @@ export default function Onboarding() {
   );
 }
 
-function Step1Connect({
+function Step1Welcome({
   phone,
   setPhone,
   onNext,
@@ -141,12 +114,13 @@ function Step1Connect({
 }) {
   return (
     <>
-      <h2 className="text-3xl">Connect your WhatsApp</h2>
+      <p className="text-sm font-semibold text-accent">Your agent lives on this computer</p>
+      <h2 className="mt-2 text-3xl">Talk to your agent on WhatsApp</h2>
       <p className="mt-2 text-ink-muted">
-        Enter the WhatsApp number {PRODUCT.name} will live on. We'll send you a
-        magic link to scan the QR code from your phone.
+        Wira sets up a personal agent on this computer, connects it to the
+        ChatGPT subscription you already have, and brings it to WhatsApp.
       </p>
-      <label className="block mt-6 text-sm font-medium">WhatsApp number</label>
+      <label className="mt-6 block text-sm font-medium">Your WhatsApp number</label>
       <input
         type="tel"
         inputMode="tel"
@@ -154,96 +128,129 @@ function Step1Connect({
         placeholder="+254 700 000 000"
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
-        className="mt-2 w-full bg-canvas border border-border rounded-xl px-4 py-3 text-base focus:outline-none"
+        className="mt-2 w-full rounded-xl border border-border bg-canvas px-4 py-3 text-base focus:outline-none"
       />
       <p className="mt-2 text-xs text-ink-muted">
-        Include the country code. We never message this number — only use it to
-        link your assistant.
+        This is the phone number you will use to reach Wira after pairing.
       </p>
       <div className="mt-6 flex justify-end">
-        <button
-          disabled={!phone.trim()}
-          onClick={onNext}
-          className="btn-primary disabled:opacity-40"
-        >
-          Send me the link →
+        <button disabled={!phone.trim()} onClick={onNext} className="btn-primary disabled:opacity-40">
+          Set up my agent →
         </button>
       </div>
     </>
   );
 }
 
-function Step2Voice({
-  samples,
-  setSamples,
+function Step2ChatGPT({
+  connected,
+  setConnected,
   onNext,
   onBack,
 }: {
-  samples: string;
-  setSamples: (v: string) => void;
+  connected: boolean;
+  setConnected: (v: boolean) => void;
   onNext: () => void;
   onBack: () => void;
 }) {
   return (
     <>
-      <h2 className="text-3xl">Teach it your voice</h2>
+      <h2 className="text-3xl">Connect ChatGPT</h2>
       <p className="mt-2 text-ink-muted">
-        Paste 3-5 recent replies you've sent on WhatsApp. {PRODUCT.name} will
-        mirror your phrasing, emojis, and pacing. You can update this later.
+        Wira uses the ChatGPT account you already pay for. If ChatGPT asks for
+        a quick permission, follow the browser step, then come back here.
       </p>
-      <textarea
-        value={samples}
-        onChange={(e) => setSamples(e.target.value)}
-        rows={8}
-        placeholder={"e.g.\n\nsure, sending now 🤝\nhaha yes lemme check\nWill loop back tomorrow AM, sound good?"}
-        className="mt-6 w-full bg-canvas border border-border rounded-xl px-4 py-3 text-base focus:outline-none font-mono"
-      />
+      <div className="mt-6 rounded-xl border border-border bg-canvas p-4">
+        <div className="font-medium">One quick permission is needed</div>
+        <p className="mt-1 text-sm text-ink-muted">
+          Open ChatGPT, approve Wira on this computer, then try again if the
+          browser step does not finish the first time.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button type="button" onClick={() => setConnected(true)} className="btn-primary">
+            I connected ChatGPT
+          </button>
+          <button type="button" className="btn-ghost">
+            Try again
+          </button>
+        </div>
+      </div>
       <div className="mt-6 flex justify-between">
-        <button onClick={onBack} className="btn-ghost">
-          Back
-        </button>
-        <button onClick={onNext} className="btn-primary">
-          {samples.trim() ? "Continue →" : "Skip — use default warm tone"}
+        <button onClick={onBack} className="btn-ghost">Back</button>
+        <button onClick={onNext} className="btn-primary" disabled={!connected}>
+          Continue →
         </button>
       </div>
     </>
   );
 }
 
-function Step3Contacts({
+function Step3WhatsApp({
+  setPaired,
+  onNext,
+  onBack,
+}: {
+  setPaired: (v: boolean) => void;
+  onNext: () => void;
+  onBack: () => void;
+}) {
+  return (
+    <>
+      <h2 className="text-3xl">Connect WhatsApp</h2>
+      <p className="mt-2 text-ink-muted">
+        Pairing works like WhatsApp Web. Once paired, WhatsApp becomes the
+        easiest way to talk to Wira while the agent runs on this computer.
+      </p>
+      <ol className="mt-6 space-y-3 text-sm text-ink-muted">
+        <li><strong className="text-ink">1.</strong> Open WhatsApp on your phone.</li>
+        <li><strong className="text-ink">2.</strong> Go to Linked Devices.</li>
+        <li><strong className="text-ink">3.</strong> Tap Link a Device.</li>
+        <li><strong className="text-ink">4.</strong> Scan the code Wira shows.</li>
+      </ol>
+      <div className="mt-6 rounded-xl border border-border bg-canvas p-4 text-sm text-ink-muted">
+        When the code is scanned, send Wira a first message like “summarize my day”
+        or “find the latest invoice in Downloads.”
+      </div>
+      <div className="mt-6 flex justify-between">
+        <button onClick={onBack} className="btn-ghost">Back</button>
+        <button onClick={() => { setPaired(true); onNext(); }} className="btn-primary">
+          WhatsApp is connected →
+        </button>
+      </div>
+    </>
+  );
+}
+
+function Step4Safety({
   value,
   setValue,
   onNext,
   onBack,
 }: {
-  value: State["contactPolicy"];
-  setValue: (v: State["contactPolicy"]) => void;
+  value: State["safetyMode"];
+  setValue: (v: State["safetyMode"]) => void;
   onNext: () => void;
   onBack: () => void;
 }) {
-  const options: { id: State["contactPolicy"]; title: string; body: string }[] = [
+  const options: { id: State["safetyMode"]; title: string; body: string }[] = [
     {
-      id: "whitelist",
-      title: "Only specific contacts (recommended)",
-      body: "Pick who can get replies. Safest start — promote contacts as you build trust.",
+      id: "ask",
+      title: "Ask before risky actions",
+      body: "Best first setting. Wira can help freely, but pauses before purchases, deletes, public sends, or anything unclear.",
     },
     {
-      id: "all-except",
-      title: "Everyone except a blocklist",
-      body: "Replies to all incoming DMs except contacts you explicitly exclude.",
-    },
-    {
-      id: "everyone",
-      title: "Everyone who DMs you",
-      body: "Maximum coverage. Best for high-volume operators who triage later.",
+      id: "fast",
+      title: "Move faster on normal work",
+      body: "Good once you trust the flow. Wira still pauses for destructive, expensive, public, or sensitive actions.",
     },
   ];
 
   return (
     <>
-      <h2 className="text-3xl">Who can it answer?</h2>
+      <h2 className="text-3xl">Choose the safety posture</h2>
       <p className="mt-2 text-ink-muted">
-        Group chats are off by default. You can change this any time.
+        Wira is owner-controlled by default. You decide how cautious it should
+        be when a task could change something important.
       </p>
       <div className="mt-6 space-y-3">
         {options.map((o) => (
@@ -255,90 +262,19 @@ function Step3Contacts({
           >
             <input
               type="radio"
-              name="policy"
+              name="safety"
               checked={value === o.id}
               onChange={() => setValue(o.id)}
               className="sr-only"
             />
             <div className="font-medium">{o.title}</div>
-            <div className="text-sm text-ink-muted mt-1">{o.body}</div>
+            <div className="mt-1 text-sm text-ink-muted">{o.body}</div>
           </label>
         ))}
       </div>
       <div className="mt-6 flex justify-between">
-        <button onClick={onBack} className="btn-ghost">
-          Back
-        </button>
-        <button onClick={onNext} className="btn-primary">
-          Continue →
-        </button>
-      </div>
-    </>
-  );
-}
-
-function Step4Approval({
-  value,
-  setValue,
-  onNext,
-  onBack,
-}: {
-  value: State["approvalMode"];
-  setValue: (v: State["approvalMode"]) => void;
-  onNext: () => void;
-  onBack: () => void;
-}) {
-  const options: { id: State["approvalMode"]; title: string; body: string }[] = [
-    {
-      id: "draft",
-      title: "Always draft, ask me to send",
-      body: "Safest. You approve every reply with one tap. Recommended for week one.",
-    },
-    {
-      id: "auto-trusted",
-      title: "Auto-send for trusted contacts, draft for everyone else",
-      body: "Best of both. Promote contacts to trusted as you build confidence.",
-    },
-    {
-      id: "auto-all",
-      title: "Auto-send for everyone",
-      body: "Hands-free. We still escalate edge cases to you.",
-    },
-  ];
-
-  return (
-    <>
-      <h2 className="text-3xl">How much trust to start with?</h2>
-      <p className="mt-2 text-ink-muted">
-        You can change this mid-conversation. Every reply has an edit button.
-      </p>
-      <div className="mt-6 space-y-3">
-        {options.map((o) => (
-          <label
-            key={o.id}
-            className={`block cursor-pointer rounded-xl border p-4 transition-colors ${
-              value === o.id ? "border-accent bg-accent-soft/50" : "border-border bg-canvas"
-            }`}
-          >
-            <input
-              type="radio"
-              name="approval"
-              checked={value === o.id}
-              onChange={() => setValue(o.id)}
-              className="sr-only"
-            />
-            <div className="font-medium">{o.title}</div>
-            <div className="text-sm text-ink-muted mt-1">{o.body}</div>
-          </label>
-        ))}
-      </div>
-      <div className="mt-6 flex justify-between">
-        <button onClick={onBack} className="btn-ghost">
-          Back
-        </button>
-        <button onClick={onNext} className="btn-primary">
-          Continue →
-        </button>
+        <button onClick={onBack} className="btn-ghost">Back</button>
+        <button onClick={onNext} className="btn-primary">Continue →</button>
       </div>
     </>
   );
@@ -347,30 +283,29 @@ function Step4Approval({
 function Step5Done({ state, onBack }: { state: State; onBack: () => void }) {
   return (
     <>
-      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent-soft text-accent text-xl">
+      <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-xl text-accent">
         ✓
       </div>
-      <h2 className="mt-4 text-3xl">You're set.</h2>
+      <h2 className="mt-4 text-3xl">Your agent is ready</h2>
       <p className="mt-2 text-ink-muted">
-        We've emailed a one-time link to activate {PRODUCT.name} on{" "}
-        <span className="text-ink font-medium">{state.phone || "your number"}</span>.
-        Open it from your phone to scan the QR — that's the final step.
+        Open WhatsApp and send Wira the first real message. Keep it simple:
+        ask for a summary, ask it to find a file, or ask it to make a plan.
       </p>
-      <div className="mt-6 bg-canvas border border-border rounded-xl p-4 text-sm">
-        <div className="font-medium mb-2">Your settings</div>
-        <ul className="text-ink-muted space-y-1">
-          <li>Voice: {state.voiceSamples.trim() ? "trained from samples" : "default warm tone"}</li>
-          <li>Contacts: {state.contactPolicy}</li>
-          <li>Approval: {state.approvalMode}</li>
+      <div className="mt-6 rounded-xl border border-border bg-canvas p-4 text-sm">
+        <div className="mb-2 font-medium">Ready for first message</div>
+        <ul className="space-y-2 text-ink-muted">
+          <li>• “Summarize my day.”</li>
+          <li>• “Find my latest invoice PDF.”</li>
+          <li>• “Make a shipping plan for this project.”</li>
+          <li>• “Remind me what I was working on.”</li>
         </ul>
+        <div className="mt-4 text-xs text-ink-muted">
+          Number: {state.phone || "your WhatsApp"} · Safety: {state.safetyMode === "ask" ? "ask first" : "move fast carefully"}
+        </div>
       </div>
       <div className="mt-6 flex justify-between">
-        <button onClick={onBack} className="btn-ghost">
-          Back
-        </button>
-        <a href="/" className="btn-primary">
-          Done
-        </a>
+        <button onClick={onBack} className="btn-ghost">Back</button>
+        <a href="/" className="btn-primary">Done</a>
       </div>
     </>
   );

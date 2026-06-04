@@ -5,24 +5,24 @@ type Turn = { from: "them" | "you"; text: string; pause?: number };
 
 const SCENES: { who: string; turns: Turn[] }[] = [
   {
-    who: "Liam · prospect",
+    who: "Wira · your private agent",
     turns: [
-      { from: "them", text: "Hey — are you free for a quick call tomorrow?" },
-      { from: "you", text: "Likely yes — mornings are better for him. I'll have him confirm a slot. What's the call about?" },
+      { from: "them", text: "What meetings do I have after 2pm today?" },
+      { from: "you", text: "You have a client check-in at 3:30 PM and a design review at 5 PM. Want a shorter briefing for both?" },
     ],
   },
   {
-    who: "Aisha · client",
+    who: "Wira · your private agent",
     turns: [
-      { from: "them", text: "Sending over the brief now, did you get it?" },
-      { from: "you", text: "Got it, thanks. He'll skim it tonight and reply tomorrow with thoughts." },
+      { from: "them", text: "Search this machine for the latest invoice PDF." },
+      { from: "you", text: "Found the newest invoice PDF in Downloads. I can open it, summarize it, or prep an email around it next." },
     ],
   },
   {
-    who: "Mom",
+    who: "Wira · your private agent",
     turns: [
-      { from: "them", text: "What's the new address again?" },
-      { from: "you", text: "He's just stepped out — I'll have him text it the moment he's back. 🤝" },
+      { from: "them", text: "Give me a plan for shipping this feature tonight." },
+      { from: "you", text: "I can do that. I'll break it into implementation slices, risks, and a first execution order so you can move immediately." },
     ],
   },
 ];
@@ -47,13 +47,11 @@ export default function PhoneMockup() {
   const [turnIdx, setTurnIdx] = useState(0);
   const [typing, setTyping] = useState(false);
 
-  // Simple step machine: show incoming → typing → assistant reply → next turn or next scene.
   useEffect(() => {
-    if (reduced) return; // static final state for reduced motion
+    if (reduced) return;
     const scene = SCENES[sceneIdx];
     const t = scene.turns[turnIdx];
     if (!t) {
-      // scene done — pause then advance
       const id = setTimeout(() => {
         setSceneIdx((i) => (i + 1) % SCENES.length);
         setTurnIdx(0);
@@ -61,7 +59,6 @@ export default function PhoneMockup() {
       return () => clearTimeout(id);
     }
     if (t.from === "you") {
-      // assistant turn: show typing dots, then the bubble
       setTyping(true);
       const id = setTimeout(() => {
         setTyping(false);
@@ -69,7 +66,6 @@ export default function PhoneMockup() {
       }, 900 + Math.min(2200, t.text.length * 22));
       return () => clearTimeout(id);
     } else {
-      // their turn: short delay then move on
       const id = setTimeout(() => setTurnIdx((i) => i + 1), 1300);
       return () => clearTimeout(id);
     }
@@ -82,15 +78,13 @@ export default function PhoneMockup() {
     <div
       className="relative mx-auto"
       style={{ width: 320, maxWidth: "100%" }}
-      aria-label="Animated example: a friend texts, the assistant replies."
+      aria-label="Animated example: the owner messages Wira, the local agent responds with real work context."
     >
-      {/* Phone frame */}
       <div
         className="bg-ink rounded-[44px] p-3 shadow-2xl"
         style={{ boxShadow: "0 30px 60px -20px rgba(14,20,19,.35)" }}
       >
         <div className="bg-canvas rounded-[34px] overflow-hidden" style={{ height: 580 }}>
-          {/* Status bar */}
           <div className="flex items-center justify-between px-5 pt-3 pb-1 text-[11px] text-ink-muted">
             <span>9:41</span>
             <div className="flex items-center gap-1.5">
@@ -100,18 +94,16 @@ export default function PhoneMockup() {
             </div>
           </div>
 
-          {/* Chat header */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
             <div className="w-9 h-9 rounded-full bg-accent-soft text-accent flex items-center justify-center font-medium">
-              {scene.who.slice(0, 1)}
+              V
             </div>
             <div className="flex-1">
               <div className="text-sm font-medium leading-tight">{scene.who}</div>
-              <div className="text-[11px] text-accent">assistant active</div>
+              <div className="text-[11px] text-accent">local agent connected</div>
             </div>
           </div>
 
-          {/* Messages */}
           <div className="px-4 py-4 flex flex-col gap-2 overflow-hidden" style={{ height: 460 }}>
             <AnimatePresence initial={false} mode="popLayout">
               {visibleTurns.map((t, i) => (
@@ -153,12 +145,11 @@ export default function PhoneMockup() {
         </div>
       </div>
 
-      {/* Floating "AI" pill */}
       <div
         className="absolute -right-3 top-20 bg-surface border border-border rounded-full px-3 py-1 text-xs font-medium shadow-sm"
         aria-hidden
       >
-        <span className="text-accent">●</span> AI assisting
+        <span className="text-accent">●</span> local agent active
       </div>
     </div>
   );

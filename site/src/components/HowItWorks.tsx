@@ -1,21 +1,21 @@
 const STEPS = [
   {
     n: "01",
-    title: "Connect your WhatsApp",
+    title: "Connect ChatGPT",
     body:
-      "Scan a QR code from WhatsApp → Linked Devices. Same way you'd connect WhatsApp Web. Takes about 60 seconds.",
+      "Use the ChatGPT subscription you already have. Wira keeps the connection step plain and brings you back into setup when it is done.",
   },
   {
     n: "02",
-    title: "Teach it your voice",
+    title: "Connect WhatsApp",
     body:
-      "Paste three recent replies you've written. It picks up your phrasing, your emojis, your “lol noted.” Or skip and use a warm default.",
+      "Scan a QR code from WhatsApp → Linked Devices. Your phone becomes the fastest way to reach the agent on your computer.",
   },
   {
     n: "03",
-    title: "Choose who it answers",
+    title: "Start chatting",
     body:
-      "By default, it drafts a reply for every message and pings you to approve. Promote contacts to auto-send once you trust it with them.",
+      "Send your first command from WhatsApp: summarize a day, find a file, make a plan, or check what needs attention.",
   },
 ];
 
@@ -23,10 +23,10 @@ export default function HowItWorks() {
   return (
     <section id="how" className="container-prose py-20">
       <div className="max-w-2xl">
-        <h2 className="text-4xl">Live in five minutes.</h2>
+        <h2 className="text-4xl">A softer path into real agent work.</h2>
         <p className="mt-3 text-ink-muted text-lg">
-          No new app for your contacts. No new number to share. Same WhatsApp
-          they already use to reach you.
+          Your agent lives on this computer. Wira connects ChatGPT, connects
+          WhatsApp, then lets you start from the phone you already use all day.
         </p>
       </div>
       <ol className="mt-12 grid md:grid-cols-3 gap-5">

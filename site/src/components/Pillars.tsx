@@ -7,8 +7,8 @@ export default function Pillars() {
       <div className="max-w-2xl">
         <h2 className="text-4xl">Three things, done well.</h2>
         <p className="mt-3 text-ink-muted text-lg">
-          Not a Swiss Army knife you'll forget to open. One sharp tool that
-          lives where you already are.
+          Not another dashboard. Not another chat toy. A branded doorway into a
+          real agent that can grow with the operator using it.
         </p>
       </div>
       <div className="mt-12 grid md:grid-cols-3 gap-5">

@@ -8,6 +8,7 @@ roadmap: via the web dashboard) and approves them by hand.
 import logging
 import sqlite3
 import time
+from contextlib import closing
 from pathlib import Path
 
 import config
@@ -19,7 +20,7 @@ class Drafts:
     def __init__(self, db_path: str = config.DRAFTS_DB_PATH):
         Path(db_path).parent.mkdir(parents=True, exist_ok=True)
         self.db_path = db_path
-        with self._conn() as conn:
+        with closing(self._conn()) as conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS drafts (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,18 +34,20 @@ class Drafts:
                 )
             """)
             conn.execute("CREATE INDEX IF NOT EXISTS idx_drafts_status ON drafts(status, id DESC)")
+            conn.commit()
 
     def _conn(self) -> sqlite3.Connection:
         return sqlite3.connect(self.db_path)
 
     def record(self, chat: str, sender: str, sender_name: str, incoming: str, draft: str) -> int:
-        with self._conn() as conn:
+        with closing(self._conn()) as conn:
             cur = conn.execute(
                 "INSERT INTO drafts (chat, sender, sender_name, incoming, draft, created_at)"
                 " VALUES (?, ?, ?, ?, ?, ?)",
                 (chat, sender, sender_name, incoming, draft, time.time()),
             )
             draft_id = cur.lastrowid
+            conn.commit()
         logger.info(
             "Draft #%d queued for %s (%s): %s",
             draft_id,
@@ -55,7 +58,7 @@ class Drafts:
         return draft_id
 
     def pending(self, limit: int = 50) -> list[dict]:
-        with self._conn() as conn:
+        with closing(self._conn()) as conn:
             rows = conn.execute(
                 "SELECT id, chat, sender, sender_name, incoming, draft, created_at"
                 " FROM drafts WHERE status = 'pending' ORDER BY id DESC LIMIT ?",
@@ -70,5 +73,6 @@ class Drafts:
         ]
 
     def mark(self, draft_id: int, status: str):
-        with self._conn() as conn:
+        with closing(self._conn()) as conn:
             conn.execute("UPDATE drafts SET status = ? WHERE id = ?", (status, draft_id))
+            conn.commit()

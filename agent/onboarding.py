@@ -1,63 +1,64 @@
-"""Wira onboarding — first conversation happens IN WhatsApp.
+"""Wira onboarding — first private setup conversation happens in WhatsApp.
 
-After the QR scan, Wira messages the owner to collect:
-1. Their name
-2. A few example messages (voice training)
-3. Which contacts to auto-reply to
-
-This replaces the terminal-based setup.py for GUI installs.
-The onboarding state is tracked in the memory DB.
+After the QR scan, Wira messages the owner to finish first-run setup for a
+local Hermes-backed agent that lives on their computer.
 """
 
 import json
 import logging
-import os
-import sqlite3
 import time
 from pathlib import Path
+
+from paths import update_env
 
 logger = logging.getLogger("wira.onboarding")
 
 ONBOARDING_DB = Path.home() / ".wira" / "onboarding.json"
+DEFAULT_AGENT_NAME = "Wira"
+
+PERMISSION_PRESETS = {
+    "1": ("desk", "Desk mode"),
+    "2": ("balanced", "Balanced mode"),
+    "3": ("operator", "Operator mode"),
+}
 
 STEPS = [
     {
         "key": "name",
         "message": (
-            "Hey! I'm Wira, your new WhatsApp AI assistant. "
-            "I'll be handling messages on this number for you.\n\n"
-            "First — what's your name? (This is how I'll refer to you when talking to your contacts.)"
+            f"Hey! I'm {DEFAULT_AGENT_NAME}, your new local agent on this computer.\n\n"
+            "First: what's your name?"
         ),
     },
     {
-        "key": "voice",
+        "key": "permissions",
         "message": (
-            "Nice to meet you, {name}! Now I need to learn how you type.\n\n"
-            "Send me 3-5 of your recent WhatsApp replies — just paste them one after another. "
-            "I'll match your tone, length, and style.\n\n"
-            "When you're done, send: *done*"
-        ),
-    },
-    {
-        "key": "mode",
-        "message": (
-            "Got it — I've learned your style.\n\n"
-            "One last thing: how should I handle replies?\n\n"
-            "*1* — Draft everything (I write it, you review before it sends)\n"
-            "*2* — Auto-reply to trusted contacts, draft for new people\n"
-            "*3* — Auto-reply to everyone (fastest)\n\n"
+            f"Nice to meet you, {{name}}. Your WhatsApp agent is *{DEFAULT_AGENT_NAME}*.\n\n"
+            "Choose the access level for Wira on this computer.\n\n"
+            "*1* — Desk mode: lightweight help and memory, no direct machine actions\n"
+            "*2* — Balanced mode: can read files and use the web when helpful\n"
+            "*3* — Operator mode: can use files, web, and terminal on this machine\n\n"
             "Send 1, 2, or 3."
+        ),
+    },
+    {
+        "key": "confirmation",
+        "message": (
+            "How cautious should I be with risky actions?\n\n"
+            "*1* — Confirm risky actions first (recommended)\n"
+            "*2* — Move fast and only pause when something is unclear\n\n"
+            "Send 1 or 2."
         ),
     },
 ]
 
 DONE_MESSAGE = (
-    "All set, {name}! I'm live on your WhatsApp now.\n\n"
-    "Here's what happens next:\n"
-    "• When someone messages you, I'll draft a reply in your voice\n"
-    "• You'll see drafts in this chat — just forward them or I'll learn to send directly\n"
-    "• To change settings, just tell me (e.g. \"auto-reply to +1234567890\")\n\n"
-    "I'm here whenever you need me."
+    "All set, {name}! {assistant_name} is live on your WhatsApp now.\n\n"
+    "What this means:\n"
+    "• {assistant_name} is a real local agent running on your computer\n"
+    "• Your phone is the easiest way to reach it\n"
+    "• You can start with commands like: \"check Downloads for the latest invoice\" or \"summarize my day\"\n\n"
+    "When you're ready for the deeper runtime, Wira can introduce Hermes."
 )
 
 
@@ -87,89 +88,70 @@ def get_current_step() -> int:
 
 def get_step_message(step: int, state: dict) -> str:
     if step >= len(STEPS):
-        return DONE_MESSAGE.format(name=state.get("name", "there"))
+        return DONE_MESSAGE.format(
+            name=state.get("name", "there"),
+            assistant_name=state.get("assistant_name", DEFAULT_AGENT_NAME),
+        )
     msg = STEPS[step]["message"]
-    return msg.format(**{k: state.get(k, "") for k in ["name"]})
+    return msg.format(
+        name=state.get("name", "there"),
+        assistant_name=state.get("assistant_name", DEFAULT_AGENT_NAME),
+    )
 
 
 def process_onboarding_reply(text: str) -> str | None:
-    """Process an onboarding reply from the owner. Returns the next message to send,
-    or None if onboarding is complete."""
+    """Process an onboarding reply from the owner.
+
+    Returns the next message to send, or None if onboarding is already complete.
+    """
     state = _load_state()
     step = state.get("step", 0)
 
     if step >= len(STEPS):
-        return None  # Already done
+        return None
 
-    step_info = STEPS[step]
-    key = step_info["key"]
+    key = STEPS[step]["key"]
+    value = text.strip()
 
     if key == "name":
-        state["name"] = text.strip()
-        # Update the .env file
-        _update_env("OWNER_NAME", state["name"])
+        state["name"] = value or "there"
+        state["assistant_name"] = DEFAULT_AGENT_NAME
+        update_env("OWNER_NAME", state["name"])
+        update_env("ASSISTANT_NAME", DEFAULT_AGENT_NAME)
+        update_env("WIRA_PROMPT_PROFILE", "local")
+        update_env("WIRA_EXTERNAL_MODE", "ignore")
+        update_env("WIRA_OWNER_LOCK_ENABLED", "true")
         state["step"] = step + 1
         _save_state(state)
         return get_step_message(step + 1, state)
 
-    elif key == "voice":
-        if text.strip().lower() == "done":
-            # Save collected voice samples
-            samples = state.get("voice_samples", [])
-            voice_text = "\n".join(samples)
-            _update_env("VOICE_SAMPLES", voice_text)
-            state["step"] = step + 1
-            _save_state(state)
-            return get_step_message(step + 1, state)
-        else:
-            # Collect voice sample
-            samples = state.get("voice_samples", [])
-            samples.append(text.strip())
-            state["voice_samples"] = samples
-            _save_state(state)
-            count = len(samples)
-            if count < 3:
-                return f"Got it ({count} so far). Send more, or send *done* when finished."
-            return None  # Don't reply to every sample after 3
+    if key == "permissions":
+        preset, label = PERMISSION_PRESETS.get(value, PERMISSION_PRESETS["2"])
+        state["permission_preset"] = preset
+        state["permission_label"] = label
+        update_env("WIRA_PERMISSION_PRESET", preset)
+        state["step"] = step + 1
+        _save_state(state)
+        return get_step_message(step + 1, state)
 
-    elif key == "mode":
-        modes = {"1": "draft", "2": "auto-trusted", "3": "auto-all"}
-        mode = modes.get(text.strip(), "draft")
-        state["mode"] = mode
-        _update_env("APPROVAL_MODE", mode)
+    if key == "confirmation":
+        require_confirmation = value != "2"
+        state["require_confirmation"] = require_confirmation
+        update_env("WIRA_REQUIRE_CONFIRMATION", "true" if require_confirmation else "false")
         state["step"] = step + 1
         state["complete"] = True
         _save_state(state)
-        return DONE_MESSAGE.format(name=state.get("name", "there"))
+        return DONE_MESSAGE.format(
+            name=state.get("name", "there"),
+            assistant_name=state.get("assistant_name", DEFAULT_AGENT_NAME),
+        )
 
     return None
 
 
 def _update_env(key: str, value: str):
     """Update a key in the .env file."""
-    env_file = Path(__file__).parent / ".env"
-    if not env_file.exists():
-        env_file.write_text(f"{key}={value}\n")
-        env_file.chmod(0o600)
-        return
-
-    lines = env_file.read_text().splitlines()
-    found = False
-    new_lines = []
-    for line in lines:
-        if line.strip().startswith(f"{key}="):
-            new_lines.append(f"{key}={value}")
-            found = True
-        else:
-            new_lines.append(line)
-    if not found:
-        new_lines.append(f"{key}={value}")
-
-    env_file.write_text("\n".join(new_lines) + "\n")
-    env_file.chmod(0o600)
-
-    # Also update the live config
-    os.environ[key] = value
+    update_env(key, value)
 
 
 def send_welcome():
@@ -179,13 +161,11 @@ def send_welcome():
         return
 
     state = _load_state()
-    if state.get("step", 0) > 0:
-        return  # Already in progress
+    if state.get("step", 0) > 0 or state.get("started"):
+        return
 
     state["step"] = 0
     state["started"] = time.time()
     _save_state(state)
 
-    # The welcome message will be sent by the WhatsApp handler
-    # when it detects the owner's first interaction
     logger.info("Onboarding initialized — waiting for owner's first message")

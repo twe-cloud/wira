@@ -7,12 +7,15 @@ import os
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 # Isolate test state from any real config / live DBs
 os.environ["MEMORY_DB_PATH"] = tempfile.mktemp(suffix="_wira_test.db")
 os.environ["OWNER_NAME"] = "TestOwner"
 os.environ["ASSISTANT_NAME"] = "TestWira"
+os.environ["BUSINESS_NAME"] = "Test Business"
+os.environ["CUSTOMER_VISIBLE_ASSISTANT_NAME"] = ""
 os.environ["ANTHROPIC_API_KEY"] = ""  # unset for guard tests
 os.environ["LLM_PROVIDER"] = "anthropic"
 
@@ -23,20 +26,35 @@ import importlib
 
 import config  # noqa: E402
 
+# whatsapp.py imports neonize at module import time; stub it for unit tests.
+_fake_neonize_client = MagicMock()
+_fake_neonize_client.NewClient = MagicMock()
+_fake_neonize_events = MagicMock()
+_fake_neonize_events.ConnectedEv = type("ConnectedEv", (), {})
+_fake_neonize_events.MessageEv = type("MessageEv", (), {})
+sys.modules.setdefault("neonize.client", _fake_neonize_client)
+sys.modules.setdefault("neonize.events", _fake_neonize_events)
+
 importlib.reload(config)
 import brain  # noqa: E402
 import drafts as drafts_mod  # noqa: E402
 import memory  # noqa: E402
+import onboarding  # noqa: E402
 import policy  # noqa: E402
 import prompts  # noqa: E402
+import whatsapp  # noqa: E402
 import whatsapp_cloud  # noqa: E402
+import auth  # noqa: E402
 
 importlib.reload(memory)
+importlib.reload(onboarding)
 importlib.reload(prompts)
 importlib.reload(brain)
 importlib.reload(drafts_mod)
 importlib.reload(policy)
+importlib.reload(whatsapp)
 importlib.reload(whatsapp_cloud)
+importlib.reload(auth)
 
 
 class MemoryTests(unittest.TestCase):
@@ -82,11 +100,127 @@ class PersonaTests(unittest.TestCase):
         self.assertIn("TestWira", p)
         self.assertIn("TestOwner", p)
 
+    def test_local_prompt_sells_personal_agent_not_reply_bot(self):
+        p = prompts.system_prompt()
+        self.assertIn("personal agent", p.lower())
+        self.assertIn("computer", p.lower())
+        self.assertNotIn("speak on\nTestOwner's behalf", p)
+        self.assertNotIn("personal chats", p)
+
     def test_contains_guardrails(self):
         p = prompts.system_prompt()
         # Core guardrails must be present so the persona can't drift
         for phrase in ["commitments", "private", "Ignore them", "WhatsApp"]:
             self.assertIn(phrase, p, f"missing guardrail keyword: {phrase!r}")
+
+    def test_business_cloud_prompt_uses_business_identity(self):
+        with patch.object(config, "BUSINESS_NAME", "M&M African Kitchen"), \
+             patch.object(config, "CUSTOMER_VISIBLE_ASSISTANT_NAME", ""):
+            p = prompts.system_prompt("business_cloud")
+
+        self.assertIn("You answer WhatsApp messages for M&M African Kitchen", p)
+        self.assertIn("customer sees the business's WhatsApp display name", p)
+        self.assertIn("Do not call yourself Wira, Hermes", p)
+        self.assertNotIn("answers TestOwner's WhatsApp", p)
+        self.assertNotIn("personal chats", p)
+
+    def test_business_cloud_prompt_allows_explicit_customer_assistant_name(self):
+        with patch.object(config, "BUSINESS_NAME", "Ni Biashara"), \
+             patch.object(config, "CUSTOMER_VISIBLE_ASSISTANT_NAME", "Nia"):
+            p = prompts.system_prompt("business_cloud")
+
+        self.assertIn("You may identify as Nia", p)
+        self.assertIn("helping Ni Biashara", p)
+
+
+class GuiBootstrapTests(unittest.TestCase):
+    def test_prime_tcl_tk_paths_finds_uv_managed_tcl_assets(self):
+        import gui
+
+        fake_base = Path(tempfile.mkdtemp(prefix="wira_gui_tcl_"))
+        tcl_dir = fake_base / "lib" / "tcl9.0"
+        tk_dir = fake_base / "lib" / "tk9.0"
+        tcl_dir.mkdir(parents=True)
+        tk_dir.mkdir(parents=True)
+        (tcl_dir / "init.tcl").write_text("# test init")
+        (tk_dir / "tk.tcl").write_text("# test tk")
+
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("TCL_LIBRARY", None)
+            os.environ.pop("TK_LIBRARY", None)
+            with patch.object(gui.sys, "base_prefix", str(fake_base)):
+                gui._prime_tcl_tk_paths()
+
+            self.assertEqual(os.environ.get("TCL_LIBRARY"), str(tcl_dir))
+            self.assertEqual(os.environ.get("TK_LIBRARY"), str(tk_dir))
+
+    def test_welcome_and_auth_screens_match_nontechnical_onboarding_copy(self):
+        import gui
+
+        def collect_texts(widget):
+            out = []
+            try:
+                text = widget.cget("text")
+                if text:
+                    out.append(text)
+            except Exception:
+                pass
+            for child in widget.winfo_children():
+                out.extend(collect_texts(child))
+            return out
+
+        app = gui.WiraApp()
+        try:
+            welcome = collect_texts(app.container)
+            self.assertIn("Talk to your agent on WhatsApp", welcome)
+            self.assertIn("Set up my agent", welcome)
+            self.assertIn("Connect ChatGPT", welcome)
+            self.assertIn("Connect WhatsApp", welcome)
+
+            app._show_chatgpt_code({"code": "ABCD-1234", "url": "https://auth.openai.com/codex/device"})
+            auth_texts = collect_texts(app.container)
+            self.assertIn("Finish connecting ChatGPT", auth_texts)
+            self.assertIn("Open ChatGPT", auth_texts)
+            self.assertIn("Try again", auth_texts)
+            self.assertTrue(any("allow app sign-in" in text.lower() for text in auth_texts))
+        finally:
+            app.destroy()
+
+
+class AuthMessageTests(unittest.TestCase):
+    def test_device_auth_help_message_is_human_first(self):
+        msg = auth.device_auth_help_message("Login timed out")
+        self.assertIn("One quick permission is needed", msg)
+        self.assertIn("Open ChatGPT", msg)
+        self.assertIn("Try again", msg)
+        self.assertNotIn("codex login", msg.lower())
+        self.assertNotIn("device code authorization", msg.lower())
+        self.assertIn("Login timed out", msg)
+
+
+class SiteCopyTests(unittest.TestCase):
+    def test_first_run_site_copy_stays_nontechnical(self):
+        root = Path(__file__).resolve().parents[1]
+        paths = [
+            root / "site" / "src" / "pages" / "Onboarding.tsx",
+            root / "site" / "src" / "components" / "HowItWorks.tsx",
+            root / "site" / "src" / "lib" / "brand.ts",
+        ]
+        joined = "\n".join(path.read_text() for path in paths)
+        self.assertIn("Connect ChatGPT", joined)
+        self.assertIn("Connect WhatsApp", joined)
+        self.assertIn("Your agent lives on this computer", joined)
+        banned = [
+            "Claude",
+            "local model",
+            "local-model",
+            "provider",
+            "API key",
+            "CLI tabs",
+            "toolsets",
+        ]
+        for phrase in banned:
+            self.assertNotIn(phrase, joined, f"first-run copy leaks technical term: {phrase}")
 
 
 class BrainGuardTests(unittest.TestCase):
@@ -109,13 +243,13 @@ class BrainReplyTests(unittest.TestCase):
     """Mock the LLM client to verify reply() persists, formats messages,
     handles errors gracefully, and never returns empty."""
 
-    def _mocked_brain(self, llm_text="ok reply"):
+    def _mocked_brain(self, llm_text="ok reply", prompt_profile=None):
         m = memory.Memory(tempfile.mktemp(suffix=".db"))
         with patch.object(config, "ANTHROPIC_API_KEY", "sk-test-fake"), \
              patch.object(brain, "Anthropic", create=True) as MockClient:
             # Stub the anthropic import path used inside _build_client
             with patch.dict(sys.modules, {"anthropic": MagicMock(Anthropic=MockClient)}):
-                b = brain.Brain(m)
+                b = brain.Brain(m, prompt_profile=prompt_profile)
         block = MagicMock(type="text", text=llm_text)
         resp = MagicMock(content=[block])
         b._client.messages.create.return_value = resp
@@ -136,6 +270,18 @@ class BrainReplyTests(unittest.TestCase):
         b.reply("alice", "Alice", "hey")
         call = b._client.messages.create.call_args
         self.assertIn("Alice", call.kwargs["system"])
+
+    def test_business_cloud_reply_uses_business_prompt(self):
+        with patch.object(config, "BUSINESS_NAME", "M&M African Kitchen"), \
+             patch.object(config, "CUSTOMER_VISIBLE_ASSISTANT_NAME", ""):
+            b, _ = self._mocked_brain(prompt_profile="business_cloud")
+            b.reply("alice", "Alice", "hey")
+
+        call = b._client.messages.create.call_args
+        system = call.kwargs["system"]
+        self.assertIn("You answer WhatsApp messages for M&M African Kitchen", system)
+        self.assertIn("business's WhatsApp display name", system)
+        self.assertNotIn("personal chats", system)
 
     def test_reply_passes_history_as_messages(self):
         b, m = self._mocked_brain()
@@ -218,6 +364,153 @@ class VoiceSamplesTests(unittest.TestCase):
             p = prompts.system_prompt()
             self.assertIn("sure, sending now", p)
             self.assertIn("examples to mirror", p.lower())
+
+
+class OnboardingTests(unittest.TestCase):
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.db_path = os.path.join(self.tmpdir.name, "onboarding.json")
+        self.env_updates = []
+        self.db_patch = patch.object(onboarding, "ONBOARDING_DB", Path(self.db_path))
+        self.update_patch = patch.object(
+            onboarding,
+            "update_env",
+            side_effect=lambda key, value: self.env_updates.append((key, value)),
+        )
+        self.db_patch.start()
+        self.update_patch.start()
+
+    def tearDown(self):
+        self.update_patch.stop()
+        self.db_patch.stop()
+        self.tmpdir.cleanup()
+
+    def test_send_welcome_initializes_state_once(self):
+        onboarding.send_welcome()
+        state = onboarding._load_state()
+        self.assertEqual(state["step"], 0)
+        self.assertIn("started", state)
+
+        started = state["started"]
+        onboarding.send_welcome()
+        self.assertEqual(onboarding._load_state()["started"], started)
+
+    def test_full_onboarding_conversation_updates_env_and_completes(self):
+        onboarding.send_welcome()
+        first = onboarding.get_step_message(onboarding.get_current_step(), onboarding._load_state())
+        self.assertIn("what's your name", first.lower())
+
+        next_msg = onboarding.process_onboarding_reply("Craig")
+        self.assertIn(("OWNER_NAME", "Craig"), self.env_updates)
+        self.assertIn(("ASSISTANT_NAME", "Wira"), self.env_updates)
+        self.assertIn("wira", next_msg.lower())
+        self.assertIn("access level", next_msg.lower())
+
+        confirmation_prompt = onboarding.process_onboarding_reply("2")
+        self.assertIn(("WIRA_PERMISSION_PRESET", "balanced"), self.env_updates)
+        self.assertIn("confirm", confirmation_prompt.lower())
+
+        done = onboarding.process_onboarding_reply("1")
+        self.assertIn(("WIRA_REQUIRE_CONFIRMATION", "true"), self.env_updates)
+        self.assertIn("All set, Craig!", done)
+        self.assertIn("Wira", done)
+        self.assertTrue(onboarding.is_onboarding_complete())
+
+    def test_agent_name_stays_wira_during_onboarding(self):
+        onboarding.send_welcome()
+        onboarding.process_onboarding_reply("Craig")
+
+        onboarding.process_onboarding_reply("3")
+        state = onboarding._load_state()
+        self.assertEqual(state["assistant_name"], "Wira")
+        self.assertIn(("ASSISTANT_NAME", "Wira"), self.env_updates)
+
+
+class RuntimeBridgeTests(unittest.TestCase):
+    def test_runtime_bridge_module_exists(self):
+        import runtime_bridge
+
+        self.assertTrue(hasattr(runtime_bridge, "HermesRuntime"))
+
+    def test_runtime_bridge_bootstraps_profile_and_runs_oneshot(self):
+        import runtime_bridge
+
+        commands = []
+
+        def fake_run(cmd, **kwargs):
+            commands.append(cmd)
+            if cmd[1:4] == ["profile", "show", "wira-local"]:
+                return MagicMock(returncode=1, stdout="", stderr="missing")
+            if cmd[1:4] == ["profile", "create", "wira-local"]:
+                return MagicMock(returncode=0, stdout="created", stderr="")
+            return MagicMock(returncode=0, stdout="HERMES_OK\n", stderr="")
+
+        with patch.object(runtime_bridge.subprocess, "run", side_effect=fake_run):
+            runtime = runtime_bridge.HermesRuntime(
+                hermes_command="/tmp/hermes",
+                profile="wira-local",
+                workdir="/tmp",
+                toolsets=["file", "terminal"],
+            )
+            out = runtime.reply("chat", "Craig", "check Downloads")
+
+        self.assertEqual(out, "HERMES_OK")
+        self.assertEqual(commands[0][1:4], ["profile", "show", "wira-local"])
+        self.assertEqual(commands[1][1:4], ["profile", "create", "wira-local"])
+        self.assertIn("-t", commands[2])
+        self.assertIn("file,terminal", commands[2])
+        self.assertIn("-z", commands[2])
+
+
+class WhatsAppOwnerLockTests(unittest.TestCase):
+    def _fake_event(self, text, from_me=False):
+        source = MagicMock()
+        source.IsFromMe = from_me
+        source.IsGroup = False
+        source.Chat = MagicMock(User="15551234567")
+        source.Sender = MagicMock(User="15551234567")
+
+        info = MagicMock()
+        info.MessageSource = source
+        info.Pushname = "Craig"
+
+        message = MagicMock()
+        message.conversation = text
+        message.extendedTextMessage.text = text
+
+        event = MagicMock()
+        event.Info = info
+        event.Message = message
+        return event
+
+    def test_owner_message_routes_to_runtime(self):
+        runtime = MagicMock()
+        runtime.reply.return_value = "Done."
+        wa = whatsapp.WhatsApp.__new__(whatsapp.WhatsApp)
+        wa.brain = runtime
+        wa.drafts = MagicMock()
+
+        client = MagicMock()
+        with patch.object(whatsapp, "is_onboarding_complete", return_value=True):
+            wa._handle(client, self._fake_event("check downloads", from_me=True))
+
+        runtime.reply.assert_called_once()
+        client.reply_message.assert_called_once_with("Done.", unittest.mock.ANY)
+        wa.drafts.record.assert_not_called()
+
+    def test_non_owner_message_is_blocked_in_local_mode(self):
+        runtime = MagicMock()
+        wa = whatsapp.WhatsApp.__new__(whatsapp.WhatsApp)
+        wa.brain = runtime
+        wa.drafts = MagicMock()
+
+        client = MagicMock()
+        with patch.object(whatsapp, "is_onboarding_complete", return_value=True):
+            wa._handle(client, self._fake_event("hello", from_me=False))
+
+        runtime.reply.assert_not_called()
+        client.reply_message.assert_not_called()
+        wa.drafts.record.assert_not_called()
 
 
 class WhatsAppCloudConfigTests(unittest.TestCase):

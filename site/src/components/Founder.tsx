@@ -17,12 +17,12 @@ export default function Founder() {
         </div>
         <div>
           <p className="text-lg leading-relaxed">
-            “I built {PRODUCT.name} because I lost my Sundays to WhatsApp.
-            Clients, leads, family, group chats — all on one screen, all
-            wanting an answer. It wasn't sustainable, and the alternatives
-            (mute, ignore, hire someone) all felt worse. So I made the thing
-            I wanted: an assistant that lives where I am, sounds like me, and
-            taps me only when it's actually me they need.”
+            “I built {PRODUCT.name} because I wanted an easier way for people to
+            get their first real agent without starting from fear. The goal
+            isn't another messaging platform. The goal is Hermes, wrapped in a
+            friendlier shape, living on your computer, and reached from the
+            phone you already trust. Start simple, then grow into the deeper
+            stack when you're ready.”
           </p>
           <p className="mt-4 text-sm text-ink-muted">
             — Craig, founder of {PRODUCT.name}. Based in {PRODUCT.city}.

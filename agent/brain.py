@@ -16,11 +16,17 @@ logger = logging.getLogger("wira.brain")
 
 
 class Brain:
-    def __init__(self, memory: Memory):
+    def __init__(self, memory: Memory, prompt_profile: str | None = None):
         self.memory = memory
         self.provider = config.LLM_PROVIDER
+        self.prompt_profile = prompt_profile or config.WIRA_PROMPT_PROFILE
         self._client = self._build_client()
-        logger.info("Brain ready (provider=%s, model=%s)", self.provider, config.LLM_MODEL)
+        logger.info(
+            "Brain ready (provider=%s, model=%s, prompt_profile=%s)",
+            self.provider,
+            config.LLM_MODEL,
+            self.prompt_profile,
+        )
 
     def _build_client(self):
         if self.provider == "chatgpt":
@@ -68,7 +74,7 @@ class Brain:
         history = self.memory.get_recent(chat)
         self.memory.save(chat, "user", text)
 
-        sys = system_prompt() + (
+        sys = system_prompt(self.prompt_profile) + (
             f"\n\nContext: right now it is {datetime.now():%A, %B %d %Y, %I:%M %p}. "
             f"You are chatting with {sender_name}."
         )
