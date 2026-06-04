@@ -1,6 +1,6 @@
 # Marketing + onboarding site
 
-The customer-facing site for Wira: a branded path into a real local Hermes agent that lives on the buyer's computer and is reached from WhatsApp. Vite + React 19 + Tailwind 4 + Motion. Deploys to Netlify. Stripe Checkout for payments.
+The customer-facing site for Wira: a branded path into a real local Hermes agent that lives on the buyer's computer and is reached from WhatsApp. Vite + React 19 + Tailwind 4 + Motion. Runs on Cloudflare Workers (static assets + a Worker for the Stripe API routes). Stripe Checkout for payments.
 
 Designed to be drop-in portable to the main business site (vita) — same stack, same conventions.
 
@@ -8,12 +8,13 @@ Designed to be drop-in portable to the main business site (vita) — same stack,
 
 ```bash
 npm install
-cp .env.example .env       # fill in your Stripe test keys
-npm run dev                 # site only, no Stripe Functions
-npm run netlify:dev         # site + Stripe Functions (needs netlify CLI)
+cp .dev.vars.example .dev.vars   # fill in your Stripe test keys (Worker secrets)
+npm run dev                       # site only (Vite), no Stripe API
+npm run cf:dev                    # site + Stripe API via the Worker (wrangler)
 ```
 
-Open http://localhost:3001.
+`npm run dev` serves the SPA at http://localhost:3001. `npm run cf:dev` serves
+the SPA + `/api/*` Worker routes at http://localhost:8787.
 
 ## Build
 
@@ -22,26 +23,25 @@ npm run build        # typecheck + production build → ./dist
 npm run preview      # serve the built site locally
 ```
 
-## Deploy to Netlify
+## Deploy to Cloudflare
 
 ```bash
-# one-time
-npm install -g netlify-cli
-netlify login
-netlify init         # link this folder to a Netlify site
+# one-time: set the server secrets (you will be prompted for each value)
+npx wrangler secret put STRIPE_SECRET_KEY
+npx wrangler secret put STRIPE_WHSEC
 
-# every deploy
-npm run netlify:deploy            # preview deploy
-npm run netlify:deploy:prod        # production
+# every deploy (builds the SPA, then publishes the Worker + assets)
+npm run deploy
 ```
 
-Set these env vars in **Netlify dashboard → Site settings → Environment variables**:
+Config lives in `wrangler.jsonc`. `SITE_URL` (used for Stripe redirects) is a
+`[vars]` entry there — update it to the production URL/custom domain.
 
-| Variable | Where to get it |
-|---|---|
-| `STRIPE_SECRET_KEY` | Stripe dashboard → Developers → API keys (`sk_test_*` or `sk_live_*`) |
-| `STRIPE_WHSEC` | Stripe dashboard → Developers → Webhooks → add endpoint → `https://your-site.netlify.app/.netlify/functions/webhook` → reveal signing secret |
-| `SITE_URL` | Your public URL, e.g. `https://your-site.netlify.app`. Used for Stripe redirects. |
+| Value | Where to get it | How it's set |
+|---|---|---|
+| `STRIPE_SECRET_KEY` | Stripe dashboard → Developers → API keys (`sk_test_*` / `sk_live_*`) | `wrangler secret put` |
+| `STRIPE_WHSEC` | Stripe dashboard → Developers → Webhooks → add endpoint `https://<your-worker-url>/api/webhook` → signing secret | `wrangler secret put` |
+| `SITE_URL` | Your public URL, e.g. `https://wira-local-agent.workers.dev` or a custom domain | `vars` in `wrangler.jsonc` |
 
 Then in `src/lib/brand.ts` paste the Stripe **Price ID** (`price_*`) for the Wira Local one-time purchase.
 
@@ -56,12 +56,12 @@ src/
     brand.ts       Product name, copy, pricing — single source of truth
     stripe.ts      Client-side bridge to checkout function
 
-netlify/functions/
-  checkout.ts      Creates a Stripe Checkout Session
-  webhook.ts       Verifies + handles Stripe events
+cloudflare/
+  worker.ts        Serves the SPA (ASSETS) + /api/checkout + /api/webhook (Stripe)
 
+wrangler.jsonc     Cloudflare Worker config (assets, vars, compat)
 docs/              Customer-facing markdown docs
-public/            favicon, robots, sitemap
+public/            favicon, robots, sitemap, _headers (security headers)
 ```
 
 ## Renaming the product

@@ -1,11 +1,11 @@
 /**
- * Client-side bridge to the Netlify Function that creates a Stripe Checkout
+ * Client-side bridge to the Cloudflare Worker that creates a Stripe Checkout
  * Session. Keeps the secret key on the server, redirects the browser to
  * Stripe's hosted page.
  */
 
 export async function startCheckout(priceId: string): Promise<void> {
-  const res = await fetch("/.netlify/functions/checkout", {
+  const res = await fetch("/api/checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ priceId }),

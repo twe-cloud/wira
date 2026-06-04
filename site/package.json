@@ -10,9 +10,9 @@
     "build": "npm run sync-brand && tsc --noEmit && vite build",
     "preview": "vite preview --port=3001",
     "lint": "tsc --noEmit",
-    "netlify:dev": "netlify dev",
-    "netlify:deploy": "netlify deploy --build",
-    "netlify:deploy:prod": "netlify deploy --build --prod"
+    "cf:dev": "wrangler dev",
+    "cf:deploy": "npm run build && wrangler deploy",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@stripe/stripe-js": "^4.10.0",
@@ -22,15 +22,16 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.0",
+    "stripe": "^17.5.0",
     "vite": "^6.4.2"
   },
   "devDependencies": {
-    "@netlify/functions": "^2.8.0",
+    "@cloudflare/workers-types": "^4.20250603.0",
     "@types/node": "^22.14.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "stripe": "^17.5.0",
     "tailwindcss": "^4.1.14",
-    "typescript": "~5.8.2"
+    "typescript": "~5.8.2",
+    "wrangler": "^4.97.0"
   }
 }

@@ -15,19 +15,16 @@ This runbook now assumes the corrected product thesis:
 ### 1. Stripe
 1. Create a Stripe account (test mode is fine for the first week).
 2. Create the Wira product/prices.
-3. Copy the two **Price IDs** (`price_*`) into `site/src/lib/brand.ts`.
-4. Set `STRIPE_SECRET_KEY` and `STRIPE_WHSEC` in Netlify.
+3. Copy the **Price ID** (`price_*`) into `site/src/lib/brand.ts`.
+4. Set `STRIPE_SECRET_KEY` and `STRIPE_WHSEC` as Cloudflare Worker secrets (below).
 
-### 2. Netlify
+### 2. Cloudflare
 ```bash
 cd site
-npm install -g netlify-cli
-netlify login
-netlify init
-netlify env:set STRIPE_SECRET_KEY sk_test_...
-netlify env:set STRIPE_WHSEC whsec_...
-netlify env:set SITE_URL https://<your-netlify-site>.netlify.app
-npm run netlify:deploy:prod
+npx wrangler secret put STRIPE_SECRET_KEY   # prompts for sk_test_... / sk_live_...
+npx wrangler secret put STRIPE_WHSEC        # prompts for whsec_...
+# SITE_URL is the [vars] entry in wrangler.jsonc — set it to the prod URL.
+npm run deploy
 ```
 
 ### 3. Local runtime truth

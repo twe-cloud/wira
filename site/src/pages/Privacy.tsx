@@ -73,7 +73,7 @@ export default function Privacy() {
               <b>Stripe</b> — payments only.
             </li>
             <li>
-              <b>Netlify</b> — hosts this website. Standard server logs.
+              <b>Cloudflare</b> — hosts this website. Standard server logs.
             </li>
             <li>We don't share, sell, or rent your data to anyone else.</li>
           </ul>
