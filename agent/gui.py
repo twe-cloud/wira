@@ -232,7 +232,15 @@ class WiraApp(tk.Tk):
         try:
             while True:
                 event_type, data = self.event_queue.get_nowait()
-                if event_type == "chatgpt_code":
+                if event_type == "brain_detect":
+                    self._render_brain_detection(data)
+                elif event_type == "local_progress":
+                    self._render_local_progress(data)
+                elif event_type == "local_done":
+                    self._show_whatsapp()
+                elif event_type == "local_error":
+                    self._show_local_error(data)
+                elif event_type == "chatgpt_code":
                     self._show_chatgpt_code(data)
                 elif event_type == "chatgpt_done":
                     self._chatgpt_token = data
@@ -268,10 +276,190 @@ class WiraApp(tk.Tk):
         self._bullet_row(f, "Starts on WhatsApp", "Your phone becomes the easiest way to talk to your agent while the actual work happens here.")
 
         self._body(f, "Setup takes two steps.", fg=TEXT, small=True, pady=(20, 8))
-        self._step_row(f, 1, "Connect ChatGPT", "Approve Wira to use your existing ChatGPT subscription.")
+        self._step_row(f, 1, "Choose your agent's brain", "Run it privately on this Mac, or connect your existing ChatGPT subscription.")
         self._step_row(f, 2, "Connect WhatsApp", "Scan one code so you can start texting your agent immediately.")
 
-        self._primary_button(f, "Set up my agent", self._start_chatgpt_login, pady=(22, 0))
+        self._primary_button(f, "Set up my agent", self._show_brain_choice, pady=(22, 0))
+
+    # ─── Screen: Choose the brain ──────────────────────────────
+
+    def _show_brain_choice(self):
+        """Let the buyer pick a private local brain or the ChatGPT subscription.
+
+        Local-first: Wira runs entirely on this Mac via Ollama — no subscription,
+        no per-message cost, nothing leaving the computer. We detect Ollama in the
+        background and recommend the local path when it's available.
+        """
+        self._clear()
+        f = self._panel()
+
+        self._eyebrow(f, "Step 1 of 2")
+        self._headline(f, "Choose your agent's brain")
+        self._body(
+            f,
+            "Wira can think entirely on this Mac, or use the ChatGPT account you "
+            "already pay for. You can change this later.",
+            pady=(0, 16),
+        )
+
+        # Local option card (state filled in once detection finishes).
+        self._local_card = tk.Frame(f, bg=PANEL_ALT, padx=16, pady=14)
+        self._local_card.pack(fill="x", pady=(0, 10))
+        tk.Label(
+            self._local_card, text="RECOMMENDED · PRIVATE", font=FONT_EYEBROW,
+            fg=ACCENT_DARK, bg=PANEL_ALT, anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            self._local_card, text="Run it on this Mac", font=("Avenir Next", 16, "bold"),
+            fg=TEXT, bg=PANEL_ALT, anchor="w",
+        ).pack(fill="x", pady=(2, 2))
+        tk.Label(
+            self._local_card,
+            text="Free to run, fully private — your messages never leave this computer.",
+            font=FONT_SMALL, fg=TEXT_DIM, bg=PANEL_ALT, anchor="w",
+            justify="left", wraplength=420,
+        ).pack(fill="x")
+        self._local_status = tk.Label(
+            self._local_card, text="Checking this Mac for local AI…", font=FONT_SMALL,
+            fg=TEXT_SOFT, bg=PANEL_ALT, anchor="w", justify="left", wraplength=420,
+        )
+        self._local_status.pack(fill="x", pady=(8, 6))
+        self._local_action = tk.Frame(self._local_card, bg=PANEL_ALT)
+        self._local_action.pack(fill="x")
+
+        # ChatGPT option card — always available.
+        cg = tk.Frame(f, bg=PANEL_ALT, padx=16, pady=14)
+        cg.pack(fill="x", pady=(0, 6))
+        tk.Label(
+            cg, text="USE WHAT YOU HAVE", font=FONT_EYEBROW,
+            fg=TEXT_SOFT, bg=PANEL_ALT, anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            cg, text="Use my ChatGPT subscription", font=("Avenir Next", 16, "bold"),
+            fg=TEXT, bg=PANEL_ALT, anchor="w",
+        ).pack(fill="x", pady=(2, 2))
+        tk.Label(
+            cg,
+            text="Connect the ChatGPT account you already pay for as your agent's brain.",
+            font=FONT_SMALL, fg=TEXT_DIM, bg=PANEL_ALT, anchor="w",
+            justify="left", wraplength=420,
+        ).pack(fill="x", pady=(0, 8))
+        self._secondary_button(cg, "Connect ChatGPT instead", self._start_chatgpt_login, pady=(0, 0))
+
+        # Kick off detection without blocking the UI.
+        threading.Thread(target=self._brain_detect_thread, daemon=True).start()
+
+    def _brain_detect_thread(self):
+        try:
+            import local_models
+            self.event_queue.put(("brain_detect", local_models.detect()))
+        except Exception as e:
+            logger.warning("Local-brain detection failed: %s", e)
+            self.event_queue.put(("brain_detect", None))
+
+    def _render_brain_detection(self, detection):
+        if not hasattr(self, "_local_status") or not self._local_status.winfo_exists():
+            return
+        import local_models
+        for w in self._local_action.winfo_children():
+            w.destroy()
+
+        if detection is None or not detection.installed:
+            self._local_status.config(
+                text="Local AI (Ollama) isn't installed yet. Install it once — free, "
+                     "about a minute — then Wira runs privately on this Mac."
+            )
+            self._primary_button(self._local_action, "Get local AI (Ollama)",
+                                 lambda: self._open_url(local_models.OLLAMA_DOWNLOAD_URL), pady=(0, 6))
+            self._secondary_button(self._local_action, "I installed it — check again",
+                                   self._show_brain_choice, pady=(0, 0))
+            return
+
+        if not detection.running:
+            self._local_status.config(
+                text="Ollama is installed but not running. Open the Ollama app, then "
+                     "check again."
+            )
+            self._secondary_button(self._local_action, "Check again",
+                                   self._show_brain_choice, pady=(0, 0))
+            return
+
+        rec = detection.recommended
+        ram = f"{detection.ram_gb} GB" if detection.ram_gb else "your"
+        already = detection.has_recommended
+        self._local_status.config(
+            text=(f"Ready. Recommended model for {ram} RAM: {rec.name} ({rec.size_label}). "
+                  f"{rec.note}")
+            + ("" if already else "\nWira will download it once, then run it locally forever.")
+        )
+        label = f"Use {rec.name} locally" if already else f"Download {rec.name} & go"
+        self._primary_button(
+            self._local_action, label,
+            lambda t=rec.tag: self._choose_local(t), pady=(0, 0),
+        )
+
+    def _choose_local(self, tag: str):
+        self._clear()
+        f = self._panel()
+        self._eyebrow(f, "Step 1 of 2")
+        self._headline(f, "Setting up your local brain")
+        self._body(
+            f,
+            "Wira is preparing a private AI model on this Mac. This happens once.",
+            pady=(0, 18),
+        )
+        self._local_progress_label = tk.Label(
+            f, text="Starting…", font=FONT_BODY, fg=TEXT_SOFT, bg=PANEL_BG,
+            justify="left", anchor="w", wraplength=440,
+        )
+        self._local_progress_label.pack(fill="x", pady=(6, 0))
+        threading.Thread(target=self._local_setup_thread, args=(tag,), daemon=True).start()
+
+    def _local_setup_thread(self, tag: str):
+        try:
+            import local_models
+
+            if tag not in local_models.installed_models():
+                def _cb(status, completed, total):
+                    pct = f" {completed * 100 // total}%" if total else ""
+                    self.event_queue.put(("local_progress", f"{status}{pct}"))
+                ok = local_models.pull_model(tag, _cb)
+                if not ok:
+                    self.event_queue.put((
+                        "local_error",
+                        "The model download didn't finish. Check your internet "
+                        "connection and the Ollama app, then try again.",
+                    ))
+                    return
+
+            self.event_queue.put(("local_progress", "Testing the model…"))
+            if not local_models.smoke_test(tag):
+                self.event_queue.put((
+                    "local_error",
+                    "The local model is installed but didn't respond to a test "
+                    "message. Make sure the Ollama app is running, then try again.",
+                ))
+                return
+
+            self._ensure_env()
+            local_models.select_local_brain(tag)
+            self.event_queue.put(("local_done", None))
+        except Exception as e:
+            logger.exception("Local setup error")
+            self.event_queue.put(("local_error", str(e)))
+
+    def _render_local_progress(self, text: str):
+        if hasattr(self, "_local_progress_label") and self._local_progress_label.winfo_exists():
+            self._local_progress_label.config(text=text)
+
+    def _show_local_error(self, msg):
+        self._clear()
+        f = self._panel()
+        self._eyebrow(f, "Local setup")
+        self._headline(f, "Let's try that again")
+        self._body(f, str(msg), pady=(0, 16))
+        self._primary_button(f, "Back to brain choice", self._show_brain_choice, pady=(8, 8))
+        self._secondary_button(f, "Use ChatGPT instead", self._start_chatgpt_login, pady=(0, 0))
 
     # ─── Screen: ChatGPT sign-in ───────────────────────────────
 
@@ -520,9 +708,16 @@ class WiraApp(tk.Tk):
 
             @client.event(ConnectedEv)
             def on_connected(c, event):
+                # Pairing is complete and the session is now persisted to the
+                # session DB. Disconnect this pairing-only client so the agent
+                # client (started in _start_agent) can own the single neonize
+                # connection for this session — two live clients on one session
+                # DB conflict and can trigger a WhatsApp logout.
+                try:
+                    client.disconnect()
+                except Exception:
+                    logger.warning("Could not cleanly disconnect pairing client", exc_info=True)
                 self.event_queue.put(("connected", None))
-                # Store the client for the agent to use
-                self._wa_client = client
 
             client.connect()
 
@@ -600,15 +795,34 @@ class WiraApp(tk.Tk):
             importlib.reload(_cfg)
 
             from drafts import Drafts
-            from runtime_bridge import HermesRuntime
             from whatsapp import WhatsApp
 
-            runtime = HermesRuntime()
             drafts = Drafts()
+            runtime = self._build_runtime()
             wa = WhatsApp(runtime, drafts)
             wa.run()
         except Exception as e:
             logger.exception("Agent error: %s", e)
+
+    @staticmethod
+    def _build_runtime():
+        """Prefer the full Hermes runtime; fall back to the built-in brain when
+        Hermes isn't installed so the first chat still works on a buyer's Mac."""
+        import config as _cfg
+        from runtime_bridge import HermesRuntime
+
+        try:
+            return HermesRuntime()
+        except RuntimeError as e:
+            logger.warning(
+                "Hermes CLI unavailable (%s). Falling back to the built-in %s brain.",
+                e,
+                _cfg.LLM_PROVIDER,
+            )
+            from brain import Brain
+            from memory import Memory
+
+            return Brain(Memory())
 
     def _send_onboarding(self):
         """Send an onboarding message to the owner through WhatsApp."""

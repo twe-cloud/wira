@@ -16,19 +16,28 @@ export default function Success() {
         </div>
         <h1 className="mt-6 text-5xl">You're in.</h1>
         <p className="mt-4 text-lg text-ink-muted">
-          Welcome to {PRODUCT.name}. Next step: pair WhatsApp and connect the
-          local runtime path. The goal is not a reply bot — it's your first real
-          agent, living on your computer and reachable from your phone.
+          Welcome to {PRODUCT.name}. First step: download the macOS app and open
+          it. The goal is not a reply bot — it's your first real agent, living on
+          your computer and reachable from your phone.
         </p>
 
         <div className="mt-8 flex justify-center gap-3 flex-wrap">
-          <Link to="/onboarding" className="btn-primary">
+          <a href={PRODUCT.downloadMacUrl} className="btn-primary">
+            Download {PRODUCT.name} for Mac
+          </a>
+          <Link to="/onboarding" className="btn-ghost">
             Start onboarding
           </Link>
-          <a href={`mailto:${PRODUCT.supportEmail}`} className="btn-ghost">
-            Need a hand?
-          </a>
         </div>
+        <p className="mt-3 text-xs text-ink-muted">
+          Signed &amp; notarized for macOS · {PRODUCT.systemRequirement}
+        </p>
+        <p className="mt-1 text-xs text-ink-muted">
+          Need a hand?{" "}
+          <a href={`mailto:${PRODUCT.supportEmail}`} className="underline">
+            {PRODUCT.supportEmail}
+          </a>
+        </p>
 
         {sessionId && (
           <p className="mt-10 text-xs text-ink-muted">

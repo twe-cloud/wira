@@ -4,18 +4,29 @@
 import sys
 from pathlib import Path
 
+from PyInstaller.utils.hooks import collect_all
+
 agent_dir = Path(SPECPATH)
+
+# neonize ships a native Go shared library (neonize-darwin-arm64.dylib) that it
+# loads with ctypes.CDLL from its own package directory. It has no PyInstaller
+# hook, so without collect_all the .app is missing the dylib entirely and all
+# WhatsApp pairing/messaging fails at runtime. collect_all pulls the dylib, the
+# generated proto modules, and package data into the bundle.
+neonize_datas, neonize_binaries, neonize_hidden = collect_all('neonize')
 
 a = Analysis(
     [str(agent_dir / 'gui.py')],
     pathex=[str(agent_dir)],
-    binaries=[],
+    binaries=[*neonize_binaries],
     datas=[
         (str(agent_dir / '.env.example'), '.'),
         (str(agent_dir / 'requirements.txt'), '.'),
         (str(agent_dir / 'wira-icon.icns'), '.'),
+        *neonize_datas,
     ],
     hiddenimports=[
+        *neonize_hidden,
         'neonize',
         'neonize.client',
         'neonize.events',
@@ -27,6 +38,7 @@ a = Analysis(
         'PIL',
         'config',
         'brain',
+        'local_models',
         'memory',
         'whatsapp',
         'drafts',
@@ -43,7 +55,10 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    # Wira does not import torch/scipy; they were only ever swept in from a dirty
+    # venv and bloated the bundle to ~435MB. Exclude them for a deterministic,
+    # lean build (and a far faster notarization).
+    excludes=['torch', 'torchvision', 'torchaudio', 'scipy'],
     noarchive=False,
 )
 

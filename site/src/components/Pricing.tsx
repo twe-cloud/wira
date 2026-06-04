@@ -63,6 +63,10 @@ export default function Pricing() {
         <p className="mt-3 text-xs text-ink-muted text-center">
           Secure checkout by Stripe · one-time payment · no local monthly fee.
         </p>
+        <p className="mt-2 text-xs text-ink-muted text-center">
+          {PRODUCT.systemRequirement} Run a private local model on your Mac, or
+          use your own ChatGPT Plus or Pro subscription as the brain.
+        </p>
       </div>
     </section>
   );

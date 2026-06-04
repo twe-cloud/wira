@@ -41,7 +41,7 @@ function save(s: State) {
   }
 }
 
-const STEPS = ["Welcome", "ChatGPT", "WhatsApp", "Safety", "Ready"];
+const STEPS = ["Welcome", "Brain", "WhatsApp", "Safety", "Ready"];
 
 export default function Onboarding() {
   const [state, setState] = useState<State>(load);
@@ -95,7 +95,7 @@ export default function Onboarding() {
 
         <p className="mt-6 text-center text-xs text-ink-muted">
           {PRODUCT.name} keeps day one simple: your agent lives on this computer,
-          connects to ChatGPT, and answers you on WhatsApp.
+          runs on a private local model or ChatGPT, and answers you on WhatsApp.
         </p>
       </main>
       <Footer />
@@ -117,9 +117,21 @@ function Step1Welcome({
       <p className="text-sm font-semibold text-accent">Your agent lives on this computer</p>
       <h2 className="mt-2 text-3xl">Talk to your agent on WhatsApp</h2>
       <p className="mt-2 text-ink-muted">
-        Wira sets up a personal agent on this computer, connects it to the
-        ChatGPT subscription you already have, and brings it to WhatsApp.
+        Wira sets up a personal agent on this computer, runs it on a private
+        local model or the ChatGPT subscription you already have, and brings it
+        to WhatsApp.
       </p>
+      <div className="mt-6 rounded-xl border border-border bg-canvas p-4">
+        <div className="font-medium">First, download the app</div>
+        <p className="mt-1 text-sm text-ink-muted">
+          Wira runs on your Mac. Download it, drag it to Applications, and open
+          it before pairing WhatsApp.
+        </p>
+        <a href={PRODUCT.downloadMacUrl} className="btn-primary mt-3 inline-flex">
+          Download {PRODUCT.name} for Mac
+        </a>
+        <p className="mt-2 text-xs text-ink-muted">{PRODUCT.systemRequirement}</p>
+      </div>
       <label className="mt-6 block text-sm font-medium">Your WhatsApp number</label>
       <input
         type="tel"
@@ -155,25 +167,32 @@ function Step2ChatGPT({
 }) {
   return (
     <>
-      <h2 className="text-3xl">Connect ChatGPT</h2>
+      <h2 className="text-3xl">Choose your agent's brain</h2>
       <p className="mt-2 text-ink-muted">
-        Wira uses the ChatGPT account you already pay for. If ChatGPT asks for
-        a quick permission, follow the browser step, then come back here.
+        When you open Wira it asks how it should think. Pick whichever fits you —
+        you can switch later.
       </p>
-      <div className="mt-6 rounded-xl border border-border bg-canvas p-4">
-        <div className="font-medium">One quick permission is needed</div>
+      <div className="mt-6 rounded-xl border border-border bg-accent-soft/40 p-4">
+        <div className="text-xs font-semibold text-accent">RECOMMENDED · PRIVATE</div>
+        <div className="mt-1 font-medium">Run it on this Mac</div>
         <p className="mt-1 text-sm text-ink-muted">
-          Open ChatGPT, approve Wira on this computer, then try again if the
-          browser step does not finish the first time.
+          Wira installs a private local model and runs it entirely on your
+          computer — free to run, with nothing leaving your Mac. One quick
+          install and it's yours.
         </p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <button type="button" onClick={() => setConnected(true)} className="btn-primary">
-            I connected ChatGPT
-          </button>
-          <button type="button" className="btn-ghost">
-            Try again
-          </button>
-        </div>
+      </div>
+      <div className="mt-3 rounded-xl border border-border bg-canvas p-4">
+        <div className="text-xs font-semibold text-ink-muted">USE WHAT YOU HAVE</div>
+        <div className="mt-1 font-medium">Use your ChatGPT subscription</div>
+        <p className="mt-1 text-sm text-ink-muted">
+          Prefer the brain you already pay for? Approve Wira on this computer in
+          a quick browser step, then come back to the app.
+        </p>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <button type="button" onClick={() => setConnected(true)} className="btn-primary">
+          I chose my brain
+        </button>
       </div>
       <div className="mt-6 flex justify-between">
         <button onClick={onBack} className="btn-ghost">Back</button>
