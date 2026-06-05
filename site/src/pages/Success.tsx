@@ -6,6 +6,10 @@ import { PRODUCT } from "@/lib/brand";
 export default function Success() {
   const [params] = useSearchParams();
   const sessionId = params.get("session_id");
+  const publicDownloadUrl =
+    typeof window === "undefined"
+      ? PRODUCT.downloadMacUrl
+      : new URL(PRODUCT.downloadMacUrl, window.location.origin).toString();
 
   return (
     <>
@@ -30,7 +34,7 @@ export default function Success() {
               <p className="mt-1 text-sm text-ink-muted">
                 Drag it to Applications, then open it. The setup screen appears automatically.
               </p>
-              <a href={PRODUCT.downloadMacUrl} className="btn-primary mt-2 inline-flex text-sm">
+              <a href={publicDownloadUrl} className="btn-primary mt-2 inline-flex text-sm">
                 Download for Mac
               </a>
               <p className="mt-1 text-xs text-ink-muted">
@@ -70,7 +74,7 @@ export default function Success() {
         <div className="mt-6 rounded-xl border border-border bg-canvas p-4 text-sm text-ink-muted max-w-xl mx-auto">
           Save this download link now so you do not lose it if you close this tab:
           <div className="mt-2 break-all rounded-lg border border-border bg-surface px-3 py-2 text-ink">
-            {PRODUCT.downloadMacUrl}
+            {publicDownloadUrl}
           </div>
         </div>
 

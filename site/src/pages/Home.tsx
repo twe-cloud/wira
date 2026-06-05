@@ -1,3 +1,4 @@
+import AgentPromise from "@/components/AgentPromise";
 import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 import Founder from "@/components/Founder";
@@ -18,6 +19,7 @@ export default function Home() {
         <SocialProof />
         <Pillars />
         <HowItWorks />
+        <AgentPromise />
         <VoiceToggle />
         <Founder />
         <Pricing />

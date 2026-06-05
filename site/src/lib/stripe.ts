@@ -4,11 +4,15 @@
  * Stripe's hosted page.
  */
 
+const API_BASE = (import.meta.env.VITE_CHECKOUT_API_BASE || "").replace(/\/$/, "");
+const SITE_BASE = `${window.location.origin}${(import.meta.env.BASE_URL || "/").replace(/\/$/, "")}`;
+
 export async function startCheckout(priceId: string): Promise<void> {
-  const res = await fetch("/api/checkout", {
+  const endpoint = `${API_BASE}/api/checkout`;
+  const res = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ priceId }),
+    body: JSON.stringify({ priceId, siteBase: SITE_BASE }),
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");

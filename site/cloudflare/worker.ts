@@ -43,6 +43,9 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/api/checkout") {
+      if (request.method === "OPTIONS") {
+        return new Response(null, { status: 204, headers: corsHeaders(request.headers.get("origin")) });
+      }
       return handleCheckout(request, env);
     }
     if (url.pathname === "/api/webhook") {
@@ -64,11 +67,44 @@ function stripeClient(secret: string): Stripe {
   });
 }
 
-function json(status: number, body: unknown): Response {
+function json(status: number, body: unknown, headers?: HeadersInit): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(headers || {}),
+    },
   });
+}
+
+function corsHeaders(origin: string | null): HeadersInit {
+  if (!origin) return {};
+  return {
+    "Access-Control-Allow-Origin": origin,
+    Vary: "Origin",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+}
+
+function sanitizeSiteBase(siteBase: string | undefined, request: Request, env: Env): string {
+  const fallback = env.SITE_URL || request.headers.get("origin") || "";
+  if (!siteBase) return fallback;
+  try {
+    const url = new URL(siteBase);
+    if (
+      url.origin === "https://nibiashara.biz" &&
+      (url.pathname === "/wira" || url.pathname === "/wira/")
+    ) {
+      return "https://nibiashara.biz/wira";
+    }
+    if (env.SITE_URL && url.origin === new URL(env.SITE_URL).origin) {
+      return `${url.origin}${url.pathname.replace(/\/$/, "")}`;
+    }
+  } catch {
+    return fallback;
+  }
+  return fallback;
 }
 
 function uniqueUrls(urls: Array<string | undefined | null>): string[] {
@@ -206,27 +242,35 @@ async function handleDownload(request: Request, env: Env): Promise<Response> {
 }
 
 async function handleCheckout(request: Request, env: Env): Promise<Response> {
+  const origin = request.headers.get("origin");
+  const cors = corsHeaders(origin);
+
   if (request.method !== "POST") {
-    return json(405, { error: "Method not allowed" });
+    return json(405, { error: "Method not allowed" }, cors);
   }
 
   const secret = env.STRIPE_SECRET_KEY;
-  const siteUrl = env.SITE_URL || request.headers.get("origin") || "";
   if (!secret) {
-    return json(500, { error: "Server is not configured (missing STRIPE_SECRET_KEY)." });
-  }
-  if (!siteUrl) {
-    return json(500, { error: "Server is not configured (missing SITE_URL)." });
+    return json(500, { error: "Server is not configured (missing STRIPE_SECRET_KEY)." }, cors);
   }
 
   let priceId: string | undefined;
+  let siteBase: string | undefined;
   try {
-    ({ priceId } = (await request.json()) as { priceId?: string });
+    ({ priceId, siteBase } = (await request.json()) as {
+      priceId?: string;
+      siteBase?: string;
+    });
   } catch {
-    return json(400, { error: "Invalid JSON body." });
+    return json(400, { error: "Invalid JSON body." }, cors);
   }
   if (priceId !== WIRA_LOCAL_PRICE) {
-    return json(400, { error: "Missing or invalid priceId." });
+    return json(400, { error: "Missing or invalid priceId." }, cors);
+  }
+
+  const checkoutBase = sanitizeSiteBase(siteBase, request, env);
+  if (!checkoutBase) {
+    return json(500, { error: "Server is not configured (missing SITE_URL)." }, cors);
   }
 
   const stripe = stripeClient(secret);
@@ -240,8 +284,8 @@ async function handleCheckout(request: Request, env: Env): Promise<Response> {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/#pricing`,
+      success_url: `${checkoutBase}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${checkoutBase}/#pricing`,
       allow_promotion_codes: true,
       custom_text: {
         submit: {
@@ -253,10 +297,10 @@ async function handleCheckout(request: Request, env: Env): Promise<Response> {
       automatic_tax: { enabled: false },
       metadata: { wira_tier: "local", billing_model: "one_time" },
     });
-    return json(200, { url: session.url });
+    return json(200, { url: session.url }, cors);
   } catch (e) {
     console.error("Stripe checkout error:", e instanceof Error ? e.message : e);
-    return json(500, { error: "Could not create checkout session. Please try again." });
+    return json(500, { error: "Could not create checkout session. Please try again." }, cors);
   }
 }
 

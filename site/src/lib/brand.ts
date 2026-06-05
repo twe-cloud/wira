@@ -5,6 +5,9 @@
  * Same for prices: the Pricing component reads from PRICING below.
  */
 
+const DOWNLOAD_BASE = (import.meta.env.VITE_WIRA_DOWNLOAD_BASE || "").replace(/\/$/, "");
+const publicDownloadPath = "/download/wira-mac";
+
 export const PRODUCT = {
   name: "Wira",
   parentBrand: "Motwe",
@@ -16,9 +19,9 @@ export const PRODUCT = {
   supportEmail: "hello@wira.io",
   city: "Dallas, TX",
   // Stable product-controlled download route fronted by the Cloudflare Worker.
-  // The Worker caches the DMG at the edge and can fall back to a pinned GitHub asset.
-  downloadMacUrl:
-    "https://wira-local-agent.nibiashara.workers.dev/download/wira-mac",
+  // Keep this same-origin when the official product domain fronts it; otherwise
+  // point to the Worker explicitly for embedded copies like nibiashara.biz/wira.
+  downloadMacUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${publicDownloadPath}` : publicDownloadPath,
   // The app is an Apple Silicon (arm64) build — it will not launch on Intel Macs.
   // Browser JS can't reliably tell the two apart, so we state the requirement.
   systemRequirement: "Requires an Apple Silicon Mac (M1 or newer), macOS 12+.",
@@ -59,6 +62,36 @@ export const PILLARS = [
   },
 ];
 
+export const AGENT_PROMISES = [
+  {
+    name: "It remembers the stuff you usually have to repeat",
+    body:
+      "Preferences, recurring contacts, familiar tasks, the way you like something phrased — Wira can keep more of that context in play instead of making every session a fresh start.",
+  },
+  {
+    name: "It shortens the path from request to result",
+    body:
+      "What starts as a long explanation can become a quick instruction. The more often you use it, the less setup each familiar task needs.",
+  },
+  {
+    name: "It works against your actual digital life",
+    body:
+      "The WhatsApp thread is just the entry point. The real advantage is that the agent can help around your files, notes, drafts, reminders, and the tools you already use.",
+  },
+  {
+    name: "It starts light, then earns a bigger role",
+    body:
+      "You can begin with simple asks. Over time Wira can help prep, organize, summarize, and handle more of the small but constant work around your day.",
+  },
+];
+
+export const AGENT_PULLS = [
+  "Less re-explaining.",
+  "Faster handoffs on familiar tasks.",
+  "A WhatsApp thread that becomes a real working tool.",
+  "A simple start that can grow into deeper Hermes power later.",
+];
+
 export const FAQS = [
   {
     q: "Is this just a WhatsApp bot?",
@@ -91,5 +124,9 @@ export const FAQS = [
   {
     q: "Can other people talk to my agent?",
     a: "Not by default. The intended Local and Business default is owner lock: this is your private operator surface first, not a public auto-reply product.",
+  },
+  {
+    q: "What is actually cool about having Wira on WhatsApp?",
+    a: "It means your agent is reachable from the one place you already check all day, while the real value keeps building underneath: more memory, better context, smoother repeated tasks, and a cleaner path from simple requests into real operator help.",
   },
 ];

@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import Learn from "./pages/Learn";
+import NerdStuff from "./pages/NerdStuff";
 import NotFound from "./pages/NotFound";
 import Onboarding from "./pages/Onboarding";
 import Privacy from "./pages/Privacy";
@@ -12,6 +13,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/learn" element={<Learn />} />
+      <Route path="/nerd-stuff" element={<NerdStuff />} />
       <Route path="/success" element={<Success />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/privacy" element={<Privacy />} />

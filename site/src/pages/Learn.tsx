@@ -3,6 +3,8 @@ import Nav from "@/components/Nav";
 import { PRODUCT } from "@/lib/brand";
 import { Link } from "react-router-dom";
 
+const homePricingHref = `${import.meta.env.BASE_URL}#pricing`;
+
 /**
  * Plain-language explainer page. Deliberately NOT a sales page — it lives off
  * the home flow so anyone curious can learn what an agent actually is, what
@@ -126,9 +128,12 @@ export default function Learn() {
             <Link to="/onboarding" className="btn-primary">
               Start setup
             </Link>
-            <a href="/#pricing" className="btn-ghost">
+            <a href={homePricingHref} className="btn-ghost">
               See pricing
             </a>
+            <Link to="/nerd-stuff" className="btn-ghost">
+              Nerd stuff
+            </Link>
           </div>
         </Block>
       </main>
