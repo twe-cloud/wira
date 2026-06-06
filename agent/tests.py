@@ -211,6 +211,52 @@ class AuthMessageTests(unittest.TestCase):
         self.assertIn("Login timed out", msg)
 
 
+class PlatformSupportTests(unittest.TestCase):
+    def test_apple_silicon_mac_gets_full_local_recommendation(self):
+        import platform_support
+
+        assessment = platform_support.assess(machine="arm64", system="Darwin", ram_gb=16)
+
+        self.assertEqual(assessment.platform_label, "Apple Silicon Mac")
+        self.assertEqual(assessment.support_tier, "full")
+        self.assertEqual(assessment.local_ai_tier, "recommended")
+        self.assertIn("private on this Mac", assessment.local_option_blurb)
+        self.assertIn("Mac", assessment.download_label)
+
+    def test_intel_mac_stays_supported_but_local_ai_is_caveated(self):
+        import platform_support
+
+        assessment = platform_support.assess(machine="x86_64", system="Darwin", ram_gb=16)
+
+        self.assertEqual(assessment.platform_label, "Intel Mac")
+        self.assertEqual(assessment.support_tier, "supported")
+        self.assertEqual(assessment.local_ai_tier, "limited")
+        self.assertIn("cloud or ChatGPT", assessment.recommended_brain_summary)
+        self.assertIn("not the default recommendation", assessment.local_option_blurb)
+
+    def test_windows_low_ram_prefers_cloud_brains(self):
+        import platform_support
+
+        assessment = platform_support.assess(machine="AMD64", system="Windows", ram_gb=8)
+
+        self.assertEqual(assessment.platform_label, "Windows PC")
+        self.assertEqual(assessment.support_tier, "supported")
+        self.assertEqual(assessment.local_ai_tier, "limited")
+        self.assertIn("Start free or connect ChatGPT", assessment.recommended_brain_summary)
+        self.assertIn("best on stronger machines", assessment.local_option_blurb)
+        self.assertIn("Windows", assessment.download_label)
+
+    def test_unknown_platform_is_marked_limited(self):
+        import platform_support
+
+        assessment = platform_support.assess(machine="x86_64", system="Linux", ram_gb=32)
+
+        self.assertEqual(assessment.support_tier, "limited")
+        self.assertEqual(assessment.local_ai_tier, "unsupported")
+        self.assertIn("best-supported", assessment.recommended_brain_summary)
+        self.assertIn("not yet a first-class local setup", assessment.local_option_blurb)
+
+
 class SiteCopyTests(unittest.TestCase):
     def test_first_run_site_copy_stays_nontechnical(self):
         root = Path(__file__).resolve().parents[1]
@@ -219,7 +265,7 @@ class SiteCopyTests(unittest.TestCase):
             root / "site" / "src" / "components" / "HowItWorks.tsx",
             root / "site" / "src" / "lib" / "brand.ts",
         ]
-        joined = "\n".join(path.read_text() for path in paths)
+        joined = "\n".join(path.read_text(encoding="utf-8") for path in paths)
         self.assertIn("Connect ChatGPT", joined)
         self.assertIn("Connect WhatsApp", joined)
         self.assertIn("Your agent lives on this computer", joined)
@@ -234,6 +280,22 @@ class SiteCopyTests(unittest.TestCase):
         ]
         for phrase in banned:
             self.assertNotIn(phrase, joined, f"first-run copy leaks technical term: {phrase}")
+
+    def test_platform_copy_stops_marketing_wira_as_apple_silicon_only(self):
+        root = Path(__file__).resolve().parents[1]
+        paths = [
+            root / "site" / "src" / "components" / "Hero.tsx",
+            root / "site" / "src" / "components" / "Pricing.tsx",
+            root / "site" / "src" / "pages" / "Success.tsx",
+            root / "site" / "src" / "pages" / "Onboarding.tsx",
+            root / "site" / "src" / "lib" / "brand.ts",
+            root / "site" / "docs" / "quickstart.md",
+        ]
+        joined = "\n".join(path.read_text(encoding="utf-8") for path in paths)
+        self.assertNotIn("Apple Silicon Mac only", joined)
+        self.assertNotIn("Mac only", joined)
+        self.assertIn("machine is a good fit", joined)
+        self.assertIn("Mac download", joined)
 
 
 class BrainGuardTests(unittest.TestCase):

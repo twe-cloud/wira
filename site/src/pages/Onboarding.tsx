@@ -119,8 +119,8 @@ function Step1Welcome({
       <div className="mt-6 rounded-xl border border-border bg-canvas p-4">
         <div className="font-medium">First, download the app</div>
         <p className="mt-1 text-sm text-ink-muted">
-          Wira runs on your Mac. Download it, drag it to Applications, and open
-          it before pairing WhatsApp.
+          Wira's public download is Mac-first right now. Download it, drag it to
+          Applications, and open it before pairing WhatsApp.
         </p>
         <a href={PRODUCT.downloadMacUrl} className="btn-primary mt-3 inline-flex">
           Download {PRODUCT.name} for Mac
@@ -186,12 +186,12 @@ function Step2Brain({
         </p>
       </div>
       <div className="mt-3 rounded-xl border border-border bg-canvas p-4">
-        <div className="text-xs font-semibold text-ink-muted">PRIVATE · ON YOUR MAC</div>
+        <div className="text-xs font-semibold text-ink-muted">PRIVATE · WHEN THE MACHINE FITS</div>
         <div className="mt-1 font-medium">Run it entirely on this computer</div>
         <p className="mt-1 text-sm text-ink-muted">
-          Prefer a fully private path? Install Ollama on your Mac first, then
-          let Wira use it as the brain. Best when you want everything to stay on
-          your own machine.
+          Prefer a fully private path? Install Ollama first, then let Wira use
+          it as the brain. Apple Silicon is the strongest fit today; Intel Macs
+          and Windows PCs should usually start with the cloud or ChatGPT lane.
         </p>
       </div>
       <div className="mt-4 flex flex-wrap gap-3">

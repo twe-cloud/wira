@@ -37,6 +37,12 @@ then grows with the user into a deeper Hermes workflow.
 - **WhatsApp is the command surface, not the whole product.** The value is the local agent underneath.
 - **Start free first, then go deeper if you want.** Pick a free API tier (Groq is fastest), use ChatGPT if you already subscribe, or keep it private on your own machine — all paths stay easy.
 
+## Support shape right now
+
+- **Mac download is live now.** Apple Silicon is the strongest fit for the fully private local-AI lane.
+- **Intel Macs should start cloud-first.** The app/runtime path is still useful there, but the cloud or ChatGPT lane is the smoother default.
+- **Windows is the next hardening lane.** The repo already contains a Windows build workflow and installer path; public release plumbing still needs more smoke testing.
+
 ## Quick Start
 
 ```bash

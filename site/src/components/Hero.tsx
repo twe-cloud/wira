@@ -33,7 +33,7 @@ export default function Hero() {
             </a>
           </div>
           <p className="mt-4 text-xs text-ink-muted">
-            Pair via QR code · Apple Silicon Mac only · Starts simple · Grows with you.
+            {PRODUCT.heroSupportLine}
           </p>
         </motion.div>
 

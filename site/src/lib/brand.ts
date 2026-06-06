@@ -22,9 +22,9 @@ export const PRODUCT = {
   // Keep this same-origin when the official product domain fronts it; otherwise
   // point to the Worker explicitly for embedded copies like nibiashara.biz/wira.
   downloadMacUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${publicDownloadPath}` : publicDownloadPath,
-  // The app is an Apple Silicon (arm64) build — it will not launch on Intel Macs.
-  // Browser JS can't reliably tell the two apart, so we state the requirement.
-  systemRequirement: "Requires an Apple Silicon Mac (M1 or newer), macOS 12+.",
+  systemRequirement: "Mac download available now. Apple Silicon is the best full private-AI path; Intel Macs and Windows PCs should start with the cloud or ChatGPT lane.",
+  heroSupportLine: "Pair via QR code · Mac download live now · Windows lane in progress · Apple Silicon is best for private local AI.",
+  pricingSupportLine: "Secure checkout by Stripe · one-time payment · Mac download live now · no local monthly fee.",
 };
 
 /**
@@ -39,7 +39,7 @@ export const PRICING = {
     "Lives on your own computer — not trapped in a browser tab",
     "Reach Wira from WhatsApp with a QR-paired setup",
     "Private owner/operator control surface by default",
-    "Start free in seconds, use the ChatGPT subscription you already have, or run fully private on your Mac",
+    "Start free in seconds, use the ChatGPT subscription you already have, or keep the brain private when your machine is a good fit",
     "Grows into deeper local agent work when you're ready",
   ],
 };
@@ -115,7 +115,7 @@ export const FAQS = [
   },
   {
     q: "Can it run without ChatGPT?",
-    a: "Yes. The fastest free option is to sign up with a service like Groq or DeepSeek and paste the key Wira asks for — free tiers get you running in seconds. You can also connect the ChatGPT subscription you already have, or run fully private on your Mac. You can switch any time.",
+    a: "Yes. The fastest free option is to sign up with a service like Groq or DeepSeek and paste the key Wira asks for — free tiers get you running in seconds. You can also connect the ChatGPT subscription you already have, or keep the brain private when your machine is a good fit. You can switch any time.",
   },
   {
     q: "What's the fastest way to get going?",

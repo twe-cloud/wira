@@ -41,7 +41,7 @@ TAGLINES = {
     "fireworks": "Fast hosted open models.",
     "mistral": "Mistral's hosted models.",
     "gemini": "Google Gemini via its OpenAI-compatible endpoint.",
-    "lmstudio": "Local models served by LM Studio on this Mac — private and free.",
+    "lmstudio": "Local models served by LM Studio on this computer — private and free.",
     "openai-compatible": "Point Wira at any OpenAI-compatible endpoint.",
 }
 

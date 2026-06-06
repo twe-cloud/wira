@@ -48,8 +48,8 @@ export default function Success() {
               <div className="font-medium">Pick a brain</div>
               <p className="mt-1 text-sm text-ink-muted">
                 {PRODUCT.name} asks how it should think. Start free, connect
-                your ChatGPT subscription, or keep it fully private on your
-                Mac. You can switch any time.
+                your ChatGPT subscription, or keep the brain private when your
+                machine is a good fit. You can switch any time.
               </p>
             </div>
           </li>

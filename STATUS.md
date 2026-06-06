@@ -61,6 +61,7 @@ The current repo still reflects an older draft/reply assistant thesis in runtime
 
 Source-of-truth re-architecture plan:
 - `docs/plans/2026-06-03-wira-hermes-command-surface.md`
+- `docs/plans/2026-06-05-wira-cross-platform-enablement.md`
 
 ## Next production closeout
 

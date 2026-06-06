@@ -10,14 +10,14 @@ From the landing page, click **Start with Wira**. Stripe will take you through c
 
 After payment you're redirected to **/success** with the short path in front of you:
 
-1. **Download & open Wira** — install the Mac app and launch it.
-2. **Pick how it should think** — start free, connect ChatGPT, or keep it private on your Mac.
+1. **Download & open Wira** — install the Mac app and launch it. Windows support is being hardened; for now the public download path is Mac-first.
+2. **Pick how it should think** — start free, connect ChatGPT, or keep the brain private when your machine is a good fit.
 3. **Scan the WhatsApp QR** — pair your phone through Linked Devices.
 
 If you want the longer walkthrough, click through to **/onboarding**. The guided flow is:
 
 1. **Welcome** — confirm the WhatsApp number you will use to reach Wira.
-2. **Pick a brain** — start free, connect ChatGPT, or keep it private on your Mac.
+2. **Pick a brain** — start free, connect ChatGPT, or keep the brain private when your machine is a good fit.
 3. **Connect WhatsApp** — pair your phone through Linked Devices.
 4. **Safety** — choose when Wira should pause before risky actions.
 5. **Ready** — send your first real command from WhatsApp.

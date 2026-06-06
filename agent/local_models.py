@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import logging
+import platform
 import shutil
 from dataclasses import dataclass
 
@@ -23,7 +24,12 @@ import config
 
 logger = logging.getLogger("wira.local_models")
 
-OLLAMA_DOWNLOAD_URL = "https://ollama.com/download/mac"
+
+def ollama_download_url() -> str:
+    system = platform.system().lower()
+    if system == "windows":
+        return "https://ollama.com/download/windows"
+    return "https://ollama.com/download/mac"
 
 
 @dataclass(frozen=True)
@@ -38,8 +44,8 @@ class LocalModel:
 
 
 # Small, instruction-following models that answer WhatsApp messages well and fit
-# on a typical Apple-Silicon Mac. Ordered easiest-first; the GUI recommends the
-# first entry that fits the detected RAM.
+# on the stronger machines Wira is likely to target first. Ordered easiest-first;
+# the GUI recommends the first entry that fits the detected RAM.
 RECOMMENDED_MODELS: list[LocalModel] = [
     LocalModel(
         tag="llama3.2:3b",
@@ -137,7 +143,7 @@ class Detection:
 
 
 def detect() -> Detection:
-    """Snapshot the local-model situation on this Mac. Never raises."""
+    """Snapshot the local-model situation on this machine. Never raises."""
     installed = ollama_installed()
     running = ollama_running()
     models = installed_models() if running else []

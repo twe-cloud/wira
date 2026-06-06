@@ -23,7 +23,7 @@ const DOWNLOAD_FILENAME = "Wira.dmg";
 const DOWNLOAD_CACHE_TTL_SECONDS = 60 * 60 * 24;
 const CHECKOUT_PRODUCT_NAME = "Wira";
 const CHECKOUT_PRODUCT_DESCRIPTION =
-  "Your own AI agent on WhatsApp. Start free, connect ChatGPT, or keep it private on your Mac.";
+  "Your own AI agent on WhatsApp. Start free, connect ChatGPT, or keep the brain private when your machine is a good fit.";
 
 interface Env {
   ASSETS: Fetcher;
@@ -350,8 +350,8 @@ async function sendDownloadEmail(
       <p style="margin:0 0 20px">
         <a href="${downloadUrl}" style="display:inline-block;background:#6f5318;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:600">Download Wira for Mac</a>
       </p>
-      <p style="margin:0 0 8px;color:#5f6472;font-size:13px">Requires an Apple Silicon Mac (M1 or newer), macOS 12+.</p>
-      <p style="margin:0 0 8px;color:#5f6472;font-size:13px">After installing: open Wira, choose how it should think, then scan the WhatsApp QR code. Start free, use ChatGPT, or keep it private on your Mac. Three steps and your agent is live.</p>
+      <p style="margin:0 0 8px;color:#5f6472;font-size:13px">Mac download available now. Apple Silicon is the best full private-AI path; Intel Macs and Windows PCs should start with the cloud or ChatGPT lane.</p>
+      <p style="margin:0 0 8px;color:#5f6472;font-size:13px">After installing: open Wira, choose how it should think, then scan the WhatsApp QR code. Start free, use ChatGPT, or keep the brain private when your machine is a good fit. Three steps and your agent is live.</p>
       ${siteUrl ? `<p style="margin:16px 0 0;color:#8d7550;font-size:12px">Need a hand? Just reply to this email, or follow the <a href="${siteUrl}/onboarding">guided setup walkthrough</a>.</p>` : ""}
     </div>`;
 

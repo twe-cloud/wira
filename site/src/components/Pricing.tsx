@@ -23,7 +23,8 @@ export default function Pricing() {
         <h2 className="text-4xl">Buy once. Install once. Wira is yours locally.</h2>
         <p className="mt-3 text-ink-muted text-lg">
           Wira Local is a one-time setup purchase for the agent that runs on your
-          computer. No monthly fee for the local install. Apple Silicon Mac only.
+          computer. No monthly fee for the local install. Mac download is live now;
+          Apple Silicon is the best private local-AI path.
         </p>
       </div>
 
@@ -67,11 +68,11 @@ export default function Pricing() {
           </p>
         )}
         <p className="mt-3 text-xs text-ink-muted text-center">
-          Secure checkout by Stripe · one-time payment · Mac only · no local monthly fee.
+          {PRODUCT.pricingSupportLine}
         </p>
         <p className="mt-2 text-xs text-ink-muted text-center">
           {PRODUCT.systemRequirement} Start free in seconds, connect ChatGPT, or
-          run fully private on your Mac.
+          keep the brain private when your machine is a good fit.
         </p>
       </div>
     </section>

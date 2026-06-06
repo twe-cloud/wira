@@ -3,7 +3,7 @@
 
 The product promise is simple:
 1. Wira runs on this computer.
-2. The buyer can start free, use ChatGPT, or keep it private on this Mac.
+2. The buyer can start free, use ChatGPT, or keep it private when the machine is a good fit.
 3. It brings their agent to WhatsApp as fast as possible.
 
 After setup, Wira keeps the local runtime available in the background.
@@ -51,6 +51,7 @@ _prime_tcl_tk_paths()
 import tkinter as tk
 
 from paths import ENV_FILE, RELEASES_URL, SESSION_DB_PATH, load_env, write_env
+import platform_support
 
 # Load user-owned config before anything else.
 load_env()
@@ -61,6 +62,7 @@ logging.basicConfig(
     datefmt="%H:%M:%S",
 )
 logger = logging.getLogger("wira.gui")
+PLATFORM = platform_support.assess()
 
 # Brand colors — warmer and more business-grade than the old green utility skin.
 BG = "#0d1422"
@@ -272,13 +274,14 @@ class WiraApp(tk.Tk):
             "Wira sets up a personal agent on this computer and brings it to WhatsApp as fast as possible.",
             pady=(0, 18),
         )
+        self._body(f, PLATFORM.welcome_blurb, fg=TEXT_SOFT, small=True, pady=(0, 18))
 
         self._bullet_row(f, "Start free in under a minute", "Pick a free brain — like Groq — or connect your ChatGPT subscription.")
         self._bullet_row(f, "Your agent lives on this computer", "That is what lets it do real work for you instead of acting like a toy chat window.")
         self._bullet_row(f, "Talk on WhatsApp", "Your phone becomes the easiest way to reach your agent while the actual work happens here.")
 
         self._body(f, "Setup takes two steps.", fg=TEXT, small=True, pady=(20, 8))
-        self._step_row(f, 1, "Choose your agent's brain", "Start free, connect ChatGPT, or run it privately on this Mac.")
+        self._step_row(f, 1, "Choose your agent's brain", PLATFORM.recommended_brain_summary)
         self._step_row(f, 2, "Connect WhatsApp", "Scan one code so you can start texting your agent immediately.")
 
         self._primary_button(f, "Set up my agent", self._show_brain_choice, pady=(22, 0))
@@ -299,7 +302,7 @@ class WiraApp(tk.Tk):
         self._headline(f, "Choose your agent's brain")
         self._body(
             f,
-            "Pick the fastest way to get started. You can always change this later.",
+            f"Pick the fastest way to get started on this {PLATFORM.platform_label.lower()}. You can always change this later.",
             pady=(0, 16),
         )
 
@@ -355,7 +358,7 @@ class WiraApp(tk.Tk):
         self._local_card = tk.Frame(f, bg=PANEL_ALT, padx=16, pady=14)
         self._local_card.pack(fill="x", pady=(0, 6))
         tk.Label(
-            self._local_card, text="PRIVATE · RUNS ON THIS MAC", font=FONT_EYEBROW,
+            self._local_card, text="PRIVATE · LOCAL AI", font=FONT_EYEBROW,
             fg=TEXT_SOFT, bg=PANEL_ALT, anchor="w",
         ).pack(fill="x")
         tk.Label(
@@ -364,12 +367,12 @@ class WiraApp(tk.Tk):
         ).pack(fill="x", pady=(2, 2))
         tk.Label(
             self._local_card,
-            text="Nothing leaves this computer. Requires Ollama installed and enough RAM.",
+            text=PLATFORM.local_option_blurb,
             font=FONT_SMALL, fg=TEXT_DIM, bg=PANEL_ALT, anchor="w",
             justify="left", wraplength=420,
         ).pack(fill="x")
         self._local_status = tk.Label(
-            self._local_card, text="Checking this Mac…", font=FONT_SMALL,
+            self._local_card, text=f"Checking this {PLATFORM.platform_label.lower()}…", font=FONT_SMALL,
             fg=TEXT_SOFT, bg=PANEL_ALT, anchor="w", justify="left", wraplength=420,
         )
         self._local_status.pack(fill="x", pady=(8, 6))
@@ -394,13 +397,22 @@ class WiraApp(tk.Tk):
         for w in self._local_action.winfo_children():
             w.destroy()
 
+        if PLATFORM.local_ai_tier == "unsupported":
+            self._local_status.config(text=PLATFORM.local_option_blurb)
+            self._secondary_button(
+                self._local_action,
+                "Use the fastest supported setup instead",
+                self._show_all_providers,
+                pady=(0, 0),
+            )
+            return
+
         if detection is None or not detection.installed:
             self._local_status.config(
-                text="Local AI (Ollama) isn't installed yet. Install it once — free, "
-                     "about a minute — then Wira runs privately on this Mac."
+                text=f"Local AI (Ollama) isn't installed yet. Install it once, then Wira can use the private local-AI lane on this {PLATFORM.platform_label.lower()}."
             )
             self._primary_button(self._local_action, "Get local AI (Ollama)",
-                                 lambda: self._open_url(local_models.OLLAMA_DOWNLOAD_URL), pady=(0, 6))
+                                 lambda: self._open_url(local_models.ollama_download_url()), pady=(0, 6))
             self._secondary_button(self._local_action, "I installed it — check again",
                                    self._show_brain_choice, pady=(0, 0))
             return
@@ -435,7 +447,7 @@ class WiraApp(tk.Tk):
         self._headline(f, "Setting up your local brain")
         self._body(
             f,
-            "Wira is preparing a private AI model on this Mac. This happens once.",
+            PLATFORM.local_setup_blurb,
             pady=(0, 18),
         )
         self._local_progress_label = tk.Label(
