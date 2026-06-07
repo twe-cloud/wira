@@ -12,15 +12,41 @@
 import Stripe from "stripe";
 
 const WIRA_LOCAL_PRICE = "price_1TcrAXRVrXHv0YFpfmw35hIw";
-const DOWNLOAD_PATH = "/download/wira-mac";
-const DEFAULT_DOWNLOAD_URL =
-  "https://github.com/twe-cloud/wira/releases/latest/download/Wira.dmg";
-const PINNED_DOWNLOAD_URL =
-  "https://github.com/twe-cloud/wira/releases/download/v1.0.7/Wira.dmg";
+const RELEASE_DOWNLOAD_BASE = "https://github.com/twe-cloud/wira/releases";
 const GITHUB_LATEST_RELEASE_API =
   "https://api.github.com/repos/twe-cloud/wira/releases/latest";
-const DOWNLOAD_FILENAME = "Wira.dmg";
 const DOWNLOAD_CACHE_TTL_SECONDS = 60 * 60 * 24;
+
+type PlatformKey = "mac" | "windows";
+
+interface DownloadSpec {
+  key: PlatformKey;
+  path: string;
+  filename: string;
+  contentType: string;
+  // Last-resort pinned tag if "latest" can't be resolved.
+  pinnedTag: string;
+}
+
+// Both artifacts are produced by the same release pipeline (see
+// .github/workflows/build-windows.yml + agent/scripts/build-app.sh). Mac is GA;
+// the Windows .exe ships today as an unsigned early beta.
+const DOWNLOADS: Record<PlatformKey, DownloadSpec> = {
+  mac: {
+    key: "mac",
+    path: "/download/wira-mac",
+    filename: "Wira.dmg",
+    contentType: "application/x-apple-diskimage",
+    pinnedTag: "v1.0.7",
+  },
+  windows: {
+    key: "windows",
+    path: "/download/wira-windows",
+    filename: "WiraSetup.exe",
+    contentType: "application/vnd.microsoft.portable-executable",
+    pinnedTag: "v1.0.7",
+  },
+};
 const CHECKOUT_PRODUCT_NAME = "Wira";
 const CHECKOUT_PRODUCT_DESCRIPTION =
   "Your own AI agent on WhatsApp. Start free, connect ChatGPT, or keep the brain private when your machine is a good fit.";
@@ -32,6 +58,7 @@ interface Env {
   SITE_URL?: string;
   WIRA_DOWNLOAD_URL?: string;
   WIRA_DOWNLOAD_FALLBACK_URL?: string;
+  WIRA_WINDOWS_DOWNLOAD_URL?: string;
   // Optional — best-effort transactional download email. If unset, the buyer
   // still gets the download from the /success page + the Stripe receipt.
   RESEND_API_KEY?: string;
@@ -51,8 +78,11 @@ export default {
     if (url.pathname === "/api/webhook") {
       return handleWebhook(request, env);
     }
-    if (url.pathname === DOWNLOAD_PATH) {
-      return handleDownload(request, env);
+    if (url.pathname === DOWNLOADS.mac.path) {
+      return handleDownload(request, env, DOWNLOADS.mac);
+    }
+    if (url.pathname === DOWNLOADS.windows.path) {
+      return handleDownload(request, env, DOWNLOADS.windows);
     }
 
     // Everything else: the SPA / static assets.
@@ -111,14 +141,26 @@ function uniqueUrls(urls: Array<string | undefined | null>): string[] {
   return [...new Set(urls.map((url) => url?.trim()).filter(Boolean) as string[])];
 }
 
-function publicDownloadUrl(env: Env, siteUrl?: string): string {
-  if (siteUrl) {
-    return `${siteUrl}${DOWNLOAD_PATH}`;
-  }
-  return env.WIRA_DOWNLOAD_URL || DEFAULT_DOWNLOAD_URL;
+function defaultDownloadUrl(spec: DownloadSpec): string {
+  return `${RELEASE_DOWNLOAD_BASE}/latest/download/${spec.filename}`;
 }
 
-async function resolveLatestGithubDownloadUrl(): Promise<string | null> {
+function pinnedDownloadUrl(spec: DownloadSpec): string {
+  return `${RELEASE_DOWNLOAD_BASE}/download/${spec.pinnedTag}/${spec.filename}`;
+}
+
+function envDownloadOverride(env: Env, spec: DownloadSpec): string | undefined {
+  return spec.key === "mac" ? env.WIRA_DOWNLOAD_URL : env.WIRA_WINDOWS_DOWNLOAD_URL;
+}
+
+function publicDownloadUrl(env: Env, spec: DownloadSpec, siteUrl?: string): string {
+  if (siteUrl) {
+    return `${siteUrl}${spec.path}`;
+  }
+  return envDownloadOverride(env, spec) || defaultDownloadUrl(spec);
+}
+
+async function resolveLatestGithubDownloadUrl(filename: string): Promise<string | null> {
   try {
     const response = await fetch(GITHUB_LATEST_RELEASE_API, {
       headers: {
@@ -134,8 +176,8 @@ async function resolveLatestGithubDownloadUrl(): Promise<string | null> {
     const data = (await response.json()) as {
       assets?: Array<{ name?: string; browser_download_url?: string }>;
     };
-    const dmg = data.assets?.find((asset) => asset.name === DOWNLOAD_FILENAME)?.browser_download_url;
-    return dmg || null;
+    const asset = data.assets?.find((a) => a.name === filename)?.browser_download_url;
+    return asset || null;
   } catch (error) {
     console.warn(
       "Latest release lookup errored:",
@@ -145,28 +187,29 @@ async function resolveLatestGithubDownloadUrl(): Promise<string | null> {
   }
 }
 
-async function downloadSourceUrls(env: Env): Promise<string[]> {
-  const latestGithubAsset = await resolveLatestGithubDownloadUrl();
+async function downloadSourceUrls(env: Env, spec: DownloadSpec): Promise<string[]> {
+  const latestGithubAsset = await resolveLatestGithubDownloadUrl(spec.filename);
   return uniqueUrls([
-    env.WIRA_DOWNLOAD_URL,
-    DEFAULT_DOWNLOAD_URL,
+    envDownloadOverride(env, spec),
+    defaultDownloadUrl(spec),
     latestGithubAsset,
-    env.WIRA_DOWNLOAD_FALLBACK_URL,
-    PINNED_DOWNLOAD_URL,
+    spec.key === "mac" ? env.WIRA_DOWNLOAD_FALLBACK_URL : undefined,
+    pinnedDownloadUrl(spec),
   ]);
 }
 
-function finalizeDownloadResponse(upstream: Response, sourceUrl: string): Response {
+function finalizeDownloadResponse(
+  upstream: Response,
+  sourceUrl: string,
+  spec: DownloadSpec,
+): Response {
   const headers = new Headers(upstream.headers);
   headers.set(
     "Cache-Control",
     `public, max-age=0, s-maxage=${DOWNLOAD_CACHE_TTL_SECONDS}, stale-while-revalidate=86400`,
   );
-  headers.set("Content-Disposition", `attachment; filename="${DOWNLOAD_FILENAME}"`);
-  headers.set(
-    "Content-Type",
-    headers.get("Content-Type") || "application/x-apple-diskimage",
-  );
+  headers.set("Content-Disposition", `attachment; filename="${spec.filename}"`);
+  headers.set("Content-Type", headers.get("Content-Type") || spec.contentType);
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("X-Wira-Download-Source", sourceUrl);
   return new Response(upstream.body, {
@@ -175,7 +218,11 @@ function finalizeDownloadResponse(upstream: Response, sourceUrl: string): Respon
   });
 }
 
-async function handleDownload(request: Request, env: Env): Promise<Response> {
+async function handleDownload(
+  request: Request,
+  env: Env,
+  spec: DownloadSpec,
+): Promise<Response> {
   if (request.method !== "GET" && request.method !== "HEAD") {
     return new Response("Method not allowed", {
       status: 405,
@@ -184,7 +231,7 @@ async function handleDownload(request: Request, env: Env): Promise<Response> {
   }
 
   const cache = caches.default;
-  const cacheKey = new Request(new URL(DOWNLOAD_PATH, request.url).toString(), {
+  const cacheKey = new Request(new URL(spec.path, request.url).toString(), {
     method: "GET",
   });
   const cached = await cache.match(cacheKey);
@@ -195,7 +242,7 @@ async function handleDownload(request: Request, env: Env): Promise<Response> {
     return cached;
   }
 
-  const sources = await downloadSourceUrls(env);
+  const sources = await downloadSourceUrls(env, spec);
   let lastFailure = "no sources configured";
 
   for (const sourceUrl of sources) {
@@ -213,7 +260,7 @@ async function handleDownload(request: Request, env: Env): Promise<Response> {
         continue;
       }
 
-      const response = finalizeDownloadResponse(upstream, sourceUrl);
+      const response = finalizeDownloadResponse(upstream, sourceUrl, spec);
       await cache.put(cacheKey, response.clone());
 
       if (request.method === "HEAD") {
@@ -341,16 +388,17 @@ async function sendDownloadEmail(
   }
 
   const siteUrl = env.SITE_URL || "";
-  const downloadUrl = publicDownloadUrl(env, siteUrl);
+  const macUrl = publicDownloadUrl(env, DOWNLOADS.mac, siteUrl);
+  const windowsUrl = publicDownloadUrl(env, DOWNLOADS.windows, siteUrl);
   const greeting = name ? `Hi ${name},` : "Hi there,";
   const html = `
     <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;color:#1a2233">
       <h1 style="font-size:22px;margin:0 0 12px">You're in. Welcome to Wira.</h1>
-      <p style="margin:0 0 16px;color:#5f6472">${greeting} thanks for your purchase. Wira is your own AI agent that runs on your Mac and answers you on WhatsApp.</p>
-      <p style="margin:0 0 20px">
-        <a href="${downloadUrl}" style="display:inline-block;background:#6f5318;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:600">Download Wira for Mac</a>
+      <p style="margin:0 0 16px;color:#5f6472">${greeting} thanks for your purchase. Wira is your own AI agent that runs on your computer and answers you on WhatsApp.</p>
+      <p style="margin:0 0 12px">
+        <a href="${macUrl}" style="display:inline-block;background:#6f5318;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:600">Download Wira for Mac</a>
       </p>
-      <p style="margin:0 0 8px;color:#5f6472;font-size:13px">Mac download available now. Apple Silicon is the best full private-AI path; Intel Macs and Windows PCs should start with the cloud or ChatGPT lane.</p>
+      <p style="margin:0 0 16px;color:#5f6472;font-size:13px">On Windows? <a href="${windowsUrl}" style="color:#6f5318">Download the Windows app (early beta)</a>. It isn't code-signed yet, so Windows may show a SmartScreen warning — choose More info, then Run anyway.</p>
       <p style="margin:0 0 8px;color:#5f6472;font-size:13px">After installing: open Wira, choose how it should think, then scan the WhatsApp QR code. Start free, use ChatGPT, or keep the brain private when your machine is a good fit. Three steps and your agent is live.</p>
       ${siteUrl ? `<p style="margin:16px 0 0;color:#8d7550;font-size:12px">Need a hand? Just reply to this email, or follow the <a href="${siteUrl}/onboarding">guided setup walkthrough</a>.</p>` : ""}
     </div>`;
@@ -364,7 +412,7 @@ async function sendDownloadEmail(
     body: JSON.stringify({
       from,
       to,
-      subject: "Your Wira download — install on your Mac",
+      subject: "Your Wira download — install on Mac or Windows",
       html,
     }),
   });

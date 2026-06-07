@@ -28,19 +28,59 @@ class PlatformAssessment:
 
 
 
-def _system_ram_gb() -> int:
-    try:
-        total_bytes = os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
-        return int(total_bytes / (1024 ** 3))
-    except Exception:
-        return 0
+def system_ram_gb() -> int:
+    """Best-effort total physical RAM in GB on macOS, Windows, and Linux.
 
+    Returns 0 only when the platform genuinely can't be probed; callers treat 0
+    as "unknown", not "small". The previous implementation used ``os.sysconf``,
+    which does not exist on Windows, so every Windows machine silently reported
+    0 GB and got downgraded to the limited local-AI tier.
+    """
+    # macOS / Linux / other Unix.
+    try:
+        page_size = os.sysconf("SC_PAGE_SIZE")
+        phys_pages = os.sysconf("SC_PHYS_PAGES")
+        if page_size > 0 and phys_pages > 0:
+            return int((page_size * phys_pages) / (1024 ** 3))
+    except (AttributeError, ValueError, OSError):
+        pass
+
+    # Windows: query the kernel directly via GlobalMemoryStatusEx.
+    try:
+        import ctypes
+
+        class _MemoryStatusEx(ctypes.Structure):
+            _fields_ = [
+                ("dwLength", ctypes.c_ulong),
+                ("dwMemoryLoad", ctypes.c_ulong),
+                ("ullTotalPhys", ctypes.c_ulonglong),
+                ("ullAvailPhys", ctypes.c_ulonglong),
+                ("ullTotalPageFile", ctypes.c_ulonglong),
+                ("ullAvailPageFile", ctypes.c_ulonglong),
+                ("ullTotalVirtual", ctypes.c_ulonglong),
+                ("ullAvailVirtual", ctypes.c_ulonglong),
+                ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
+            ]
+
+        if getattr(ctypes, "windll", None) is not None:
+            stat = _MemoryStatusEx()
+            stat.dwLength = ctypes.sizeof(_MemoryStatusEx)
+            if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):
+                return int(stat.ullTotalPhys / (1024 ** 3))
+    except Exception:
+        pass
+
+    return 0
+
+
+# Private alias kept for backward compatibility with earlier imports.
+_system_ram_gb = system_ram_gb
 
 
 def assess(*, machine: str | None = None, system: str | None = None, ram_gb: int | None = None) -> PlatformAssessment:
     sys_name = (system or platform.system() or "").strip() or "Unknown"
     machine_name = (machine or platform.machine() or "").strip() or "unknown"
-    ram = _system_ram_gb() if ram_gb is None else max(ram_gb, 0)
+    ram = system_ram_gb() if ram_gb is None else max(ram_gb, 0)
 
     sys_lower = sys_name.lower()
     machine_lower = machine_name.lower()

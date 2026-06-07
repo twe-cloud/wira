@@ -21,6 +21,7 @@ import shutil
 from dataclasses import dataclass
 
 import config
+from platform_support import system_ram_gb
 
 logger = logging.getLogger("wira.local_models")
 
@@ -99,17 +100,6 @@ def installed_models() -> list[str]:
         return [m.get("name", "") for m in data.get("models", []) if m.get("name")]
     except Exception:
         return []
-
-
-def system_ram_gb() -> int:
-    """Best-effort unified-memory size in GB (0 if it can't be determined)."""
-    try:
-        import os
-
-        total_bytes = os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
-        return int(total_bytes / (1024 ** 3))
-    except Exception:
-        return 0
 
 
 def recommended_for_ram(ram_gb: int | None = None) -> LocalModel:

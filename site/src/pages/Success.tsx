@@ -10,6 +10,10 @@ export default function Success() {
     typeof window === "undefined"
       ? PRODUCT.downloadMacUrl
       : new URL(PRODUCT.downloadMacUrl, window.location.origin).toString();
+  const windowsDownloadUrl =
+    typeof window === "undefined"
+      ? PRODUCT.downloadWindowsUrl
+      : new URL(PRODUCT.downloadWindowsUrl, window.location.origin).toString();
 
   return (
     <>
@@ -32,13 +36,22 @@ export default function Success() {
             <div>
               <div className="font-medium">Download &amp; open {PRODUCT.name}</div>
               <p className="mt-1 text-sm text-ink-muted">
-                Drag it to Applications, then open it. The setup screen appears automatically.
+                On Mac, drag it to Applications and open it. On Windows, run the
+                installer. The setup screen appears automatically.
               </p>
-              <a href={publicDownloadUrl} className="btn-primary mt-2 inline-flex text-sm">
-                Download for Mac
-              </a>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <a href={publicDownloadUrl} className="btn-primary inline-flex text-sm">
+                  Download for Mac
+                </a>
+                <a href={windowsDownloadUrl} className="btn-ghost inline-flex text-sm">
+                  Download for Windows (beta)
+                </a>
+              </div>
               <p className="mt-1 text-xs text-ink-muted">
                 {PRODUCT.systemRequirement}
+              </p>
+              <p className="mt-1 text-xs text-ink-muted">
+                {PRODUCT.windowsBetaNote}
               </p>
             </div>
           </li>
@@ -72,9 +85,14 @@ export default function Success() {
         </div>
 
         <div className="mt-6 rounded-xl border border-border bg-canvas p-4 text-sm text-ink-muted max-w-xl mx-auto">
-          Save this download link now so you do not lose it if you close this tab:
-          <div className="mt-2 break-all rounded-lg border border-border bg-surface px-3 py-2 text-ink">
+          Save your download links now so you do not lose them if you close this tab:
+          <div className="mt-2 text-xs uppercase tracking-wide text-ink-muted">Mac</div>
+          <div className="mt-1 break-all rounded-lg border border-border bg-surface px-3 py-2 text-ink">
             {publicDownloadUrl}
+          </div>
+          <div className="mt-3 text-xs uppercase tracking-wide text-ink-muted">Windows (beta)</div>
+          <div className="mt-1 break-all rounded-lg border border-border bg-surface px-3 py-2 text-ink">
+            {windowsDownloadUrl}
           </div>
         </div>
 

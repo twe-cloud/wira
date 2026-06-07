@@ -256,6 +256,55 @@ class PlatformSupportTests(unittest.TestCase):
         self.assertIn("best-supported", assessment.recommended_brain_summary)
         self.assertIn("not yet a first-class local setup", assessment.local_option_blurb)
 
+    def test_windows_high_ram_can_recommend_local_ai(self):
+        import platform_support
+
+        assessment = platform_support.assess(machine="AMD64", system="Windows", ram_gb=32)
+
+        self.assertEqual(assessment.platform_label, "Windows PC")
+        self.assertEqual(assessment.support_tier, "supported")
+        self.assertEqual(assessment.local_ai_tier, "recommended")
+        self.assertIn("strong enough", assessment.local_option_blurb)
+
+    def test_system_ram_gb_is_non_negative_int_and_never_raises(self):
+        import platform_support
+
+        ram = platform_support.system_ram_gb()
+        self.assertIsInstance(ram, int)
+        self.assertGreaterEqual(ram, 0)
+
+    def test_real_machine_ram_is_detected_on_this_host(self):
+        # Regression guard: on a real Mac/Windows/Linux dev or CI host this must
+        # return a real number, not the old silent 0 the Windows sysconf path hit.
+        import platform_support
+
+        if platform_support.platform.system().lower() in {"darwin", "windows", "linux"}:
+            self.assertGreater(platform_support.system_ram_gb(), 0)
+
+
+class LocalModelRecommendationTests(unittest.TestCase):
+    def test_low_ram_gets_lightest_model(self):
+        import local_models
+
+        self.assertEqual(local_models.recommended_for_ram(8).tag, "llama3.2:3b")
+
+    def test_roomy_machine_gets_midsize_model(self):
+        import local_models
+
+        self.assertEqual(local_models.recommended_for_ram(32).tag, "qwen2.5:7b")
+
+    def test_unknown_ram_falls_back_to_lightest(self):
+        import local_models
+
+        self.assertEqual(local_models.recommended_for_ram(0).tag, "llama3.2:3b")
+
+    def test_local_models_uses_shared_ram_helper(self):
+        # Guards against the duplicate sysconf-only helper coming back.
+        import local_models
+        import platform_support
+
+        self.assertIs(local_models.system_ram_gb, platform_support.system_ram_gb)
+
 
 class SiteCopyTests(unittest.TestCase):
     def test_first_run_site_copy_stays_nontechnical(self):

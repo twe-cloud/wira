@@ -6,7 +6,8 @@
  */
 
 const DOWNLOAD_BASE = (import.meta.env.VITE_WIRA_DOWNLOAD_BASE || "").replace(/\/$/, "");
-const publicDownloadPath = "/download/wira-mac";
+const macDownloadPath = "/download/wira-mac";
+const windowsDownloadPath = "/download/wira-windows";
 
 export const PRODUCT = {
   name: "Wira",
@@ -21,10 +22,12 @@ export const PRODUCT = {
   // Stable product-controlled download route fronted by the Cloudflare Worker.
   // Keep this same-origin when the official product domain fronts it; otherwise
   // point to the Worker explicitly for embedded copies like nibiashara.biz/wira.
-  downloadMacUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${publicDownloadPath}` : publicDownloadPath,
-  systemRequirement: "Mac download available now. Apple Silicon is the best full private-AI path; Intel Macs and Windows PCs should start with the cloud or ChatGPT lane.",
-  heroSupportLine: "Pair via QR code · Mac download live now · Windows lane in progress · Apple Silicon is best for private local AI.",
-  pricingSupportLine: "Secure checkout by Stripe · one-time payment · Mac download live now · no local monthly fee.",
+  downloadMacUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${macDownloadPath}` : macDownloadPath,
+  downloadWindowsUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${windowsDownloadPath}` : windowsDownloadPath,
+  systemRequirement: "Mac and Windows downloads are available now. Apple Silicon is the best fit for fully private local AI; Intel Macs and Windows PCs start fastest on the free or ChatGPT brain.",
+  heroSupportLine: "Pair via QR code · Mac download live · Windows download in early beta · start free or connect ChatGPT.",
+  pricingSupportLine: "Secure checkout by Stripe · one-time payment · works on Mac and Windows · no local monthly fee.",
+  windowsBetaNote: "The Windows app is an early beta and isn't code-signed yet, so Windows may show a SmartScreen warning — choose More info, then Run anyway to install.",
 };
 
 /**
