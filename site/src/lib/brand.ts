@@ -24,7 +24,7 @@ export const PRODUCT = {
   // point to the Worker explicitly for embedded copies like nibiashara.biz/wira.
   downloadMacUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${macDownloadPath}` : macDownloadPath,
   downloadWindowsUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${windowsDownloadPath}` : windowsDownloadPath,
-  systemRequirement: "Mac and Windows downloads are available now. Apple Silicon is the best fit for fully private local AI; Intel Macs and Windows PCs start fastest on the free or ChatGPT brain.",
+  systemRequirement: "The Mac app runs on Apple Silicon (M1 or newer). Windows is available as an early beta. Apple Silicon is also the best fit for fully private local AI; on Windows, start fastest on the free or ChatGPT brain.",
   heroSupportLine: "Pair via QR code · Mac download live · Windows download in early beta · start free or connect ChatGPT.",
   pricingSupportLine: "Secure checkout by Stripe · one-time payment · works on Mac and Windows · no local monthly fee.",
   windowsBetaNote: "The Windows app is an early beta and isn't code-signed yet, so Windows may show a SmartScreen warning — choose More info, then Run anyway to install.",

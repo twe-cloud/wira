@@ -30,10 +30,13 @@ class HermesRuntime:
         self._write_metadata()
 
     def _discover_hermes_command(self) -> str:
+        # PATH first (shutil.which honors PATHEXT on Windows, so it finds
+        # hermes.exe / hermes.cmd too), then the standard per-user install dir.
+        home = Path.home()
         candidates = [
             shutil.which("hermes"),
-            "/Users/motwe/hermes-agent/venv/bin/hermes",
-            str(Path.home() / ".hermes" / "node" / "bin" / "hermes"),
+            str(home / ".hermes" / "node" / "bin" / "hermes"),
+            str(home / ".hermes" / "bin" / "hermes"),
         ]
         for candidate in candidates:
             if candidate and Path(candidate).exists():

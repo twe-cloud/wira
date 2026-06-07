@@ -37,7 +37,14 @@ jobs:
           pip install -r requirements.txt --target dist/Wira/app_lib
           Copy-Item *.py dist/Wira/app/
           Copy-Item .env.example, requirements.txt, wira-icon.ico dist/Wira/app/
-          curl.exe -L --fail --retry 3 --connect-timeout 20 --max-time 120 -o dist/Wira/app_lib/neonize/neonize-windows-amd64.dll https://github.com/krypton-byte/neonize/releases/download/0.3.18.post0/neonize-windows-amd64.dll
+
+          # Bundle the native Windows DLL that matches the EXACT neonize wheel
+          # pip resolved, so the Python wrapper and the native library can never
+          # drift apart. Fails loudly (--fail) if no matching DLL is published.
+          $neonizeVersion = (pip show neonize | Select-String '^Version:').Line.Split(':', 2)[1].Trim()
+          Write-Host "Bundling neonize Windows DLL for version $neonizeVersion"
+          $dllUrl = "https://github.com/krypton-byte/neonize/releases/download/$neonizeVersion/neonize-windows-amd64.dll"
+          curl.exe -L --fail --retry 3 --connect-timeout 20 --max-time 120 -o dist/Wira/app_lib/neonize/neonize-windows-amd64.dll $dllUrl
 
           @'
           import os
