@@ -1,6 +1,6 @@
 # Wira Status
 
-Updated: 2026-06-04
+Updated: 2026-06-07
 Mode: BUSINESS
 Canonical repo: `/Users/motwe/Wira`
 Remote: `git@github.com:twe-cloud/wira.git`
@@ -10,6 +10,32 @@ Operating surface (live): `https://wira-local-agent.nibiashara.workers.dev` (Clo
 ## Current state
 
 Wira is the productized WhatsApp assistant lane for small businesses.
+
+### 2026-06-07 — cross-platform enablement progress
+
+Wira is now genuinely Mac + Windows, not Mac-only sales copy over a Mac-only product:
+
+- Fixed a real capability-detection bug: RAM was read via `os.sysconf`, which does
+  not exist on Windows, so every Windows machine reported 0 GB and was forced into
+  the limited local-AI tier. `agent/platform_support.py` now reads RAM correctly on
+  macOS/Linux (`sysconf`) and Windows (`GlobalMemoryStatusEx` via `ctypes`);
+  `agent/local_models.py` reuses that single helper.
+- The Windows installer (`WiraSetup.exe`) is already produced by the release pipeline
+  and verified present in releases v1.0.6 and v1.0.7. The site now exposes it: the
+  Worker serves a real `/download/wira-windows` route and the success page + email
+  offer both Mac and Windows downloads.
+- Windows is labeled honestly as an unsigned early beta (SmartScreen warning), per the
+  rule not to market Windows GA before signing + smoke tests.
+- `agent/gui.py` auto-start no longer assumes macOS (launchd plist is macOS-only;
+  Windows uses the installer's Startup-folder shortcut).
+- Proposed (NOT yet applied — blocked by the workflow-edit security gate, needs
+  approval): make `.github/workflows/build-windows.yml` download the neonize native
+  DLL for the exact pip-resolved version so the wrapper and DLL can't drift.
+
+Verification on 2026-06-07: 67 agent unit tests pass; `site/` typecheck + build clean;
+Worker `wrangler deploy --dry-run` bundles clean. NOT yet verified: a live Windows
+install smoke test (launch → provider setup → QR pairing → restart persistence) and
+code signing / notarization. Those need a real Windows box and signing certs.
 
 Product closeout pass on 2026-06-04 tightened the public onboarding/site copy around the fastest path to first WhatsApp use. Wira still lives on the buyer's computer and is reached from WhatsApp, but the buyer is now steered toward the fastest free start first, with the ChatGPT-subscription path also kept obvious and easy. The site onboarding flow now follows Welcome → Pick a brain → Connect WhatsApp → Safety → Ready, and the post-payment success page gives a numbered download → brain → QR path instead of dropping the buyer into ambiguity.
 

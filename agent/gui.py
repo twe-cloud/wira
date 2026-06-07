@@ -976,7 +976,15 @@ class WiraApp(tk.Tk):
             logger.warning("Could not send onboarding message: %s", e)
 
     def _install_autostart(self):
-        """Install a launchd plist so Wira starts on login."""
+        """Install a launchd plist so Wira starts on login (macOS only).
+
+        On Windows the Inno Setup installer already offers a "Start Wira when I
+        log in" shortcut under the user's Startup folder, so there's nothing to
+        do here — and we must not create a bogus ~/Library/LaunchAgents folder.
+        """
+        if PLATFORM.system.lower() != "darwin":
+            logger.info("Auto-start on login is handled by the installer on %s", PLATFORM.platform_label)
+            return
         try:
             launch_agents = Path.home() / "Library" / "LaunchAgents"
             launch_agents.mkdir(parents=True, exist_ok=True)
