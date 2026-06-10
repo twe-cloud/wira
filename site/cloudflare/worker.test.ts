@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import worker, {
+import worker from "./worker";
+import {
   WIRA_LOCAL_PRICE,
   DOWNLOADS,
   allowedOrigin,
@@ -9,7 +10,7 @@ import worker, {
   defaultDownloadUrl,
   pinnedDownloadUrl,
   downloadSourceUrls,
-} from "./worker";
+} from "./worker-lib";
 
 const SITE = "https://wira-local-agent.nibiashara.workers.dev";
 
