@@ -71,7 +71,7 @@ export default {
 
     if (url.pathname === "/api/checkout") {
       if (request.method === "OPTIONS") {
-        return new Response(null, { status: 204, headers: corsHeaders(request.headers.get("origin")) });
+        return new Response(null, { status: 204, headers: corsHeaders(request.headers.get("origin"), env) });
       }
       return handleCheckout(request, env);
     }
@@ -107,10 +107,25 @@ function json(status: number, body: unknown, headers?: HeadersInit): Response {
   });
 }
 
-function corsHeaders(origin: string | null): HeadersInit {
-  if (!origin) return {};
+// Only reflect Origin for known site origins, never an arbitrary caller.
+function allowedOrigin(origin: string | null, env: Env): string | null {
+  if (!origin) return null;
+  const allowed = new Set<string>(["https://nibiashara.biz"]);
+  if (env.SITE_URL) {
+    try {
+      allowed.add(new URL(env.SITE_URL).origin);
+    } catch {
+      // ignore a malformed SITE_URL
+    }
+  }
+  return allowed.has(origin) ? origin : null;
+}
+
+function corsHeaders(origin: string | null, env: Env): HeadersInit {
+  const o = allowedOrigin(origin, env);
+  if (!o) return {};
   return {
-    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Origin": o,
     Vary: "Origin",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
@@ -200,7 +215,6 @@ async function downloadSourceUrls(env: Env, spec: DownloadSpec): Promise<string[
 
 function finalizeDownloadResponse(
   upstream: Response,
-  sourceUrl: string,
   spec: DownloadSpec,
 ): Response {
   const headers = new Headers(upstream.headers);
@@ -211,7 +225,6 @@ function finalizeDownloadResponse(
   headers.set("Content-Disposition", `attachment; filename="${spec.filename}"`);
   headers.set("Content-Type", headers.get("Content-Type") || spec.contentType);
   headers.set("X-Content-Type-Options", "nosniff");
-  headers.set("X-Wira-Download-Source", sourceUrl);
   return new Response(upstream.body, {
     status: upstream.status,
     headers,
@@ -260,7 +273,7 @@ async function handleDownload(
         continue;
       }
 
-      const response = finalizeDownloadResponse(upstream, sourceUrl, spec);
+      const response = finalizeDownloadResponse(upstream, spec);
       await cache.put(cacheKey, response.clone());
 
       if (request.method === "HEAD") {
@@ -290,7 +303,7 @@ async function handleDownload(
 
 async function handleCheckout(request: Request, env: Env): Promise<Response> {
   const origin = request.headers.get("origin");
-  const cors = corsHeaders(origin);
+  const cors = corsHeaders(origin, env);
 
   if (request.method !== "POST") {
     return json(405, { error: "Method not allowed" }, cors);
@@ -462,10 +475,10 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const email = session.customer_details?.email;
+      // Don't log buyer PII (email / customer id) — just the outcome.
       console.log("Wira Local purchase:", {
-        email,
-        customer: session.customer,
         paymentStatus: session.payment_status,
+        hasEmail: Boolean(email),
       });
       if (email) {
         // Best-effort — must never fail the webhook (Stripe retries on non-2xx).

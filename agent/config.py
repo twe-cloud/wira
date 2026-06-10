@@ -202,7 +202,10 @@ WHATSAPP_CLOUD_REQUIRE_SIGNATURE = os.getenv(
 ).lower() in ("1", "true", "yes")
 WHATSAPP_CLOUD_GRAPH_VERSION = os.getenv("WHATSAPP_CLOUD_GRAPH_VERSION", "v23.0")
 WHATSAPP_CLOUD_WEBHOOK_PATH = os.getenv("WHATSAPP_CLOUD_WEBHOOK_PATH", "/webhooks/whatsapp")
-WHATSAPP_CLOUD_HOST = os.getenv("WHATSAPP_CLOUD_HOST", "0.0.0.0")
+# Loopback by default: the webhook serves plain HTTP and must sit behind a TLS
+# proxy. Set WHATSAPP_CLOUD_HOST=0.0.0.0 only in a managed deployment where a
+# proxy terminates TLS and forwards to it.
+WHATSAPP_CLOUD_HOST = os.getenv("WHATSAPP_CLOUD_HOST", "127.0.0.1")
 WHATSAPP_CLOUD_PORT = int(os.getenv("WHATSAPP_CLOUD_PORT", "8080"))
 WHATSAPP_CLOUD_DB_PATH = os.getenv(
     "WHATSAPP_CLOUD_DB_PATH",

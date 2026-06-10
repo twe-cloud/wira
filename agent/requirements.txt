@@ -1,4 +1,7 @@
-neonize>=0.3.0
+# Pinned exactly: the Windows build verifies the matching native DLL by SHA-256
+# (see .github/workflows/build-windows.yml). Bumping this version requires
+# updating the expected hash there too.
+neonize==0.3.18.post0
 httpx>=0.27.0
 openai>=1.50.0
 anthropic>=0.40.0
