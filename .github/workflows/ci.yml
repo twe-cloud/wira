@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  agent-tests:
+    name: Agent unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: '3.12'
+      - name: Install test deps
+        working-directory: agent
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-test.txt
+      - name: Run unit tests
+        working-directory: agent
+        run: python -m unittest -v
+
+  site-tests:
+    name: Site + Worker tests, typecheck, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Install
+        working-directory: site
+        run: npm ci
+      - name: Unit + Worker tests (vitest)
+        working-directory: site
+        run: npm test
+      - name: Typecheck + build
+        working-directory: site
+        run: npm run build
+      - name: Worker bundle dry-run
+        working-directory: site
+        env:
+          WRANGLER_SEND_METRICS: "false"
+        run: npx wrangler deploy --dry-run
+      - name: No secrets in source or build artifacts
+        run: bash scripts/check-no-secrets.sh
