@@ -93,6 +93,16 @@ class MemoryTests(unittest.TestCase):
     def test_empty_history(self):
         self.assertEqual(self.mem.get_recent("nobody"), [])
 
+    def test_global_prune_caps_total_rows(self):
+        with patch.object(memory.config, "MAX_STORED_MESSAGES", 10):
+            for i in range(15):
+                self.mem.save("chat", "user", f"m{i}")
+            with memory.closing(self.mem._conn()) as conn:
+                total = conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
+            self.assertLessEqual(total, 10)
+        # oldest rows pruned, newest retained
+        self.assertEqual(self.mem.get_recent("chat", n=20)[-1]["content"], "m14")
+
 
 class PersonaTests(unittest.TestCase):
     def test_includes_owner_and_name(self):
@@ -650,6 +660,20 @@ class RuntimeBridgeTests(unittest.TestCase):
             rt = runtime_bridge.build_local_runtime()
         self.assertTrue(getattr(rt, "is_operator_runtime", False))
 
+    def test_reply_times_out_gracefully(self):
+        """A stuck Hermes call returns a friendly message, not a hang/crash."""
+        import runtime_bridge
+        import subprocess as sp
+
+        rt = self._ready_runtime()
+
+        def raise_timeout(cmd, **kwargs):
+            raise sp.TimeoutExpired(cmd, kwargs.get("timeout", 1))
+
+        with patch.object(runtime_bridge.subprocess, "run", side_effect=raise_timeout):
+            out = rt.reply("chat", "Craig", "do something enormous")
+        self.assertIn("timed out", out.lower())
+
 
 class WhatsAppOwnerLockTests(unittest.TestCase):
     def _fake_event(self, text, from_me=False):
@@ -724,6 +748,27 @@ class WhatsAppOwnerLockTests(unittest.TestCase):
         operator.reply.assert_not_called()
         safe.reply.assert_called_once()
         client.reply_message.assert_called_once_with("draft reply", unittest.mock.ANY)
+
+
+class ProvidersTests(unittest.TestCase):
+    """base_url_ok is the API-key-leak guard: no plaintext http to remote hosts."""
+
+    def test_rejects_plaintext_http_to_remote_host(self):
+        import providers
+        ok, msg = providers.base_url_ok("http://api.example.com/v1")
+        self.assertFalse(ok)
+        self.assertIn("https", msg.lower())
+
+    def test_allows_https_remote(self):
+        import providers
+        ok, _ = providers.base_url_ok("https://api.example.com/v1")
+        self.assertTrue(ok)
+
+    def test_allows_loopback_http(self):
+        import providers
+        for url in ("http://localhost:1234/v1", "http://127.0.0.1:11434"):
+            ok, _ = providers.base_url_ok(url)
+            self.assertTrue(ok, url)
 
 
 class WhatsAppCloudConfigTests(unittest.TestCase):
