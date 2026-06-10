@@ -11,7 +11,7 @@
  */
 import Stripe from "stripe";
 
-const WIRA_LOCAL_PRICE = "price_1TcrAXRVrXHv0YFpfmw35hIw";
+export const WIRA_LOCAL_PRICE = "price_1TcrAXRVrXHv0YFpfmw35hIw";
 const RELEASE_DOWNLOAD_BASE = "https://github.com/twe-cloud/wira/releases";
 const GITHUB_LATEST_RELEASE_API =
   "https://api.github.com/repos/twe-cloud/wira/releases/latest";
@@ -31,7 +31,7 @@ interface DownloadSpec {
 // Both artifacts are produced by the same release pipeline (see
 // .github/workflows/build-windows.yml + agent/scripts/build-app.sh). Mac is GA;
 // the Windows .exe ships today as an unsigned early beta.
-const DOWNLOADS: Record<PlatformKey, DownloadSpec> = {
+export const DOWNLOADS: Record<PlatformKey, DownloadSpec> = {
   mac: {
     key: "mac",
     path: "/download/wira-mac",
@@ -108,7 +108,7 @@ function json(status: number, body: unknown, headers?: HeadersInit): Response {
 }
 
 // Only reflect Origin for known site origins, never an arbitrary caller.
-function allowedOrigin(origin: string | null, env: Env): string | null {
+export function allowedOrigin(origin: string | null, env: Env): string | null {
   if (!origin) return null;
   const allowed = new Set<string>(["https://nibiashara.biz"]);
   if (env.SITE_URL) {
@@ -121,7 +121,7 @@ function allowedOrigin(origin: string | null, env: Env): string | null {
   return allowed.has(origin) ? origin : null;
 }
 
-function corsHeaders(origin: string | null, env: Env): HeadersInit {
+export function corsHeaders(origin: string | null, env: Env): HeadersInit {
   const o = allowedOrigin(origin, env);
   if (!o) return {};
   return {
@@ -132,7 +132,7 @@ function corsHeaders(origin: string | null, env: Env): HeadersInit {
   };
 }
 
-function sanitizeSiteBase(siteBase: string | undefined, request: Request, env: Env): string {
+export function sanitizeSiteBase(siteBase: string | undefined, request: Request, env: Env): string {
   const fallback = env.SITE_URL || request.headers.get("origin") || "";
   if (!siteBase) return fallback;
   try {
@@ -152,15 +152,15 @@ function sanitizeSiteBase(siteBase: string | undefined, request: Request, env: E
   return fallback;
 }
 
-function uniqueUrls(urls: Array<string | undefined | null>): string[] {
+export function uniqueUrls(urls: Array<string | undefined | null>): string[] {
   return [...new Set(urls.map((url) => url?.trim()).filter(Boolean) as string[])];
 }
 
-function defaultDownloadUrl(spec: DownloadSpec): string {
+export function defaultDownloadUrl(spec: DownloadSpec): string {
   return `${RELEASE_DOWNLOAD_BASE}/latest/download/${spec.filename}`;
 }
 
-function pinnedDownloadUrl(spec: DownloadSpec): string {
+export function pinnedDownloadUrl(spec: DownloadSpec): string {
   return `${RELEASE_DOWNLOAD_BASE}/download/${spec.pinnedTag}/${spec.filename}`;
 }
 
@@ -202,7 +202,7 @@ async function resolveLatestGithubDownloadUrl(filename: string): Promise<string 
   }
 }
 
-async function downloadSourceUrls(env: Env, spec: DownloadSpec): Promise<string[]> {
+export async function downloadSourceUrls(env: Env, spec: DownloadSpec): Promise<string[]> {
   const latestGithubAsset = await resolveLatestGithubDownloadUrl(spec.filename);
   return uniqueUrls([
     envDownloadOverride(env, spec),
@@ -432,7 +432,8 @@ async function sendDownloadEmail(
   if (!resp.ok) {
     throw new Error(`Resend ${resp.status}: ${await resp.text()}`);
   }
-  console.log("Download email sent to", to);
+  // No buyer PII in logs — just the outcome.
+  console.log("Download email sent", { ok: true });
 }
 
 async function handleWebhook(request: Request, env: Env): Promise<Response> {
