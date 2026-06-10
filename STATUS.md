@@ -34,10 +34,16 @@ fixed in code (67→71 agent tests pass; site typecheck/build + Worker dry-run c
 - **Webhook + site (M1/M2/L1–L3).** Cloud webhook binds loopback by default; site adds
   a Content-Security-Policy; Worker CORS is allowlisted (no arbitrary origin reflection),
   buyer PII is dropped from logs, and the download-source leak header is removed.
-- **Signing is now wired and ready (guarded).** `build-windows.yml` has an Azure Trusted
-  Signing step that stays inert until the org's signing secrets/vars are registered, then
-  signs `WiraSetup.exe` automatically. This is the code side of the out-of-band signing
-  handoff — activation is just setting the secrets once Azure org validation completes.
+- **Signing is wired and now mostly provisioned.** `build-windows.yml` has a guarded Azure
+  Trusted Signing step. The Trusted Signing account is live, a CI signing service principal
+  (with the Artifact Signing Certificate Profile Signer role) is created, and the GitHub
+  secrets (`AZURE_TENANT_ID`/`AZURE_CLIENT_ID`/`AZURE_CLIENT_SECRET`) + vars
+  (`AZURE_TRUSTED_SIGNING_ENDPOINT`/`_ACCOUNT`) are set. The step stays inert until the one
+  remaining founder-only step lands: complete Ni Biashara LLC **Organization** identity
+  validation in the Azure portal (Microsoft paused Individual validation), create a Public
+  Trust certificate profile, then set repo var `AZURE_TRUSTED_SIGNING_CERT_PROFILE`. The next
+  tagged Windows build then signs `WiraSetup.exe` automatically. macOS Developer ID + notarize
+  is separate (cert/keys present on the build Mac).
 
 ### 2026-06-07 — cross-platform enablement progress
 
