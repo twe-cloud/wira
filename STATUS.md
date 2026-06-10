@@ -1,6 +1,6 @@
 # Wira Status
 
-Updated: 2026-06-07
+Updated: 2026-06-10
 Mode: BUSINESS
 Canonical repo: `/Users/motwe/Wira`
 Remote: `git@github.com:twe-cloud/wira.git`
@@ -10,6 +10,40 @@ Operating surface (live): `https://wira-local-agent.nibiashara.workers.dev` (Clo
 ## Current state
 
 Wira is the productized WhatsApp assistant lane for small businesses.
+
+### 2026-06-10 — security siege fixes + signing-ready build
+
+A static red/blue/black-team audit (`/siege`) drove a hardening pass. All findings
+fixed in code (67→71 agent tests pass; site typecheck/build + Worker dry-run clean):
+
+- **Confirmation is now enforced, not cosmetic (C1).** `agent/runtime_bridge.py`
+  only passes Hermes `--yolo` (auto-approve every tool call) when the owner picked
+  the "move fast" mode. With confirmation required (the default/recommended choice)
+  it runs without `--yolo`, so destructive/prompt-injected actions stop to ask. Added
+  a subprocess timeout so a stuck call can't hang the WhatsApp handler.
+- **Non-owner text can never reach the operator runtime (H1).** `agent/whatsapp.py`
+  routes external/customer messages through a plain LLM responder (`Brain`), never the
+  Hermes operator runtime — even if the legacy external responder mode is re-enabled.
+- **Owner-lock is a hard invariant for the operator runtime (H2).** New
+  `runtime_bridge.build_local_runtime()` (used by `main.py` + `gui.py`) refuses the
+  Hermes operator runtime when owner-lock is off and falls back to the plain responder,
+  so a flipped flag can't hand every sender shell access.
+- **Supply chain (H3 + M3).** `build-windows.yml` now pins all actions to commit SHAs,
+  pins Inno Setup, pins `neonize==0.3.18.post0`, and verifies the native Windows DLL by
+  SHA-256 before bundling (a tampered/swapped upstream asset fails the build).
+- **Webhook + site (M1/M2/L1–L3).** Cloud webhook binds loopback by default; site adds
+  a Content-Security-Policy; Worker CORS is allowlisted (no arbitrary origin reflection),
+  buyer PII is dropped from logs, and the download-source leak header is removed.
+- **Signing is wired and now mostly provisioned.** `build-windows.yml` has a guarded Azure
+  Trusted Signing step. The Trusted Signing account is live, a CI signing service principal
+  (with the Artifact Signing Certificate Profile Signer role) is created, and the GitHub
+  secrets (`AZURE_TENANT_ID`/`AZURE_CLIENT_ID`/`AZURE_CLIENT_SECRET`) + vars
+  (`AZURE_TRUSTED_SIGNING_ENDPOINT`/`_ACCOUNT`) are set. The step stays inert until the one
+  remaining founder-only step lands: complete Ni Biashara LLC **Organization** identity
+  validation in the Azure portal (Microsoft paused Individual validation), create a Public
+  Trust certificate profile, then set repo var `AZURE_TRUSTED_SIGNING_CERT_PROFILE`. The next
+  tagged Windows build then signs `WiraSetup.exe` automatically. macOS Developer ID + notarize
+  is separate (cert/keys present on the build Mac).
 
 ### 2026-06-07 — cross-platform enablement progress
 
@@ -34,14 +68,15 @@ Wira is now genuinely Mac + Windows, not Mac-only sales copy over a Mac-only pro
   The Mac app stays Apple-Silicon-only (M1 or newer); no universal2 or x86_64 artifact
   will be built. `agent/wira.spec` builds host-arch (arm64) + bundles
   `neonize-darwin-arm64.dylib`, and the site copy states the Mac app requires Apple Silicon.
-- Signing (2026-06-10): a real approved Windows CI build is running on `main` to drive the
-  smoke test. Code signing is being provisioned out-of-band — the assistant mesh shows the
-  Azure Trusted Signing org identity validation for Ni Biashara in progress. Wira has no
-  signing creds registered in `credential_registry.json` yet; a handoff packet requests them
-  so the Windows installer can be Authenticode-signed and the Mac DMG notarized.
-- Proposed (NOT yet applied — blocked by the workflow-edit security gate, needs
-  approval): make `.github/workflows/build-windows.yml` download the neonize native
-  DLL for the exact pip-resolved version so the wrapper and DLL can't drift.
+- Signing (2026-06-10): code signing is being provisioned out-of-band — the Azure Trusted
+  Signing org identity validation for Ni Biashara is in progress. The build workflow is now
+  signing-ready: a guarded Azure Trusted Signing step (see the 2026-06-10 siege section) signs
+  `WiraSetup.exe` once the org's signing secrets/vars are registered. Until then the build still
+  ships unsigned (early beta). Mac DMG notarization still pending. Creds are not yet in
+  `credential_registry.json`; the handoff packet still requests them.
+- Applied (2026-06-10): `.github/workflows/build-windows.yml` pins `neonize==0.3.18.post0`
+  and downloads + SHA-256-verifies the matching native DLL, so the wrapper and DLL can't
+  drift and a tampered upstream asset fails the build.
 
 Verification on 2026-06-07: 67 agent unit tests pass; `site/` typecheck + build clean;
 Worker `wrangler deploy --dry-run` bundles clean. NOT yet verified: a live Windows

@@ -11,7 +11,7 @@
  */
 import Stripe from "stripe";
 
-const WIRA_LOCAL_PRICE = "price_1TcrAXRVrXHv0YFpfmw35hIw";
+export const WIRA_LOCAL_PRICE = "price_1TcrAXRVrXHv0YFpfmw35hIw";
 const RELEASE_DOWNLOAD_BASE = "https://github.com/twe-cloud/wira/releases";
 const GITHUB_LATEST_RELEASE_API =
   "https://api.github.com/repos/twe-cloud/wira/releases/latest";
@@ -31,7 +31,7 @@ interface DownloadSpec {
 // Both artifacts are produced by the same release pipeline (see
 // .github/workflows/build-windows.yml + agent/scripts/build-app.sh). Mac is GA;
 // the Windows .exe ships today as an unsigned early beta.
-const DOWNLOADS: Record<PlatformKey, DownloadSpec> = {
+export const DOWNLOADS: Record<PlatformKey, DownloadSpec> = {
   mac: {
     key: "mac",
     path: "/download/wira-mac",
@@ -71,7 +71,7 @@ export default {
 
     if (url.pathname === "/api/checkout") {
       if (request.method === "OPTIONS") {
-        return new Response(null, { status: 204, headers: corsHeaders(request.headers.get("origin")) });
+        return new Response(null, { status: 204, headers: corsHeaders(request.headers.get("origin"), env) });
       }
       return handleCheckout(request, env);
     }
@@ -107,17 +107,32 @@ function json(status: number, body: unknown, headers?: HeadersInit): Response {
   });
 }
 
-function corsHeaders(origin: string | null): HeadersInit {
-  if (!origin) return {};
+// Only reflect Origin for known site origins, never an arbitrary caller.
+export function allowedOrigin(origin: string | null, env: Env): string | null {
+  if (!origin) return null;
+  const allowed = new Set<string>(["https://nibiashara.biz"]);
+  if (env.SITE_URL) {
+    try {
+      allowed.add(new URL(env.SITE_URL).origin);
+    } catch {
+      // ignore a malformed SITE_URL
+    }
+  }
+  return allowed.has(origin) ? origin : null;
+}
+
+export function corsHeaders(origin: string | null, env: Env): HeadersInit {
+  const o = allowedOrigin(origin, env);
+  if (!o) return {};
   return {
-    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Origin": o,
     Vary: "Origin",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };
 }
 
-function sanitizeSiteBase(siteBase: string | undefined, request: Request, env: Env): string {
+export function sanitizeSiteBase(siteBase: string | undefined, request: Request, env: Env): string {
   const fallback = env.SITE_URL || request.headers.get("origin") || "";
   if (!siteBase) return fallback;
   try {
@@ -137,15 +152,15 @@ function sanitizeSiteBase(siteBase: string | undefined, request: Request, env: E
   return fallback;
 }
 
-function uniqueUrls(urls: Array<string | undefined | null>): string[] {
+export function uniqueUrls(urls: Array<string | undefined | null>): string[] {
   return [...new Set(urls.map((url) => url?.trim()).filter(Boolean) as string[])];
 }
 
-function defaultDownloadUrl(spec: DownloadSpec): string {
+export function defaultDownloadUrl(spec: DownloadSpec): string {
   return `${RELEASE_DOWNLOAD_BASE}/latest/download/${spec.filename}`;
 }
 
-function pinnedDownloadUrl(spec: DownloadSpec): string {
+export function pinnedDownloadUrl(spec: DownloadSpec): string {
   return `${RELEASE_DOWNLOAD_BASE}/download/${spec.pinnedTag}/${spec.filename}`;
 }
 
@@ -187,7 +202,7 @@ async function resolveLatestGithubDownloadUrl(filename: string): Promise<string 
   }
 }
 
-async function downloadSourceUrls(env: Env, spec: DownloadSpec): Promise<string[]> {
+export async function downloadSourceUrls(env: Env, spec: DownloadSpec): Promise<string[]> {
   const latestGithubAsset = await resolveLatestGithubDownloadUrl(spec.filename);
   return uniqueUrls([
     envDownloadOverride(env, spec),
@@ -200,7 +215,6 @@ async function downloadSourceUrls(env: Env, spec: DownloadSpec): Promise<string[
 
 function finalizeDownloadResponse(
   upstream: Response,
-  sourceUrl: string,
   spec: DownloadSpec,
 ): Response {
   const headers = new Headers(upstream.headers);
@@ -211,7 +225,6 @@ function finalizeDownloadResponse(
   headers.set("Content-Disposition", `attachment; filename="${spec.filename}"`);
   headers.set("Content-Type", headers.get("Content-Type") || spec.contentType);
   headers.set("X-Content-Type-Options", "nosniff");
-  headers.set("X-Wira-Download-Source", sourceUrl);
   return new Response(upstream.body, {
     status: upstream.status,
     headers,
@@ -260,7 +273,7 @@ async function handleDownload(
         continue;
       }
 
-      const response = finalizeDownloadResponse(upstream, sourceUrl, spec);
+      const response = finalizeDownloadResponse(upstream, spec);
       await cache.put(cacheKey, response.clone());
 
       if (request.method === "HEAD") {
@@ -290,7 +303,7 @@ async function handleDownload(
 
 async function handleCheckout(request: Request, env: Env): Promise<Response> {
   const origin = request.headers.get("origin");
-  const cors = corsHeaders(origin);
+  const cors = corsHeaders(origin, env);
 
   if (request.method !== "POST") {
     return json(405, { error: "Method not allowed" }, cors);
@@ -419,7 +432,8 @@ async function sendDownloadEmail(
   if (!resp.ok) {
     throw new Error(`Resend ${resp.status}: ${await resp.text()}`);
   }
-  console.log("Download email sent to", to);
+  // No buyer PII in logs — just the outcome.
+  console.log("Download email sent", { ok: true });
 }
 
 async function handleWebhook(request: Request, env: Env): Promise<Response> {
@@ -462,10 +476,10 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const email = session.customer_details?.email;
+      // Don't log buyer PII (email / customer id) — just the outcome.
       console.log("Wira Local purchase:", {
-        email,
-        customer: session.customer,
         paymentStatus: session.payment_status,
+        hasEmail: Boolean(email),
       });
       if (email) {
         // Best-effort — must never fail the webhook (Stripe retries on non-2xx).

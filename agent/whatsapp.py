@@ -11,7 +11,9 @@ from neonize.client import NewClient
 from neonize.events import ConnectedEv, MessageEv
 
 import config
+from brain import Brain
 from drafts import Drafts
+from memory import Memory
 from onboarding import is_onboarding_complete, process_onboarding_reply, get_step_message, _load_state
 from policy import should_auto_send
 
@@ -22,9 +24,28 @@ class WhatsApp:
     def __init__(self, brain, drafts: Drafts | None = None):
         self.brain = brain
         self.drafts = drafts or Drafts()
+        # Lazily-built plain responder for non-owner messages (see
+        # _external_responder). Kept separate from the owner's operator runtime.
+        self._responder = None
         self.client = NewClient(config.SESSION_DB_PATH)
         self.client.event(ConnectedEv)(self._on_connected)
         self.client.event(MessageEv)(self._on_message)
+
+    def _external_responder(self):
+        """Responder for non-owner messages.
+
+        Non-owner/customer text must never reach the owner's operator runtime
+        (which can run terminal/file commands), so if the owner runtime is the
+        Hermes operator we build a separate plain LLM responder for these
+        replies. When the runtime is already a plain responder, we reuse it.
+        """
+        if self._responder is not None:
+            return self._responder
+        if getattr(self.brain, "is_operator_runtime", False):
+            self._responder = Brain(Memory())
+        else:
+            self._responder = self.brain
+        return self._responder
 
     def _on_connected(self, client: NewClient, _event: ConnectedEv):
         logger.info("Connected to WhatsApp as %s. %s is live.", config.OWNER_NAME, config.ASSISTANT_NAME)
@@ -105,7 +126,8 @@ class WhatsApp:
             logger.info("Ignoring message from %s (not in allowlist)", sender_number)
             return
 
-        reply = self.brain.reply(chat_key, sender_name, text)
+        # Never route non-owner text through the operator runtime.
+        reply = self._external_responder().reply(chat_key, sender_name, text)
         if mode == "auto" or should_auto_send(sender_number):
             client.reply_message(reply, event)
             return

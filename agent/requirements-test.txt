@@ -1,0 +1,3 @@
+# Minimal deps to run the agent unit suite (neonize is stubbed in tests;
+# openai/anthropic/ollama/qrcode/Pillow are lazy-imported and not needed here).
+httpx>=0.27.0

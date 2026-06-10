@@ -946,23 +946,14 @@ class WiraApp(tk.Tk):
 
     @staticmethod
     def _build_runtime():
-        """Prefer the full Hermes runtime; fall back to the built-in brain when
-        Hermes isn't installed so the first chat still works on a buyer's Mac."""
-        import config as _cfg
-        from runtime_bridge import HermesRuntime
+        """Build the local runtime, failing closed when owner-lock is off.
 
-        try:
-            return HermesRuntime()
-        except RuntimeError as e:
-            logger.warning(
-                "Hermes CLI unavailable (%s). Falling back to the built-in %s brain.",
-                e,
-                _cfg.LLM_PROVIDER,
-            )
-            from brain import Brain
-            from memory import Memory
+        Delegates to runtime_bridge.build_local_runtime so the Hermes operator
+        runtime is only used when owner-lock is enabled; otherwise (and when
+        Hermes isn't installed) it falls back to the built-in responder."""
+        from runtime_bridge import build_local_runtime
 
-            return Brain(Memory())
+        return build_local_runtime()
 
     def _send_onboarding(self):
         """Send an onboarding message to the owner through WhatsApp."""
