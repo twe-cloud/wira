@@ -103,12 +103,23 @@ jobs:
       - name: Check signing configured
         id: signing
         shell: bash
+        # Map inputs through env (not inline ${{ }} in the script) to avoid
+        # template injection, and require ALL six so a partial config can't flip
+        # enabled=true and then fail the signing step on a missing input.
+        env:
+          T_TENANT: ${{ secrets.AZURE_TENANT_ID }}
+          T_CLIENT: ${{ secrets.AZURE_CLIENT_ID }}
+          T_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          T_ENDPOINT: ${{ vars.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          T_ACCOUNT: ${{ vars.AZURE_TRUSTED_SIGNING_ACCOUNT }}
+          T_PROFILE: ${{ vars.AZURE_TRUSTED_SIGNING_CERT_PROFILE }}
         run: |
-          if [ -n "${{ secrets.AZURE_CLIENT_ID }}" ] && [ -n "${{ vars.AZURE_TRUSTED_SIGNING_CERT_PROFILE }}" ]; then
+          if [ -n "$T_TENANT" ] && [ -n "$T_CLIENT" ] && [ -n "$T_SECRET" ] \
+             && [ -n "$T_ENDPOINT" ] && [ -n "$T_ACCOUNT" ] && [ -n "$T_PROFILE" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "Signing not fully configured (need org validation + cert profile + service principal) — shipping unsigned (early beta)."
+            echo "Signing not fully configured (need all Azure Trusted Signing secrets/vars + completed org validation + cert profile) — shipping unsigned (early beta)."
           fi
 
       - name: Sign installer (Azure Trusted Signing)
