@@ -30,11 +30,15 @@ Wira is now genuinely Mac + Windows, not Mac-only sales copy over a Mac-only pro
   Windows uses the installer's Startup-folder shortcut).
 - `agent/runtime_bridge.py` no longer hardcodes a founder-specific Hermes path; it
   discovers Hermes via PATH (cross-platform) or the standard `~/.hermes` install dir.
-- Intel Mac finding: `agent/wira.spec` builds for the host arch only (`target_arch=None`)
-  and bundles `neonize-darwin-arm64.dylib`, so the current `Wira.dmg` is Apple-Silicon-only
-  and will NOT launch on an Intel Mac. Site copy now states the Mac app requires Apple
-  Silicon. Supporting Intel needs either a universal2 build (pending native-dep universal2
-  availability) or a separate x86_64 artifact — not done yet.
+- Intel Mac decision (2026-06-10): explicitly OUT OF SCOPE — not the Wira user base.
+  The Mac app stays Apple-Silicon-only (M1 or newer); no universal2 or x86_64 artifact
+  will be built. `agent/wira.spec` builds host-arch (arm64) + bundles
+  `neonize-darwin-arm64.dylib`, and the site copy states the Mac app requires Apple Silicon.
+- Signing (2026-06-10): a real approved Windows CI build is running on `main` to drive the
+  smoke test. Code signing is being provisioned out-of-band — the assistant mesh shows the
+  Azure Trusted Signing org identity validation for Ni Biashara in progress. Wira has no
+  signing creds registered in `credential_registry.json` yet; a handoff packet requests them
+  so the Windows installer can be Authenticode-signed and the Mac DMG notarized.
 - Proposed (NOT yet applied — blocked by the workflow-edit security gate, needs
   approval): make `.github/workflows/build-windows.yml` download the neonize native
   DLL for the exact pip-resolved version so the wrapper and DLL can't drift.
