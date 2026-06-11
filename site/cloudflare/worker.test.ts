@@ -30,6 +30,7 @@ const req = (path: string, init?: RequestInit) => new Request(`${SITE}${path}`, 
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  vi.useRealTimers(); // restoreAllMocks doesn't reset fake timers; prevent leak on test failure
 });
 
 describe("allowedOrigin / CORS allowlist", () => {
