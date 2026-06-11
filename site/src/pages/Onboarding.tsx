@@ -181,8 +181,8 @@ function Step2Brain({
         <div className="mt-1 font-medium">Connect ChatGPT</div>
         <p className="mt-1 text-sm text-ink-muted">
           Already subscribe to ChatGPT Plus or Pro? Approve Wira on this
-          computer in a quick browser step. This lane is experimental and may
-          change or be limited by the provider — if in doubt, start with a free
+          computer in a quick browser step. This lane is experimental — it may
+          change or stop working at any time, so if in doubt, start with a free
           key above.
         </p>
       </div>
