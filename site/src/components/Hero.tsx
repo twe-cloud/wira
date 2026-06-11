@@ -26,7 +26,7 @@ export default function Hero() {
           </p>
           <div className="mt-7 flex items-center gap-3 flex-wrap">
             <a href="#pricing" className="btn-primary">
-              Get started — 5 min setup
+              Get Wira — $49 one-time
             </a>
             <a href="#how" className="btn-ghost">
               How it works
