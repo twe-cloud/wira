@@ -12,6 +12,7 @@ export const WIRA_LOCAL_PRICE = "price_1TcrAXRVrXHv0YFpfmw35hIw";
 export const RELEASE_DOWNLOAD_BASE = "https://github.com/twe-cloud/wira/releases";
 export const GITHUB_LATEST_RELEASE_API =
   "https://api.github.com/repos/twe-cloud/wira/releases/latest";
+export const GITHUB_LATEST_RELEASE_TIMEOUT_MS = 1500;
 // Short edge TTL: a replaced release asset (same path) refreshes within minutes
 // instead of being stuck for a day. workers.dev edge cache isn't purgeable via
 // the zone API, so to bust an already-poisoned entry we change the path itself.
@@ -110,7 +111,7 @@ export function corsHeaders(origin: string | null, env: Env): HeadersInit {
 }
 
 export function sanitizeSiteBase(siteBase: string | undefined, request: Request, env: Env): string {
-  const fallback = env.SITE_URL || request.headers.get("origin") || "";
+  const fallback = env.SITE_URL || new URL(request.url).origin;
   if (!siteBase) return fallback;
   try {
     const url = new URL(siteBase);
@@ -153,12 +154,15 @@ export function publicDownloadUrl(env: Env, spec: DownloadSpec, siteUrl?: string
 }
 
 export async function resolveLatestGithubDownloadUrl(filename: string): Promise<string | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), GITHUB_LATEST_RELEASE_TIMEOUT_MS);
   try {
     const response = await fetch(GITHUB_LATEST_RELEASE_API, {
       headers: {
         Accept: "application/vnd.github+json",
         "User-Agent": "WiraDownloadResolver/1.0",
       },
+      signal: controller.signal,
     });
     if (!response.ok) {
       console.warn("Latest release lookup failed:", response.status);
@@ -171,11 +175,17 @@ export async function resolveLatestGithubDownloadUrl(filename: string): Promise<
     const asset = data.assets?.find((a) => a.name === filename)?.browser_download_url;
     return asset || null;
   } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      console.warn("Latest release lookup timed out");
+      return null;
+    }
     console.warn(
       "Latest release lookup errored:",
       error instanceof Error ? error.message : String(error),
     );
     return null;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 

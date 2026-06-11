@@ -10,6 +10,8 @@ import {
   defaultDownloadUrl,
   pinnedDownloadUrl,
   downloadSourceUrls,
+  resolveLatestGithubDownloadUrl,
+  GITHUB_LATEST_RELEASE_TIMEOUT_MS,
 } from "./worker-lib";
 
 const SITE = "https://wira-local-agent.nibiashara.workers.dev";
@@ -72,6 +74,13 @@ describe("sanitizeSiteBase (open-redirect guard)", () => {
   it("falls back on a malformed siteBase", () => {
     expect(sanitizeSiteBase("not a url", request, env)).toBe(SITE);
   });
+  it("never trusts the request Origin header as the fallback base", () => {
+    const noSiteEnv = makeEnv({ SITE_URL: undefined });
+    const hostileOriginRequest = req("/api/checkout", {
+      headers: { origin: "https://evil.example" },
+    });
+    expect(sanitizeSiteBase(undefined, hostileOriginRequest, noSiteEnv)).toBe(SITE);
+  });
 });
 
 describe("download URL helpers", () => {
@@ -97,6 +106,25 @@ describe("download URL helpers", () => {
     expect(urls).toContain(defaultDownloadUrl(DOWNLOADS.mac));
     expect(urls).toContain(pinnedDownloadUrl(DOWNLOADS.mac));
     expect(new Set(urls).size).toBe(urls.length); // no duplicates
+  });
+  it("resolveLatestGithubDownloadUrl aborts slow GitHub lookups", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((_, init?: RequestInit) => {
+        const signal = init?.signal as AbortSignal | undefined;
+        return new Promise((_, reject) => {
+          signal?.addEventListener("abort", () => {
+            reject(new DOMException("The operation was aborted.", "AbortError"));
+          });
+        });
+      }),
+    );
+
+    const lookup = resolveLatestGithubDownloadUrl("Wira.dmg");
+    await vi.advanceTimersByTimeAsync(GITHUB_LATEST_RELEASE_TIMEOUT_MS);
+    await expect(lookup).resolves.toBeNull();
+    vi.useRealTimers();
   });
 });
 
