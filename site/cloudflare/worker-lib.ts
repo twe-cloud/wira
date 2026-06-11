@@ -12,7 +12,18 @@ export const WIRA_LOCAL_PRICE = "price_1TcrAXRVrXHv0YFpfmw35hIw";
 export const RELEASE_DOWNLOAD_BASE = "https://github.com/twe-cloud/wira/releases";
 export const GITHUB_LATEST_RELEASE_API =
   "https://api.github.com/repos/twe-cloud/wira/releases/latest";
-export const DOWNLOAD_CACHE_TTL_SECONDS = 60 * 60 * 24;
+// Short edge TTL: a replaced release asset (same path) refreshes within minutes
+// instead of being stuck for a day. workers.dev edge cache isn't purgeable via
+// the zone API, so to bust an already-poisoned entry we change the path itself.
+export const DOWNLOAD_CACHE_TTL_SECONDS = 300;
+export const DOWNLOAD_CACHE_VERSION = "2026-06-10-mac-signed-v4";
+// Legacy paths kept routed so old links self-heal once their stale edge entry expires.
+export const LEGACY_DOWNLOAD_PATHS: Record<string, PlatformKey> = {
+  "/download/wira-mac": "mac",
+  "/download/wira-mac.dmg": "mac",
+  "/download/wira-windows": "windows",
+  "/download/wira-windows.exe": "windows",
+};
 
 export const CHECKOUT_PRODUCT_NAME = "Wira";
 export const CHECKOUT_PRODUCT_DESCRIPTION =
@@ -35,14 +46,14 @@ export interface DownloadSpec {
 export const DOWNLOADS: Record<PlatformKey, DownloadSpec> = {
   mac: {
     key: "mac",
-    path: "/download/wira-mac",
+    path: "/download/mac",
     filename: "Wira.dmg",
     contentType: "application/x-apple-diskimage",
     pinnedTag: "v1.0.7",
   },
   windows: {
     key: "windows",
-    path: "/download/wira-windows",
+    path: "/download/windows",
     filename: "WiraSetup.exe",
     contentType: "application/vnd.microsoft.portable-executable",
     pinnedTag: "v1.0.7",

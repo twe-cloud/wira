@@ -6,8 +6,8 @@
  */
 
 const DOWNLOAD_BASE = (import.meta.env.VITE_WIRA_DOWNLOAD_BASE || "").replace(/\/$/, "");
-const macDownloadPath = "/download/wira-mac";
-const windowsDownloadPath = "/download/wira-windows";
+const macDownloadPath = "/download/mac";
+const windowsDownloadPath = "/download/windows";
 
 export const PRODUCT = {
   name: "Wira",

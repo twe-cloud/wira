@@ -16,12 +16,12 @@ import Stripe from "stripe";
 import {
   CHECKOUT_PRODUCT_DESCRIPTION,
   CHECKOUT_PRODUCT_NAME,
-  DOWNLOAD_CACHE_TTL_SECONDS,
   DOWNLOADS,
+  LEGACY_DOWNLOAD_PATHS,
   WIRA_LOCAL_PRICE,
   corsHeaders,
-  downloadSourceUrls,
-  finalizeDownloadResponse,
+  defaultDownloadUrl,
+  envDownloadOverride,
   json,
   publicDownloadUrl,
   sanitizeSiteBase,
@@ -48,6 +48,10 @@ export default {
     if (url.pathname === DOWNLOADS.windows.path) {
       return handleDownload(request, env, DOWNLOADS.windows);
     }
+    const legacy = LEGACY_DOWNLOAD_PATHS[url.pathname];
+    if (legacy) {
+      return handleDownload(request, env, DOWNLOADS[legacy]);
+    }
 
     // Everything else: the SPA / static assets.
     return env.ASSETS.fetch(request);
@@ -61,74 +65,26 @@ function stripeClient(secret: string): Stripe {
   });
 }
 
-async function handleDownload(
-  request: Request,
-  env: Env,
-  spec: DownloadSpec,
-): Promise<Response> {
+function handleDownload(request: Request, _env: Env, spec: DownloadSpec): Response {
   if (request.method !== "GET" && request.method !== "HEAD") {
     return new Response("Method not allowed", {
       status: 405,
       headers: { Allow: "GET, HEAD" },
     });
   }
-
-  const cache = caches.default;
-  const cacheKey = new Request(new URL(spec.path, request.url).toString(), {
-    method: "GET",
-  });
-  const cached = await cache.match(cacheKey);
-  if (cached) {
-    if (request.method === "HEAD") {
-      return new Response(null, { status: cached.status, headers: cached.headers });
-    }
-    return cached;
-  }
-
-  const sources = await downloadSourceUrls(env, spec);
-  let lastFailure = "no sources configured";
-
-  for (const sourceUrl of sources) {
-    try {
-      const upstream = await fetch(sourceUrl, {
-        method: "GET",
-        redirect: "follow",
-        cf: {
-          cacheEverything: true,
-          cacheTtl: DOWNLOAD_CACHE_TTL_SECONDS,
-        },
-      });
-      if (!upstream.ok) {
-        lastFailure = `${sourceUrl} -> ${upstream.status}`;
-        continue;
-      }
-
-      const response = finalizeDownloadResponse(upstream, spec);
-      await cache.put(cacheKey, response.clone());
-
-      if (request.method === "HEAD") {
-        return new Response(null, {
-          status: response.status,
-          headers: response.headers,
-        });
-      }
-      return response;
-    } catch (error) {
-      lastFailure = `${sourceUrl} -> ${error instanceof Error ? error.message : String(error)}`;
-    }
-  }
-
-  console.error("All Wira download sources failed:", lastFailure);
-  return new Response(
-    "Download temporarily unavailable. Please try again in a minute or email hello@wira.io.",
-    {
-      status: 503,
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-store",
-      },
+  // Redirect to the current GitHub release asset instead of proxying the bytes.
+  // Proxying let Cloudflare edge-cache the response by path (query-ignored,
+  // unpurgeable on workers.dev), so a replaced asset served stale for a day.
+  // GitHub's "latest/download" always points at the current (signed) build, and
+  // the short-lived redirect is safe to cache because the target is stable.
+  const target = envDownloadOverride(_env, spec) || defaultDownloadUrl(spec);
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: target,
+      "Cache-Control": "public, max-age=300",
     },
-  );
+  });
 }
 
 async function handleCheckout(request: Request, env: Env): Promise<Response> {
