@@ -19,13 +19,14 @@ export const PRODUCT = {
     "Wira sets up a personal agent on your computer, connects it to a free or paid brain of your choice, and lets you talk to it on WhatsApp.",
   supportEmail: "hello@wira.io",
   city: "Dallas, TX",
+  legalEntity: "Ni Biashara LLC",
   // Stable product-controlled download route fronted by the Cloudflare Worker.
   // Keep this same-origin when the official product domain fronts it; otherwise
   // point to the Worker explicitly for embedded copies like nibiashara.biz/wira.
   downloadMacUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${macDownloadPath}` : macDownloadPath,
   downloadWindowsUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${windowsDownloadPath}` : windowsDownloadPath,
   systemRequirement: "The Mac app runs on Apple Silicon (M1 or newer). Windows is available as an early beta. Apple Silicon is also the best fit for fully private local AI; on Windows, start fastest on the free or ChatGPT brain.",
-  heroSupportLine: "Pair via QR code · Mac download live · Windows download in early beta · start free or connect ChatGPT.",
+  heroSupportLine: "Mac download live · Windows in early beta · $49 one-time · pick a free or paid brain.",
   pricingSupportLine: "Secure checkout by Stripe · one-time payment · works on Mac and Windows · no local monthly fee.",
   windowsBetaNote: "The Windows app is an early beta and isn't code-signed yet, so Windows may show a SmartScreen warning — choose More info, then Run anyway to install.",
 };
@@ -42,7 +43,7 @@ export const PRICING = {
     "Lives on your own computer — not trapped in a browser tab",
     "Reach Wira from WhatsApp with a QR-paired setup",
     "Private owner/operator control surface by default",
-    "Start free in seconds, use the ChatGPT subscription you already have, or keep the brain private when your machine is a good fit",
+    "Pick a free brain in seconds (like Groq or DeepSeek), use the ChatGPT subscription you already have, or keep the brain fully private when your machine is a good fit",
     "Grows into deeper local agent work when you're ready",
   ],
 };

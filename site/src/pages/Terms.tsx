@@ -18,6 +18,19 @@ export default function Terms() {
           </p>
         </Block>
 
+        <Block title="Refunds">
+          <p>
+            All sales are final. {PRODUCT.name} Local is a one-time digital
+            purchase you download and run on your own machine, so we do not
+            offer refunds once purchased. If {PRODUCT.name} will not run for
+            you, email{" "}
+            <a className="text-accent" href={`mailto:${PRODUCT.supportEmail}`}>
+              {PRODUCT.supportEmail}
+            </a>{" "}
+            and we will help you get it working.
+          </p>
+        </Block>
+
         <Block title="1. What Wira Local provides">
           <p>
             {PRODUCT.name} Local provides the app/download, setup instructions,
@@ -45,11 +58,20 @@ export default function Terms() {
           </ul>
         </Block>
 
-        <Block title="4. WhatsApp">
+        <Block title="4. WhatsApp connection (unofficial — please read)">
           <p>
-            WhatsApp is a third-party service with its own terms. Their rules
-            apply to your number, not Ni Biashara. If WhatsApp or Meta restricts
-            your number, we cannot reverse that.
+            WhatsApp is a third-party service with its own terms, and{" "}
+            {PRODUCT.name} is not built, endorsed, or supported by WhatsApp or
+            Meta. {PRODUCT.name} connects through an unofficial linked-device
+            client that works with WhatsApp's Linked Devices protocol without
+            being an official WhatsApp product. Using it may violate WhatsApp's
+            Terms of Service, and your number could be temporarily or
+            permanently restricted or banned.
+          </p>
+          <p>
+            We strongly recommend pairing a secondary number you are comfortable
+            risking. If WhatsApp or Meta restricts your number, Ni Biashara
+            cannot reverse that and is not responsible for it.
           </p>
         </Block>
 

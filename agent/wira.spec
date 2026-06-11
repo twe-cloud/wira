@@ -1,6 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
 """PyInstaller spec for Wira.app — standalone Mac application."""
 
+import ctypes.util
+import os
 import sys
 from pathlib import Path
 
@@ -15,15 +17,60 @@ agent_dir = Path(SPECPATH)
 # generated proto modules, and package data into the bundle.
 neonize_datas, neonize_binaries, neonize_hidden = collect_all('neonize')
 
+
+def _find_libmagic():
+    """Locate the native libmagic on the build host.
+
+    neonize does an unconditional top-level ``import magic`` (python-magic),
+    which loads libmagic at import time. macOS ships no system libmagic and a
+    buyer has no Homebrew/MacPorts, so unless we bundle it the app crashes the
+    moment the user reaches WhatsApp pairing. Fail the build loudly if it is
+    missing here rather than shipping another broken DMG.
+    """
+    found = ctypes.util.find_library('magic')
+    if found and os.path.exists(found):
+        return found
+    for candidate in (
+        '/opt/homebrew/lib/libmagic.dylib',
+        '/usr/local/lib/libmagic.dylib',
+        '/opt/local/lib/libmagic.dylib',
+    ):
+        if os.path.exists(candidate):
+            return candidate
+    raise SystemExit(
+        'wira.spec: libmagic not found on the build host. '
+        'Run `brew install libmagic` before building.'
+    )
+
+
+def _find_magic_db():
+    for candidate in (
+        '/opt/homebrew/share/misc/magic.mgc',
+        '/usr/local/share/misc/magic.mgc',
+        '/opt/local/share/misc/magic.mgc',
+    ):
+        if os.path.exists(candidate):
+            return candidate
+    return None
+
+
+_libmagic = _find_libmagic()
+_magic_db = _find_magic_db()
+# Ship libmagic.dylib next to the bundled binaries and its compiled DB as data;
+# rthook_libmagic.py points python-magic at both at runtime.
+magic_binaries = [(_libmagic, '.')]
+magic_datas = [(_magic_db, '.')] if _magic_db else []
+
 a = Analysis(
     [str(agent_dir / 'gui.py')],
     pathex=[str(agent_dir)],
-    binaries=[*neonize_binaries],
+    binaries=[*neonize_binaries, *magic_binaries],
     datas=[
         (str(agent_dir / '.env.example'), '.'),
         (str(agent_dir / 'requirements.txt'), '.'),
         (str(agent_dir / 'wira-icon.icns'), '.'),
         *neonize_datas,
+        *magic_datas,
     ],
     hiddenimports=[
         *neonize_hidden,
@@ -55,7 +102,7 @@ a = Analysis(
     ],
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=[str(agent_dir / 'rthook_libmagic.py')],
     # Wira does not import torch/scipy; they were only ever swept in from a dirty
     # venv and bloated the bundle to ~435MB. Exclude them for a deterministic,
     # lean build (and a far faster notarization).

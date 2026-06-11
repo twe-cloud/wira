@@ -72,8 +72,11 @@ export default function Pricing() {
           {PRODUCT.pricingSupportLine}
         </p>
         <p className="mt-2 text-xs text-ink-muted text-center">
-          {PRODUCT.systemRequirement} Start free in seconds, connect ChatGPT, or
-          keep the brain private when your machine is a good fit.
+          All sales are final · one-time digital purchase
+        </p>
+        <p className="mt-2 text-xs text-ink-muted text-center">
+          {PRODUCT.systemRequirement} Use a free brain to start, connect a ChatGPT
+          subscription, or keep the brain private when your machine is a good fit.
         </p>
       </div>
     </section>

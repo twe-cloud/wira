@@ -36,7 +36,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="container-prose mt-10 text-xs">
-        Made by humans in {PRODUCT.city} · © {year} {PRODUCT.name}
+        {PRODUCT.legalEntity} · Made in {PRODUCT.city} · © {year} {PRODUCT.name}
       </div>
     </footer>
   );
