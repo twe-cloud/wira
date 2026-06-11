@@ -899,6 +899,7 @@ class WiraApp(tk.Tk):
         self._step_row(f, 2, "Try: Find the latest invoice in Downloads", "A simple way to show that your agent lives on this computer, not just in chat.")
         self._body(f, "You can close this window after this. Wira keeps your local agent available in the background.", small=True, fg=TEXT_DIM, center=True, pady=(18, 14))
         self._primary_button(f, "I'll message my agent now", self._minimize_and_run, pady=(0, 0))
+        self._secondary_button(f, "Quit Wira", self.destroy, pady=(8, 0))
 
         # Auto-start on login
         self._install_autostart()
@@ -1019,13 +1020,32 @@ class WiraApp(tk.Tk):
             logger.warning("Could not install auto-start: %s", e)
 
     def _minimize_and_run(self):
-        self.withdraw()
+        # Minimize (recoverable from the Dock/taskbar) rather than withdraw(),
+        # which fully hides the window with no way to bring it back — leaving the
+        # app a ghost process. The agent keeps running in the background either way.
+        try:
+            self.iconify()
+        except Exception:
+            self.withdraw()
 
     def _show_error(self, msg):
+        # A recoverable screen, not a dead end. This is where WhatsApp pairing
+        # failures land, so it must always offer a way forward (retry / go back)
+        # instead of stranding the user with only force-quit.
         self._clear()
-        f = self.container
-        tk.Label(f, text="Something went wrong", font=FONT_HEADING, fg="#e74c3c", bg=BG).pack(pady=(60, 20))
-        tk.Label(f, text=str(msg), font=FONT_BODY, fg=TEXT_DIM, bg=BG, wraplength=400).pack(pady=(0, 30))
+        f = self._panel()
+        self._eyebrow(f, "Connection issue")
+        self._headline(f, "Let's try that again")
+        self._body(
+            f,
+            "Wira couldn't finish connecting to WhatsApp just now. This is usually "
+            "a temporary hiccup — trying again normally clears it. If it keeps "
+            "happening, check your internet connection.",
+            pady=(0, 12),
+        )
+        self._body(f, str(msg), small=True, fg=TEXT_SOFT, pady=(0, 16))
+        self._primary_button(f, "Try connecting again", self._show_whatsapp, pady=(6, 8))
+        self._secondary_button(f, "Back to brain choice", self._show_brain_choice, pady=(0, 0))
 
     @staticmethod
     def _open_url(url):
