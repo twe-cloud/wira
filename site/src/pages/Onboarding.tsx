@@ -227,6 +227,13 @@ function Step3WhatsApp({
         paired, WhatsApp becomes the easiest way to talk to Wira while the agent
         runs on this computer.
       </p>
+      <div className="mt-4 rounded-xl border border-border bg-canvas p-4 text-sm text-ink">
+        <strong className="font-medium text-danger">Heads up:</strong> Wira links
+        through an unofficial WhatsApp connection (not built or endorsed by
+        WhatsApp). As with any third-party WhatsApp tool, there is a real risk
+        your number could be restricted or banned — consider pairing a secondary
+        number you do not mind risking.
+      </div>
       <div className="mt-6 rounded-xl border border-border bg-accent-soft/20 p-4 text-sm text-ink-muted">
         Make sure Wira is open on your Mac first — the QR code appears in the app window.
       </div>
