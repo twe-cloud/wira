@@ -33,8 +33,9 @@ export const PRODUCT = {
  */
 export const PRICING = {
   local: { price: 49, label: "$49", per: "one-time" },
-  // Live Wira Local one-time setup price in the Ni Biashara Stripe account.
-  stripePriceLocal: "price_1TcrAXRVrXHv0YFpfmw35hIw",
+  // Live Wira Local one-time setup price on the Ni Biashara LLC account
+  // (acct_1TVvPVH9, "twe" Stripe profile) — must match WIRA_LOCAL_PRICE in cloudflare/worker-lib.ts.
+  stripePriceLocal: "price_1TjbNVH9jzBQJHh4APp2ksdP",
   includes: [
     "One-time Wira Local purchase — no monthly fee for the local install",
     "Lives on your own computer — not trapped in a browser tab",
