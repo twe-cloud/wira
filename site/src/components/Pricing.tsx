@@ -23,9 +23,8 @@ export default function Pricing() {
         <h2 className="text-4xl">Buy once. Install once. Wira is yours locally.</h2>
         <p className="mt-3 text-ink-muted text-lg">
           Wira Local is a one-time setup purchase for the agent that runs on your
-          computer. No monthly fee for the local install. Mac download is live now,
-          Windows is in early beta, and Apple Silicon is the best fit for fully
-          private local AI.
+          computer. No monthly fee for the local install. Mac download is live
+          now, and Apple Silicon is the best fit for fast, private local AI.
         </p>
       </div>
 

@@ -192,7 +192,7 @@ function Step2Brain({
         <p className="mt-1 text-sm text-ink-muted">
           Prefer a fully private path? Install Ollama first, then let Wira use
           it as the brain. Apple Silicon is the strongest fit today; Intel Macs
-          and Windows PCs should usually start with the cloud or ChatGPT lane.
+          should usually start with the cloud or ChatGPT lane.
         </p>
       </div>
       <div className="mt-4 flex flex-wrap gap-3">

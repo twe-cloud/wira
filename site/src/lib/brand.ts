@@ -7,7 +7,6 @@
 
 const DOWNLOAD_BASE = (import.meta.env.VITE_WIRA_DOWNLOAD_BASE || "").replace(/\/$/, "");
 const macDownloadPath = "/download/mac";
-const windowsDownloadPath = "/download/windows";
 
 export const PRODUCT = {
   name: "Wira",
@@ -24,11 +23,9 @@ export const PRODUCT = {
   // Keep this same-origin when the official product domain fronts it; otherwise
   // point to the Worker explicitly for embedded copies like nibiashara.biz/wira.
   downloadMacUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${macDownloadPath}` : macDownloadPath,
-  downloadWindowsUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${windowsDownloadPath}` : windowsDownloadPath,
-  systemRequirement: "The Mac app runs on Apple Silicon (M1 or newer). Windows is available as an early beta. Apple Silicon is also the best fit for fully private local AI; on Windows, start fastest on the free or ChatGPT brain.",
-  heroSupportLine: "Mac download live · Windows in early beta · $49 one-time · pick a free or paid brain.",
-  pricingSupportLine: "Secure checkout by Stripe · one-time payment · works on Mac and Windows · no local monthly fee.",
-  windowsBetaNote: "The Windows app is an early beta and isn't code-signed yet, so Windows may show a SmartScreen warning — choose More info, then Run anyway to install.",
+  systemRequirement: "The Mac app runs on Apple Silicon (M1 or newer) — the best fit for fast, private local AI. Pick a free or paid brain in seconds.",
+  heroSupportLine: "Mac download live · $49 one-time · pick a free or paid brain.",
+  pricingSupportLine: "Secure checkout by Stripe · one-time payment · runs on Apple Silicon Mac · no monthly fee.",
 };
 
 /**
