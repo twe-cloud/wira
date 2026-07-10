@@ -1,22 +1,28 @@
 # Wira Windows install — smoke checklist
 
 Run this on a real Windows 11 x64 machine (Windows 10 x64 as a secondary target)
-after the `Build Windows Installer` workflow publishes `WiraSetup.exe`. The build
-artifact existing is NOT proof it works — only a pass here lets us call Windows
-"buyer-safe beta" instead of "untested".
+after the `Build Windows Installer` workflow publishes a signed `WiraSetup.exe`.
+The build artifact existing is NOT proof it works — only a pass here lets us
+make the public Windows download live.
 
-The installer is currently **unsigned**, so SmartScreen will warn. That is expected
-for the beta; note it but don't treat it as a failure.
+The public site should say Windows is coming soon until this checklist passes.
 
 ## Pre-req
 - A clean Windows account that has never run Wira (so `~/.wira` starts empty).
-- The exact `WiraSetup.exe` from the release under test (record the version/tag).
+- The exact signed `WiraSetup.exe` **from the `Build Windows Installer` workflow
+  run under test** — record its run ID and commit SHA.
+
+  Do not pull it from `releases/latest`. This checklist has to pass *before* we
+  cut a tagged release, and the newest published release still carries an
+  unsigned installer. Testing the release asset would test the wrong binary.
+  Verify the release asset separately, after tagging.
 
 ## Checklist
 
-1. **Download + SmartScreen**
-   - [ ] Download `WiraSetup.exe` from the site route `/download/wira-windows`.
-   - [ ] SmartScreen warning appears → "More info" → "Run anyway" installs it.
+1. **Download + trust**
+   - [ ] Download the exact signed `WiraSetup.exe` from the workflow run under test.
+   - [ ] Confirm Windows identifies the installer as signed by Ni Biashara LLC.
+   - [ ] SmartScreen does not present the unsigned-unknown-publisher path.
    - [ ] Installer completes without admin elevation (it installs per-user, `PrivilegesRequired=lowest`).
 
 2. **First launch**
@@ -51,5 +57,15 @@ for the beta; note it but don't treat it as a failure.
 - Pass/fail per step, with a screenshot of the welcome screen and the QR screen.
 - File the result next to the other QA notes in `docs/qa/`.
 
-Only after a clean pass: update `STATUS.md` to mark Windows as buyer-safe beta and,
-if/when signed, drop the SmartScreen caveat from the site copy (`windowsBetaNote`).
+Only after a clean pass, in this order:
+
+1. Cut a tagged release so the **signed** `WiraSetup.exe` becomes a release asset.
+2. Verify the published asset is the signed one — `scripts/verify-authenticode.py`
+   against the file downloaded from `releases/latest`, not the workflow artifact.
+   The Worker serves the release, so an unverified release asset is what buyers get.
+3. Update `STATUS.md`.
+4. Switch the Worker Windows route from coming-soon to download, and add Windows
+   back to the success/email copy.
+
+Skipping step 2 is how an unsigned installer reaches a buyer despite a green
+smoke test: the smoke test validates the artifact, the Worker serves the release.

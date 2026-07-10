@@ -2,6 +2,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import { PRODUCT } from "@/lib/brand";
+import { Seo } from "@/lib/seo";
 
 export default function Success() {
   const [params] = useSearchParams();
@@ -10,13 +11,15 @@ export default function Success() {
     typeof window === "undefined"
       ? PRODUCT.downloadMacUrl
       : new URL(PRODUCT.downloadMacUrl, window.location.origin).toString();
-  const windowsDownloadUrl =
-    typeof window === "undefined"
-      ? PRODUCT.downloadWindowsUrl
-      : new URL(PRODUCT.downloadWindowsUrl, window.location.origin).toString();
 
   return (
     <>
+      <Seo
+        title="Wira Purchase Complete"
+        description="Wira purchase confirmation and download instructions."
+        path="/success"
+        noindex
+      />
       <Nav hideGetStarted />
       <main className="container-narrow py-20">
         <div className="text-center">
@@ -25,7 +28,7 @@ export default function Success() {
           </div>
           <h1 className="mt-6 text-5xl">You're in.</h1>
           <p className="mt-4 text-lg text-ink-muted">
-            Welcome to {PRODUCT.name}. Three short steps and your agent is live
+            Welcome to {PRODUCT.name}. Three short steps get your agent ready
             on WhatsApp.
           </p>
         </div>
@@ -36,22 +39,16 @@ export default function Success() {
             <div>
               <div className="font-medium">Download &amp; open {PRODUCT.name}</div>
               <p className="mt-1 text-sm text-ink-muted">
-                On Mac, drag it to Applications and open it. On Windows, run the
-                installer. The setup screen appears automatically.
+                Drag it to Applications and open it. The setup screen appears
+                automatically.
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 <a href={publicDownloadUrl} className="btn-primary inline-flex text-sm">
                   Download for Mac
                 </a>
-                <a href={windowsDownloadUrl} className="btn-ghost inline-flex text-sm">
-                  Download for Windows (beta)
-                </a>
               </div>
               <p className="mt-1 text-xs text-ink-muted">
                 {PRODUCT.systemRequirement}
-              </p>
-              <p className="mt-1 text-xs text-ink-muted">
-                {PRODUCT.windowsBetaNote}
               </p>
             </div>
           </li>
@@ -85,15 +82,14 @@ export default function Success() {
         </div>
 
         <div className="mt-6 rounded-xl border border-border bg-canvas p-4 text-sm text-ink-muted max-w-xl mx-auto">
-          Save your download links now so you do not lose them if you close this tab:
+          Save your download link now so you do not lose it if you close this tab:
           <div className="mt-2 text-xs uppercase tracking-wide text-ink-muted">Mac</div>
           <div className="mt-1 break-all rounded-lg border border-border bg-surface px-3 py-2 text-ink">
             {publicDownloadUrl}
           </div>
-          <div className="mt-3 text-xs uppercase tracking-wide text-ink-muted">Windows (beta)</div>
-          <div className="mt-1 break-all rounded-lg border border-border bg-surface px-3 py-2 text-ink">
-            {windowsDownloadUrl}
-          </div>
+          <p className="mt-3 text-xs text-ink-muted">
+            {PRODUCT.windowsStatusLine}
+          </p>
         </div>
 
         <div className="mt-6 text-center text-xs text-ink-muted">

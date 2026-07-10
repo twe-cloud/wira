@@ -1,6 +1,6 @@
 # Wira Status
 
-Updated: 2026-06-10
+Updated: 2026-07-10
 Mode: BUSINESS
 Canonical repo: `/Users/motwe/Wira`
 Remote: `git@github.com:twe-cloud/wira.git`
@@ -10,6 +10,73 @@ Operating surface (live): `https://wira-local-agent.nibiashara.workers.dev` (Clo
 ## Current state
 
 Wira is the productized WhatsApp assistant lane for small businesses.
+
+### 2026-07-10 — Windows code signing is LIVE (identity validation completed)
+
+Microsoft completed the Ni Biashara LLC Public Trust identity validation
+(`02ab1180-16dd-4c5d-b667-872c3db74b78`). Everything downstream of it is now done:
+
+- Public Trust certificate profile `wira-public-trust` created on account
+  `wirawintrustsign`. `provisioningState: Succeeded`, `status: Active`, subject
+  `CN=Ni Biashara llc, O=Ni Biashara llc, L=Dallas, S=Texas, C=US`.
+- Repo var `AZURE_TRUSTED_SIGNING_CERT_PROFILE=wira-public-trust` is set, so all
+  six signing inputs exist and the `build-windows.yml` signing gate is now ON.
+- Run `29093731823` (main, workflow_dispatch) built and **signed** `WiraSetup.exe`.
+  Verified offline from the PE certificate table: chain terminates at `Microsoft
+  Identity Verification Root Certificate Authority 2020`, leaf subject is
+  `Ni Biashara llc`, and an RFC3161 timestamp countersignature is present.
+- Trusted Signing leaf certs are deliberately short-lived (~3 days: notBefore
+  2026-07-10, notAfter 2026-07-13). The RFC3161 countersignature is what keeps
+  already-signed binaries valid after the cert expires. This is expected — do not
+  "fix" it.
+
+**Windows is signed but NOT yet publicly available.** The signed installer exists
+only as a workflow artifact; release `v1.0.7` still carries the old *unsigned*
+`WiraSetup.exe` from 2026-05-31, and the Worker still returns the coming-soon
+`202` on `/download/windows`. Publishing requires, in order:
+
+1. A human pass of `docs/qa/windows-smoke-checklist.md` on a real Windows 11 box
+   (GUI render, brain setup, QR pairing + real reply, restart persistence).
+2. A tagged release so the signed `WiraSetup.exe` becomes a release asset.
+3. Flipping the Worker's Windows route from coming-soon to the release download.
+
+The machine-checkable half of that checklist now runs in CI as
+`.github/workflows/windows-smoke.yml` (signature validity + signer identity +
+timestamp, silent per-user install, install-tree layout, Windows RAM detection,
+uninstall). It cannot cover QR pairing or GUI rendering.
+
+Historical note: `twe-azure-automation` deleted the previous signing account on
+2026-06-28, which invalidated validation `9df16837-...`; request `0392d0e2-...`
+then failed on a malformed website field. Both are dead — only `02ab1180-...`
+is real. The account was recreated in `wira-win-qa-rg-centralus` on 2026-07-09.
+
+Signing infrastructure reference:
+
+- Azure subscription `Azure subscription 1`
+  (`dccc9905-e9da-4e3a-94d8-a38834814129`), tenant
+  `bd301f01-e9a9-4654-979c-d78cf067e750`. `Microsoft.CodeSigning` registered.
+- Artifact Signing account `wirawintrustsign` in `wira-win-qa-rg-centralus`;
+  account URI `https://cus.codesigning.azure.net/`; SKU `Basic`.
+- Certificate profile `wira-public-trust` (PublicTrust), bound to identity
+  validation `02ab1180-16dd-4c5d-b667-872c3db74b78`.
+- Account-scoped roles (account scope covers child certificate profiles):
+  - `Artifact Signing Identity Verifier` → `twe@nibiashara.biz`
+    (`7ddee820-5520-463b-b34a-8b20324d5038`).
+  - `Artifact Signing Certificate Profile Signer` → `twe-azure-automation`
+    (`f80a454f-62e6-41eb-bba2-65d0bd107407`), the SP CI signs with.
+- Repo secrets on `twe-cloud/wira`: `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`,
+  `AZURE_CLIENT_SECRET` (all → `twe-azure-automation`).
+- Repo vars: `AZURE_TRUSTED_SIGNING_ACCOUNT=wirawintrustsign`,
+  `AZURE_TRUSTED_SIGNING_ENDPOINT=https://cus.codesigning.azure.net/`,
+  `AZURE_TRUSTED_SIGNING_CERT_PROFILE=wira-public-trust`.
+
+Note for future sessions: the portal's `Identity validations` blade renders an
+empty content area (its own vetting API calls are blocked by browser/CORS
+behavior), and `az artifact-signing` exposes no identity-validation subcommand.
+The reliable probe for whether a validation has completed is simply to attempt
+`az artifact-signing certificate-profile create --identity-validation-id <id>`:
+it fails with `System could not find identity validation id` while the
+validation is still in progress, and succeeds once Microsoft completes it.
 
 ### 2026-06-10 — security siege fixes + signing-ready build
 
@@ -34,16 +101,10 @@ fixed in code (67→71 agent tests pass; site typecheck/build + Worker dry-run c
 - **Webhook + site (M1/M2/L1–L3).** Cloud webhook binds loopback by default; site adds
   a Content-Security-Policy; Worker CORS is allowlisted (no arbitrary origin reflection),
   buyer PII is dropped from logs, and the download-source leak header is removed.
-- **Signing is wired and now mostly provisioned.** `build-windows.yml` has a guarded Azure
-  Trusted Signing step. The Trusted Signing account is live, a CI signing service principal
-  (with the Artifact Signing Certificate Profile Signer role) is created, and the GitHub
-  secrets (`AZURE_TENANT_ID`/`AZURE_CLIENT_ID`/`AZURE_CLIENT_SECRET`) + vars
-  (`AZURE_TRUSTED_SIGNING_ENDPOINT`/`_ACCOUNT`) are set. The step stays inert until the one
-  remaining founder-only step lands: complete Ni Biashara LLC **Organization** identity
-  validation in the Azure portal (Microsoft paused Individual validation), create a Public
-  Trust certificate profile, then set repo var `AZURE_TRUSTED_SIGNING_CERT_PROFILE`. The next
-  tagged Windows build then signs `WiraSetup.exe` automatically. macOS Developer ID + notarize
-  is separate (cert/keys present on the build Mac).
+- **Historical signing note, now stale.** `build-windows.yml` has a guarded Azure
+  Trusted Signing step. The account was provisioned on 2026-06-06/10, but it was
+  deleted on 2026-06-28. Treat the 2026-07-09 section above as the current source
+  of truth before attempting a signed Windows build.
 
 ### 2026-06-07 — cross-platform enablement progress
 
@@ -55,11 +116,10 @@ Wira is now genuinely Mac + Windows, not Mac-only sales copy over a Mac-only pro
   macOS/Linux (`sysconf`) and Windows (`GlobalMemoryStatusEx` via `ctypes`);
   `agent/local_models.py` reuses that single helper.
 - The Windows installer (`WiraSetup.exe`) is already produced by the release pipeline
-  and verified present in releases v1.0.6 and v1.0.7. The site now exposes it: the
-  Worker serves a real `/download/wira-windows` route and the success page + email
-  offer both Mac and Windows downloads.
-- Windows is labeled honestly as an unsigned early beta (SmartScreen warning), per the
-  rule not to market Windows GA before signing + smoke tests.
+  and verified present in releases v1.0.6 and v1.0.7, but public Windows downloads
+  are paused until code signing completes and a clean Windows install smoke test
+  passes. The Worker now returns a Windows coming-soon message instead of handing
+  buyers an unsigned installer.
 - `agent/gui.py` auto-start no longer assumes macOS (launchd plist is macOS-only;
   Windows uses the installer's Startup-folder shortcut).
 - `agent/runtime_bridge.py` no longer hardcodes a founder-specific Hermes path; it

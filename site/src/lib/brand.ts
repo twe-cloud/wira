@@ -7,16 +7,16 @@
 
 const DOWNLOAD_BASE = (import.meta.env.VITE_WIRA_DOWNLOAD_BASE || "").replace(/\/$/, "");
 const macDownloadPath = "/download/mac";
-const windowsDownloadPath = "/download/windows";
 
 export const PRODUCT = {
   name: "Wira",
   parentBrand: "Motwe",
   domain: "wira.io",
+  siteUrl: "https://wira.nibiashara.biz",
   tagline: "Your first personal agent, reached from WhatsApp.",
-  hook: "A real local agent on your computer. Your phone is just the fastest way in.",
+  hook: "A real WhatsApp AI agent on your computer. Your phone is just the fastest way in.",
   description:
-    "Wira sets up a personal agent on your computer, connects it to a free or paid brain of your choice, and lets you talk to it on WhatsApp.",
+    "Wira is a WhatsApp AI agent that runs on your computer, connects to a free or paid brain of your choice, and lets you talk to your personal agent from your phone.",
   supportEmail: "hello@wira.io",
   city: "Dallas, TX",
   legalEntity: "Ni Biashara LLC",
@@ -24,11 +24,10 @@ export const PRODUCT = {
   // Keep this same-origin when the official product domain fronts it; otherwise
   // point to the Worker explicitly for embedded copies like nibiashara.biz/wira.
   downloadMacUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${macDownloadPath}` : macDownloadPath,
-  downloadWindowsUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${windowsDownloadPath}` : windowsDownloadPath,
-  systemRequirement: "The Mac app runs on Apple Silicon (M1 or newer). Windows is available as an early beta. Apple Silicon is also the best fit for fully private local AI; on Windows, start fastest on the free or ChatGPT brain.",
-  heroSupportLine: "Mac download live · Windows in early beta · $49 one-time · pick a free or paid brain.",
-  pricingSupportLine: "Secure checkout by Stripe · one-time payment · works on Mac and Windows · no local monthly fee.",
-  windowsBetaNote: "The Windows app is an early beta and isn't code-signed yet, so Windows may show a SmartScreen warning — choose More info, then Run anyway to install.",
+  systemRequirement: "The Mac app runs on Apple Silicon (M1 or newer) — the best fit for fast, private local AI. Pick a free or paid brain in seconds.",
+  windowsStatusLine: "Windows is coming after code signing and a clean install smoke test.",
+  heroSupportLine: "Mac download live · Windows coming soon · $49 one-time.",
+  pricingSupportLine: "Secure checkout by Stripe · one-time payment · Mac live now · Windows coming soon.",
 };
 
 /**
@@ -36,8 +35,9 @@ export const PRODUCT = {
  */
 export const PRICING = {
   local: { price: 49, label: "$49", per: "one-time" },
-  // Live Wira Local one-time setup price in the Ni Biashara Stripe account.
-  stripePriceLocal: "price_1TcrAXRVrXHv0YFpfmw35hIw",
+  // Live Wira Local one-time setup price on the Ni Biashara LLC account
+  // (acct_1TVvPVH9, "twe" Stripe profile) — must match WIRA_LOCAL_PRICE in cloudflare/worker-lib.ts.
+  stripePriceLocal: "price_1TjbNVH9jzBQJHh4APp2ksdP",
   includes: [
     "One-time Wira Local purchase — no monthly fee for the local install",
     "Lives on your own computer — not trapped in a browser tab",

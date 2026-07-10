@@ -1,0 +1,132 @@
+name: Windows Smoke
+
+# Machine-checkable half of docs/qa/windows-smoke-checklist.md.
+# This proves the installer is genuinely signed, installs per-user without
+# elevation, lays out the expected tree, and that capability detection reports
+# real RAM on Windows (the bug that shipped in v1.0.6/v1.0.7).
+#
+# It CANNOT prove the human half: QR pairing, a real WhatsApp reply, restart
+# persistence, display-scaling legibility. Those still require the checklist on
+# a real machine before the public Windows download goes live.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Build Windows Installer run ID to pull the artifact from (defaults to latest successful)'
+        required: false
+        type: string
+  workflow_run:
+    workflows: ["Build Windows Installer"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  smoke:
+    # Never smoke-test a build that did not succeed.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: windows-latest
+    steps:
+      # This job downloads and EXECUTES the installer. Do not leave the job's
+      # GITHUB_TOKEN sitting in .git/config where that process could read it.
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Download installer artifact
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: wira-windows
+          path: artifact
+          run-id: ${{ inputs.run_id || github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 1. Authenticode signature is valid and ours
+        shell: pwsh
+        run: |
+          $exe = "artifact/WiraSetup.exe"
+          if (-not (Test-Path $exe)) { throw "installer not found at $exe" }
+
+          $sig = Get-AuthenticodeSignature $exe
+          Write-Host "Status:  $($sig.Status)"
+          Write-Host "Subject: $($sig.SignerCertificate.Subject)"
+
+          if ($sig.Status -ne 'Valid') {
+            throw "Authenticode status is '$($sig.Status)', expected 'Valid'. An unsigned or broken installer must never reach a buyer."
+          }
+          if ($sig.SignerCertificate.Subject -notmatch 'Ni Biashara') {
+            throw "Signed by an unexpected subject: $($sig.SignerCertificate.Subject)"
+          }
+          # Trusted Signing certs live ~3 days; the RFC3161 countersignature is the
+          # only reason the signature keeps validating after the cert expires.
+          if (-not $sig.TimeStamperCertificate) {
+            throw "No RFC3161 timestamp countersignature. Signature would die when the short-lived cert expires."
+          }
+          Write-Host "Timestamper: $($sig.TimeStamperCertificate.Subject)"
+          Write-Host "OK: signed by Ni Biashara llc, chain valid, timestamped."
+
+      - name: 2. Installs per-user, silently, with no elevation
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "artifact/WiraSetup.exe" `
+            -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOICONS' `
+            -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "installer exited $($p.ExitCode)" }
+          Write-Host "OK: silent install returned 0."
+
+      - name: 3. Installed tree has the expected layout
+        shell: pwsh
+        run: |
+          # PrivilegesRequired=lowest + DefaultDirName={autopf} => per-user Programs dir.
+          $roots = @(
+            "$env:LOCALAPPDATA\Programs\Wira",
+            "$env:ProgramFiles\Wira",
+            "${env:ProgramFiles(x86)}\Wira"
+          )
+          $app = $roots | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $app) { throw "Wira install dir not found. Looked in: $($roots -join ', ')" }
+          Write-Host "Install root: $app"
+          "$app\python\pythonw.exe", "$app\app\gui.py", "$app\app\wira_launcher.py" | ForEach-Object {
+            if (-not (Test-Path $_)) { throw "missing expected file: $_" }
+          }
+          $dll = Get-ChildItem -Path "$app\app_lib" -Recurse -Filter 'neonize-windows-amd64.dll' -ErrorAction SilentlyContinue
+          if (-not $dll) { throw "bundled neonize Windows DLL missing from the install" }
+          Write-Host "OK: python runtime, app entrypoints, and native DLL all present."
+          "WIRA_APP_DIR=$app" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: 4. Capability detection reports real RAM on Windows
+        shell: pwsh
+        run: |
+          # Runs against the INSTALLED tree, not the source tree, so it catches a
+          # broken bundle as well as a code regression.
+          $py = Join-Path $env:WIRA_APP_DIR 'python\python.exe'
+          if (-not (Test-Path $py)) { $py = Join-Path $env:WIRA_APP_DIR 'python\pythonw.exe' }
+          & $py scripts/windows_ram_check.py $env:WIRA_APP_DIR
+          if ($LASTEXITCODE -ne 0) { throw "capability detection check failed" }
+
+      - name: 5. Uninstall removes the program
+        shell: pwsh
+        run: |
+          $unins = Get-ChildItem -Path $env:WIRA_APP_DIR -Filter 'unins*.exe' -ErrorAction SilentlyContinue |
+                   Select-Object -First 1
+          if (-not $unins) {
+            Write-Warning "No uninstaller found in $env:WIRA_APP_DIR; skipping uninstall assertion."
+            exit 0
+          }
+          $p = Start-Process -FilePath $unins.FullName `
+            -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "uninstaller exited $($p.ExitCode)" }
+          Start-Sleep -Seconds 5
+          if (Test-Path "$env:WIRA_APP_DIR\app\gui.py") {
+            throw "uninstall left the application behind at $env:WIRA_APP_DIR"
+          }
+          Write-Host "OK: uninstall removed the program."
+
+      - name: Remaining human-only checks
+        if: always()
+        shell: bash
+        run: |
+          echo "::notice title=Windows smoke::Automated half passed. The public Windows download stays gated until a human completes docs/qa/windows-smoke-checklist.md steps 2, 5, 6, 7 (GUI render, brain setup, QR pairing + real reply, restart persistence) on a real Windows 11 box."

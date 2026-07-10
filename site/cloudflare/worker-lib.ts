@@ -8,7 +8,9 @@
  * `export default { fetch }`.
  */
 
-export const WIRA_LOCAL_PRICE = "price_1TcrAXRVrXHv0YFpfmw35hIw";
+// Live Wira Local $49 price on the Ni Biashara LLC account (acct_1TVvPVH9, "twe" Stripe profile).
+// This is the price the deployed worker bills; keep brand.ts stripePriceLocal in sync with it.
+export const WIRA_LOCAL_PRICE = "price_1TjbNVH9jzBQJHh4APp2ksdP";
 export const RELEASE_DOWNLOAD_BASE = "https://github.com/twe-cloud/wira/releases";
 export const GITHUB_LATEST_RELEASE_API =
   "https://api.github.com/repos/twe-cloud/wira/releases/latest";
@@ -41,9 +43,9 @@ export interface DownloadSpec {
   pinnedTag: string;
 }
 
-// Both artifacts are produced by the same release pipeline (see
-// .github/workflows/build-windows.yml + agent/scripts/build-app.sh). Mac is GA;
-// the Windows .exe ships today as an unsigned early beta.
+// Both artifacts are produced by the release pipeline, but only Mac is public
+// right now. Keep Windows routed to a coming-soon response until Azure signing
+// finishes and a clean Windows install smoke test passes.
 export const DOWNLOADS: Record<PlatformKey, DownloadSpec> = {
   mac: {
     key: "mac",

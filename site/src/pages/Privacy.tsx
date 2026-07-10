@@ -1,6 +1,7 @@
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import { PRODUCT } from "@/lib/brand";
+import { Seo } from "@/lib/seo";
 
 /**
  * REVIEW BEFORE PUBLISHING. This is a reasonable starting template — not
@@ -14,6 +15,11 @@ import { PRODUCT } from "@/lib/brand";
 export default function Privacy() {
   return (
     <>
+      <Seo
+        title="Wira Privacy"
+        description="Privacy details for Wira Local, the WhatsApp AI agent that runs on your own computer."
+        path="/privacy"
+      />
       <Nav />
       <main className="container-narrow py-16 prose-spacing">
         <h1 className="text-5xl">Privacy</h1>

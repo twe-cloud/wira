@@ -3,7 +3,7 @@ const STEPS = [
     n: "01",
     title: "Download Wira",
     body:
-      "On Mac, drag it to Applications and open it; on Windows, run the installer (early beta). Wira lives on your computer — not in a browser tab.",
+      "Drag it to Applications and open it. Wira lives on your computer — not in a browser tab.",
   },
   {
     n: "02",

@@ -1,10 +1,16 @@
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import { PRODUCT } from "@/lib/brand";
+import { Seo } from "@/lib/seo";
 
 export default function Terms() {
   return (
     <>
+      <Seo
+        title="Wira Local Terms"
+        description="Terms for Wira Local, a one-time local WhatsApp AI agent setup for your own machine and accounts."
+        path="/terms"
+      />
       <Nav />
       <main className="container-narrow py-16">
         <h1 className="text-5xl">Wira Local Terms</h1>

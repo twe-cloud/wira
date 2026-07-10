@@ -9,10 +9,18 @@ import Pillars from "@/components/Pillars";
 import Pricing from "@/components/Pricing";
 import SocialProof from "@/components/SocialProof";
 import VoiceToggle from "@/components/VoiceToggle";
+import { PRODUCT } from "@/lib/brand";
+import { faqSchema, Seo, softwareApplicationSchema, websiteSchema } from "@/lib/seo";
 
 export default function Home() {
   return (
     <>
+      <Seo
+        title="Wira | WhatsApp AI Agent for Your Computer"
+        description={PRODUCT.description}
+        path="/"
+        structuredData={[websiteSchema(), softwareApplicationSchema(), faqSchema()]}
+      />
       <Nav />
       <main>
         <Hero />
