@@ -383,7 +383,9 @@ class SiteCopyTests(unittest.TestCase):
         self.assertNotIn("Apple Silicon Mac only", joined)
         self.assertNotIn("Mac only", joined)
         self.assertIn("machine is a good fit", joined)
-        self.assertIn("Mac download", joined)
+        # Both signed platforms must be offered — Wira is not a Mac-only product.
+        self.assertIn("Download for Mac", joined)
+        self.assertIn("Download for Windows", joined)
 
 
 class BrainGuardTests(unittest.TestCase):
