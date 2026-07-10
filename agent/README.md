@@ -196,11 +196,15 @@ Wira Local stores user-owned config, auth, WhatsApp pairing, memory, drafts, and
 state in `~/.wira`. The app can be replaced without bundling customer data into the app
 folder.
 
-To update a Local install, download the latest Mac or Windows build from:
+To update a Local install, download the latest Mac build from:
 
 ```text
 https://github.com/twe-cloud/wira/releases/latest
 ```
+
+Windows builds may appear in releases before they are buyer-safe. Do not point
+customers at them until Azure signing is complete and the Windows smoke checklist
+passes.
 
 If a WhatsApp linked-device session expires, reconnect from the Wira window and scan a new
 QR code. The buyer controls their machine, accounts, tools, model/provider cost, and

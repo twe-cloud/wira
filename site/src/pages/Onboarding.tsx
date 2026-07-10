@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import { PRODUCT } from "@/lib/brand";
+import { Seo } from "@/lib/seo";
 
 type State = {
   step: number;
@@ -52,6 +53,12 @@ export default function Onboarding() {
 
   return (
     <>
+      <Seo
+        title="Wira Guided Setup"
+        description="Guided setup for Wira after purchase."
+        path="/onboarding"
+        noindex
+      />
       <Nav hideGetStarted />
       <main className="container-narrow py-12">
         <div className="mb-8 flex items-center gap-2" aria-label="Progress">

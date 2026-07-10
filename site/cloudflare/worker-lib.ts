@@ -43,9 +43,9 @@ export interface DownloadSpec {
   pinnedTag: string;
 }
 
-// Both artifacts are produced by the same release pipeline (see
-// .github/workflows/build-windows.yml + agent/scripts/build-app.sh). Mac is GA;
-// the Windows .exe ships today as an unsigned early beta.
+// Both artifacts are produced by the release pipeline, but only Mac is public
+// right now. Keep Windows routed to a coming-soon response until Azure signing
+// finishes and a clean Windows install smoke test passes.
 export const DOWNLOADS: Record<PlatformKey, DownloadSpec> = {
   mac: {
     key: "mac",

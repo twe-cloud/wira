@@ -186,6 +186,26 @@ describe("fetch handler guards", () => {
     expect(res.status).toBe(405);
   });
 
+  it("mac download route redirects to the release asset", async () => {
+    const res = await worker.fetch(req("/download/mac"), makeEnv());
+    expect(res.status).toBe(302);
+    expect(res.headers.get("Location")).toContain("Wira.dmg");
+  });
+
+  it("windows download route is coming soon, not an unsigned installer", async () => {
+    const res = await worker.fetch(req("/download/windows"), makeEnv());
+    expect(res.status).toBe(202);
+    expect(await res.text()).toContain("coming soon");
+    expect(res.headers.get("Location")).toBeNull();
+  });
+
+  it("legacy windows download route is also coming soon", async () => {
+    const res = await worker.fetch(req("/download/wira-windows"), makeEnv());
+    expect(res.status).toBe(202);
+    expect(await res.text()).toContain("coming soon");
+    expect(res.headers.get("Location")).toBeNull();
+  });
+
   it("unknown path falls through to ASSETS", async () => {
     const env = makeEnv();
     const res = await worker.fetch(req("/anything"), env);

@@ -2,6 +2,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import { PRODUCT } from "@/lib/brand";
+import { Seo } from "@/lib/seo";
 
 export default function Success() {
   const [params] = useSearchParams();
@@ -13,6 +14,12 @@ export default function Success() {
 
   return (
     <>
+      <Seo
+        title="Wira Purchase Complete"
+        description="Wira purchase confirmation and download instructions."
+        path="/success"
+        noindex
+      />
       <Nav hideGetStarted />
       <main className="container-narrow py-20">
         <div className="text-center">
@@ -21,7 +28,7 @@ export default function Success() {
           </div>
           <h1 className="mt-6 text-5xl">You're in.</h1>
           <p className="mt-4 text-lg text-ink-muted">
-            Welcome to {PRODUCT.name}. Three short steps and your agent is live
+            Welcome to {PRODUCT.name}. Three short steps get your agent ready
             on WhatsApp.
           </p>
         </div>
@@ -80,6 +87,9 @@ export default function Success() {
           <div className="mt-1 break-all rounded-lg border border-border bg-surface px-3 py-2 text-ink">
             {publicDownloadUrl}
           </div>
+          <p className="mt-3 text-xs text-ink-muted">
+            {PRODUCT.windowsStatusLine}
+          </p>
         </div>
 
         <div className="mt-6 text-center text-xs text-ink-muted">

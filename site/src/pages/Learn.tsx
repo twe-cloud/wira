@@ -1,6 +1,7 @@
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import { PRODUCT } from "@/lib/brand";
+import { Seo } from "@/lib/seo";
 import { Link } from "react-router-dom";
 
 const homePricingHref = `${import.meta.env.BASE_URL}#pricing`;
@@ -13,6 +14,11 @@ const homePricingHref = `${import.meta.env.BASE_URL}#pricing`;
 export default function Learn() {
   return (
     <>
+      <Seo
+        title="What Is Wira? WhatsApp AI Agent Guide"
+        description="Learn how Wira turns WhatsApp into the front door for a personal AI agent that lives on your computer."
+        path="/learn"
+      />
       <Nav />
       <main className="container-narrow py-16 prose-spacing">
         <p className="text-sm font-semibold text-accent">Plain-language guide</p>

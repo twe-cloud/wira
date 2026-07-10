@@ -46,10 +46,13 @@ export default {
       return handleDownload(request, env, DOWNLOADS.mac);
     }
     if (url.pathname === DOWNLOADS.windows.path) {
-      return handleDownload(request, env, DOWNLOADS.windows);
+      return handleWindowsComingSoon(request);
     }
     const legacy = LEGACY_DOWNLOAD_PATHS[url.pathname];
     if (legacy) {
+      if (legacy === "windows") {
+        return handleWindowsComingSoon(request);
+      }
       return handleDownload(request, env, DOWNLOADS[legacy]);
     }
 
@@ -83,6 +86,23 @@ function handleDownload(request: Request, _env: Env, spec: DownloadSpec): Respon
     headers: {
       Location: target,
       "Cache-Control": "public, max-age=300",
+    },
+  });
+}
+
+function handleWindowsComingSoon(request: Request): Response {
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return new Response("Method not allowed", {
+      status: 405,
+      headers: { Allow: "GET, HEAD" },
+    });
+  }
+
+  return new Response("Wira for Windows is coming soon after code signing and install smoke tests.", {
+    status: 202,
+    headers: {
+      "Cache-Control": "public, max-age=300",
+      "Content-Type": "text/plain; charset=utf-8",
     },
   });
 }
@@ -188,7 +208,6 @@ async function sendDownloadEmail(
 
   const siteUrl = env.SITE_URL || "";
   const macUrl = publicDownloadUrl(env, DOWNLOADS.mac, siteUrl);
-  const windowsUrl = publicDownloadUrl(env, DOWNLOADS.windows, siteUrl);
   const greeting = name ? `Hi ${name},` : "Hi there,";
   const html = `
     <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;color:#1a2233">
@@ -197,7 +216,7 @@ async function sendDownloadEmail(
       <p style="margin:0 0 12px">
         <a href="${macUrl}" style="display:inline-block;background:#6f5318;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:600">Download Wira for Mac</a>
       </p>
-      <p style="margin:0 0 16px;color:#5f6472;font-size:13px">On Windows? <a href="${windowsUrl}" style="color:#6f5318">Download the Windows app (early beta)</a>. It isn't code-signed yet, so Windows may show a SmartScreen warning — choose More info, then Run anyway.</p>
+      <p style="margin:0 0 16px;color:#5f6472;font-size:13px">On Windows? Wira for Windows is coming soon after code signing and a clean install smoke test.</p>
       <p style="margin:0 0 8px;color:#5f6472;font-size:13px">After installing: open Wira, choose how it should think, then scan the WhatsApp QR code. Start free, use ChatGPT, or keep the brain private when your machine is a good fit. Three steps and your agent is live.</p>
       ${siteUrl ? `<p style="margin:16px 0 0;color:#8d7550;font-size:12px">Need a hand? Just reply to this email, or follow the <a href="${siteUrl}/onboarding">guided setup walkthrough</a>.</p>` : ""}
     </div>`;
@@ -211,7 +230,7 @@ async function sendDownloadEmail(
     body: JSON.stringify({
       from,
       to,
-      subject: "Your Wira download — install on Mac or Windows",
+      subject: "Your Wira download — Mac is ready",
       html,
     }),
   });

@@ -91,15 +91,12 @@ jobs:
           choco install innosetup --version=$env:INNO_SETUP_VERSION -y --no-progress
           iscc wira-installer.iss
 
-      # Authenticode signing via Azure Trusted Signing (account "wirawintrustsign",
-      # endpoint cus.codesigning.azure.net — already provisioned, stored as repo
-      # vars, not committed here since this repo is public). Inert until the
-      # remaining inputs exist: Ni Biashara LLC org identity validation must
-      # complete in the Azure portal, then a Public Trust certificate profile is
-      # created (-> AZURE_TRUSTED_SIGNING_CERT_PROFILE) and a signing service
-      # principal is registered (-> AZURE_TENANT/CLIENT_ID + CLIENT_SECRET). When
-      # those land this signs WiraSetup.exe and the site can drop the SmartScreen
-      # unsigned-beta note. See Control Room azure capability doc for the steps.
+      # Authenticode signing via Azure Artifact/Trusted Signing. The signing
+      # account and service principal are wired through repo secrets/vars, but
+      # this stays inert until Microsoft completes Ni Biashara LLC Public Trust
+      # identity validation and a real certificate profile name is stored in
+      # AZURE_TRUSTED_SIGNING_CERT_PROFILE. When that lands, this signs
+      # WiraSetup.exe and the site can drop the SmartScreen unsigned-beta note.
       - name: Check signing configured
         id: signing
         shell: bash

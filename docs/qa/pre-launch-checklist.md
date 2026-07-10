@@ -39,8 +39,9 @@ Verify a fresh install defaults to: owner-lock **on**, confirmation **on**
 
 ### 4. Code signing
 - Windows: finish Azure Trusted Signing org validation → Public Trust cert profile →
-  set `AZURE_TRUSTED_SIGNING_CERT_PROFILE` (SP + secrets already provisioned). Drop the
-  SmartScreen "unsigned beta" note from the site once signed.
+  set `AZURE_TRUSTED_SIGNING_CERT_PROFILE` (SP + secrets already provisioned), then
+  pass the Windows smoke checklist before replacing the public coming-soon message
+  with a real download.
 - Mac: Developer ID sign + notarize the DMG (cert + notarytool key are on the build Mac;
   see `agent/scripts/rebuild-and-resubmit.sh`).
 
@@ -52,8 +53,9 @@ Verify a fresh install defaults to: owner-lock **on**, confirmation **on**
   Cloudflare rate-limiting rule (dashboard) or a Workers rate-limit binding.
 - **Pin the download**: the Worker proxies the *latest* GitHub release, so a bad release
   auto-propagates to buyers. Serve a known-good pinned tag and bump deliberately.
-- **Synthetic uptime**: `GET /` (200), `OPTIONS /api/checkout` (204), `HEAD /download/*`
-  (200) every few minutes → alert. Plus a weekly test-mode checkout canary.
+- **Synthetic uptime**: `GET /` (200), `OPTIONS /api/checkout` (204), `HEAD /download/mac`
+  (302), and `HEAD /download/windows` (202 until launch) every few minutes → alert.
+  Plus a weekly test-mode checkout canary.
 - **Privacy/Terms**: have counsel review (templates note this). Copy now matches the
   local-first architecture (no server-stored conversations).
 

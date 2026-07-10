@@ -1,11 +1,17 @@
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import { PRODUCT } from "@/lib/brand";
+import { Seo } from "@/lib/seo";
 import { Link } from "react-router-dom";
 
 export default function NerdStuff() {
   return (
     <>
+      <Seo
+        title="Wira Technical Notes"
+        description="Technical notes on how Wira installs locally, keeps state in your own Wira folder, and connects WhatsApp to your personal agent."
+        path="/nerd-stuff"
+      />
       <Nav />
       <main className="container-narrow py-16 prose-spacing">
         <p className="text-sm font-semibold text-accent">For the ones who like opening the back panel</p>

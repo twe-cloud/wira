@@ -20,9 +20,9 @@ export default function Hero() {
             <em className="italic">reached from WhatsApp.</em>
           </h1>
           <p className="mt-5 text-lg text-ink-muted max-w-xl">
-            {PRODUCT.name} sets up a personal agent on your computer and lets
-            you reach it from WhatsApp. Start simple, then grow into deeper
-            agentic work when you're ready.
+            {PRODUCT.name} is a WhatsApp AI agent that runs on your computer.
+            Start simple from your phone, then grow into deeper agentic work
+            when you're ready.
           </p>
           <div className="mt-7 flex items-center gap-3 flex-wrap">
             <a href="#pricing" className="btn-primary">

@@ -12,10 +12,11 @@ export const PRODUCT = {
   name: "Wira",
   parentBrand: "Motwe",
   domain: "wira.io",
+  siteUrl: "https://wira.nibiashara.biz",
   tagline: "Your first personal agent, reached from WhatsApp.",
-  hook: "A real local agent on your computer. Your phone is just the fastest way in.",
+  hook: "A real WhatsApp AI agent on your computer. Your phone is just the fastest way in.",
   description:
-    "Wira sets up a personal agent on your computer, connects it to a free or paid brain of your choice, and lets you talk to it on WhatsApp.",
+    "Wira is a WhatsApp AI agent that runs on your computer, connects to a free or paid brain of your choice, and lets you talk to your personal agent from your phone.",
   supportEmail: "hello@wira.io",
   city: "Dallas, TX",
   legalEntity: "Ni Biashara LLC",
@@ -24,8 +25,9 @@ export const PRODUCT = {
   // point to the Worker explicitly for embedded copies like nibiashara.biz/wira.
   downloadMacUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${macDownloadPath}` : macDownloadPath,
   systemRequirement: "The Mac app runs on Apple Silicon (M1 or newer) — the best fit for fast, private local AI. Pick a free or paid brain in seconds.",
-  heroSupportLine: "Mac download live · $49 one-time · pick a free or paid brain.",
-  pricingSupportLine: "Secure checkout by Stripe · one-time payment · runs on Apple Silicon Mac · no monthly fee.",
+  windowsStatusLine: "Windows is coming after code signing and a clean install smoke test.",
+  heroSupportLine: "Mac download live · Windows coming soon · $49 one-time.",
+  pricingSupportLine: "Secure checkout by Stripe · one-time payment · Mac live now · Windows coming soon.",
 };
 
 /**
