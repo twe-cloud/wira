@@ -46,13 +46,10 @@ export default {
       return handleDownload(request, env, DOWNLOADS.mac);
     }
     if (url.pathname === DOWNLOADS.windows.path) {
-      return handleWindowsComingSoon(request);
+      return handleDownload(request, env, DOWNLOADS.windows);
     }
     const legacy = LEGACY_DOWNLOAD_PATHS[url.pathname];
     if (legacy) {
-      if (legacy === "windows") {
-        return handleWindowsComingSoon(request);
-      }
       return handleDownload(request, env, DOWNLOADS[legacy]);
     }
 
@@ -86,23 +83,6 @@ function handleDownload(request: Request, _env: Env, spec: DownloadSpec): Respon
     headers: {
       Location: target,
       "Cache-Control": "public, max-age=300",
-    },
-  });
-}
-
-function handleWindowsComingSoon(request: Request): Response {
-  if (request.method !== "GET" && request.method !== "HEAD") {
-    return new Response("Method not allowed", {
-      status: 405,
-      headers: { Allow: "GET, HEAD" },
-    });
-  }
-
-  return new Response("Wira for Windows is coming soon after code signing and install smoke tests.", {
-    status: 202,
-    headers: {
-      "Cache-Control": "public, max-age=300",
-      "Content-Type": "text/plain; charset=utf-8",
     },
   });
 }
@@ -208,15 +188,17 @@ async function sendDownloadEmail(
 
   const siteUrl = env.SITE_URL || "";
   const macUrl = publicDownloadUrl(env, DOWNLOADS.mac, siteUrl);
+  const windowsUrl = publicDownloadUrl(env, DOWNLOADS.windows, siteUrl);
   const greeting = name ? `Hi ${name},` : "Hi there,";
   const html = `
     <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;color:#1a2233">
       <h1 style="font-size:22px;margin:0 0 12px">You're in. Welcome to Wira.</h1>
       <p style="margin:0 0 16px;color:#5f6472">${greeting} thanks for your purchase. Wira is your own AI agent that runs on your computer and answers you on WhatsApp.</p>
       <p style="margin:0 0 12px">
-        <a href="${macUrl}" style="display:inline-block;background:#6f5318;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:600">Download Wira for Mac</a>
+        <a href="${macUrl}" style="display:inline-block;background:#6f5318;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:600;margin-right:8px">Download for Mac</a>
+        <a href="${windowsUrl}" style="display:inline-block;background:#6f5318;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:600">Download for Windows</a>
       </p>
-      <p style="margin:0 0 16px;color:#5f6472;font-size:13px">On Windows? Wira for Windows is coming soon after code signing and a clean install smoke test.</p>
+      <p style="margin:0 0 16px;color:#5f6472;font-size:13px">Mac needs Apple Silicon (M1 or newer). Windows needs Windows 10 or 11 (64-bit).</p>
       <p style="margin:0 0 8px;color:#5f6472;font-size:13px">After installing: open Wira, choose how it should think, then scan the WhatsApp QR code. Start free, use ChatGPT, or keep the brain private when your machine is a good fit. Three steps and your agent is live.</p>
       ${siteUrl ? `<p style="margin:16px 0 0;color:#8d7550;font-size:12px">Need a hand? Just reply to this email, or follow the <a href="${siteUrl}/onboarding">guided setup walkthrough</a>.</p>` : ""}
     </div>`;

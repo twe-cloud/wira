@@ -19,7 +19,7 @@ export const GITHUB_LATEST_RELEASE_TIMEOUT_MS = 1500;
 // instead of being stuck for a day. workers.dev edge cache isn't purgeable via
 // the zone API, so to bust an already-poisoned entry we change the path itself.
 export const DOWNLOAD_CACHE_TTL_SECONDS = 300;
-export const DOWNLOAD_CACHE_VERSION = "2026-06-10-mac-signed-v4";
+export const DOWNLOAD_CACHE_VERSION = "2026-07-10-win-signed-v1";
 // Legacy paths kept routed so old links self-heal once their stale edge entry expires.
 export const LEGACY_DOWNLOAD_PATHS: Record<string, PlatformKey> = {
   "/download/wira-mac": "mac",
@@ -43,9 +43,9 @@ export interface DownloadSpec {
   pinnedTag: string;
 }
 
-// Both artifacts are produced by the release pipeline, but only Mac is public
-// right now. Keep Windows routed to a coming-soon response until Azure signing
-// finishes and a clean Windows install smoke test passes.
+// Both artifacts are produced by the release pipeline and both are public: Mac
+// (notarized DMG) and Windows (Azure Trusted Signing, live 2026-07-10 after the
+// signed installer passed the Windows install smoke test).
 export const DOWNLOADS: Record<PlatformKey, DownloadSpec> = {
   mac: {
     key: "mac",

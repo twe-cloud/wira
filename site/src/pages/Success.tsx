@@ -7,10 +7,12 @@ import { Seo } from "@/lib/seo";
 export default function Success() {
   const [params] = useSearchParams();
   const sessionId = params.get("session_id");
-  const publicDownloadUrl =
+  const absolute = (path: string) =>
     typeof window === "undefined"
-      ? PRODUCT.downloadMacUrl
-      : new URL(PRODUCT.downloadMacUrl, window.location.origin).toString();
+      ? path
+      : new URL(path, window.location.origin).toString();
+  const publicDownloadUrl = absolute(PRODUCT.downloadMacUrl);
+  const publicWindowsDownloadUrl = absolute(PRODUCT.downloadWindowsUrl);
 
   return (
     <>
@@ -45,6 +47,9 @@ export default function Success() {
               <div className="mt-2 flex flex-wrap gap-2">
                 <a href={publicDownloadUrl} className="btn-primary inline-flex text-sm">
                   Download for Mac
+                </a>
+                <a href={publicWindowsDownloadUrl} className="btn-primary inline-flex text-sm">
+                  Download for Windows
                 </a>
               </div>
               <p className="mt-1 text-xs text-ink-muted">
@@ -86,6 +91,10 @@ export default function Success() {
           <div className="mt-2 text-xs uppercase tracking-wide text-ink-muted">Mac</div>
           <div className="mt-1 break-all rounded-lg border border-border bg-surface px-3 py-2 text-ink">
             {publicDownloadUrl}
+          </div>
+          <div className="mt-3 text-xs uppercase tracking-wide text-ink-muted">Windows</div>
+          <div className="mt-1 break-all rounded-lg border border-border bg-surface px-3 py-2 text-ink">
+            {publicWindowsDownloadUrl}
           </div>
           <p className="mt-3 text-xs text-ink-muted">
             {PRODUCT.windowsStatusLine}

@@ -192,18 +192,21 @@ describe("fetch handler guards", () => {
     expect(res.headers.get("Location")).toContain("Wira.dmg");
   });
 
-  it("windows download route is coming soon, not an unsigned installer", async () => {
+  it("windows download route redirects to the signed release asset", async () => {
     const res = await worker.fetch(req("/download/windows"), makeEnv());
-    expect(res.status).toBe(202);
-    expect(await res.text()).toContain("coming soon");
-    expect(res.headers.get("Location")).toBeNull();
+    expect(res.status).toBe(302);
+    expect(res.headers.get("Location")).toContain("WiraSetup.exe");
   });
 
-  it("legacy windows download route is also coming soon", async () => {
+  it("legacy windows download route also redirects to the signed installer", async () => {
     const res = await worker.fetch(req("/download/wira-windows"), makeEnv());
-    expect(res.status).toBe(202);
-    expect(await res.text()).toContain("coming soon");
-    expect(res.headers.get("Location")).toBeNull();
+    expect(res.status).toBe(302);
+    expect(res.headers.get("Location")).toContain("WiraSetup.exe");
+  });
+
+  it("windows download route rejects non-GET/HEAD → 405", async () => {
+    const res = await worker.fetch(req("/download/windows", { method: "POST" }), makeEnv());
+    expect(res.status).toBe(405);
   });
 
   it("unknown path falls through to ASSETS", async () => {

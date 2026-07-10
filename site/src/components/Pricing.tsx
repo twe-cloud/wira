@@ -23,8 +23,8 @@ export default function Pricing() {
         <h2 className="text-4xl">Buy once. Install once. Wira is yours locally.</h2>
         <p className="mt-3 text-ink-muted text-lg">
           Wira Local is a one-time setup purchase for the agent that runs on your
-          computer. No monthly fee for the local install. Mac download is live
-          now. Windows is coming after signing and install smoke tests.
+          computer. No monthly fee for the local install. Signed installers for
+          Mac and Windows are both live.
         </p>
       </div>
 
