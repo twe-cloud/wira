@@ -7,6 +7,7 @@
 
 const DOWNLOAD_BASE = (import.meta.env.VITE_WIRA_DOWNLOAD_BASE || "").replace(/\/$/, "");
 const macDownloadPath = "/download/mac";
+const windowsDownloadPath = "/download/windows";
 
 export const PRODUCT = {
   name: "Wira",
@@ -24,10 +25,11 @@ export const PRODUCT = {
   // Keep this same-origin when the official product domain fronts it; otherwise
   // point to the Worker explicitly for embedded copies like nibiashara.biz/wira.
   downloadMacUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${macDownloadPath}` : macDownloadPath,
-  systemRequirement: "The Mac app runs on Apple Silicon (M1 or newer) — the best fit for fast, private local AI. Pick a free or paid brain in seconds.",
-  windowsStatusLine: "Windows is coming after code signing and a clean install smoke test.",
-  heroSupportLine: "Mac download live · Windows coming soon · $49 one-time.",
-  pricingSupportLine: "Secure checkout by Stripe · one-time payment · Mac live now · Windows coming soon.",
+  downloadWindowsUrl: DOWNLOAD_BASE ? `${DOWNLOAD_BASE}${windowsDownloadPath}` : windowsDownloadPath,
+  systemRequirement: "The Mac app runs on Apple Silicon (M1 or newer); the Windows app runs on Windows 10 or 11 (64-bit). Pick a free or paid brain in seconds.",
+  windowsStatusLine: "The Windows app is code-signed by Ni Biashara LLC and runs on Windows 10 or 11 (64-bit).",
+  heroSupportLine: "Mac and Windows · signed installers · $49 one-time.",
+  pricingSupportLine: "Secure checkout by Stripe · one-time payment · Mac and Windows, both live.",
 };
 
 /**
