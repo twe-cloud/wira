@@ -11,6 +11,7 @@ After setup, Wira keeps the local runtime available in the background.
 
 import logging
 import os
+import platform
 import queue
 import sys
 import threading
@@ -80,13 +81,44 @@ WHITE = "#ffffff"
 SUCCESS = "#35624d"
 ERROR = "#9a3f2f"
 
-FONT_TITLE = ("Avenir Next", 30, "bold")
-FONT_HEADING = ("Avenir Next", 20, "bold")
-FONT_BODY = ("Avenir Next", 14)
-FONT_SMALL = ("Avenir Next", 12)
-FONT_EYEBROW = ("Avenir Next", 11, "bold")
-FONT_CODE = ("Menlo", 24, "bold")
-FONT_MONO = ("Menlo", 12)
+def _ui_family() -> str:
+    """Pick a font family that actually exists on this platform.
+
+    "Avenir Next" and "Menlo" are macOS-only. On Windows, Tk silently falls back
+    to Arial, whose metrics are wider than the layout was tuned for.
+    """
+    system = platform.system()
+    if system == "Windows":
+        return "Segoe UI"
+    if system == "Darwin":
+        return "Avenir Next"
+    return "DejaVu Sans"
+
+
+def _mono_family() -> str:
+    system = platform.system()
+    if system == "Windows":
+        return "Consolas"
+    if system == "Darwin":
+        return "Menlo"
+    return "DejaVu Sans Mono"
+
+
+_FAMILY = _ui_family()
+_MONO = _mono_family()
+
+# NOTE: negative sizes are PIXELS in Tk; positive sizes are POINTS. Points are
+# resolved against screen DPI, so a size of 14 renders ~14px on macOS (72dpi) but
+# ~18.7px on Windows (96dpi) — a third wider. Every string then overflowed the
+# fixed-width panels and clipped mid-sentence. Pixel sizes render consistently on
+# both, which is what the hardcoded pixel `wraplength` values already assume.
+FONT_TITLE = (_FAMILY, -30, "bold")
+FONT_HEADING = (_FAMILY, -20, "bold")
+FONT_BODY = (_FAMILY, -14)
+FONT_SMALL = (_FAMILY, -12)
+FONT_EYEBROW = (_FAMILY, -11, "bold")
+FONT_CODE = (_MONO, -24, "bold")
+FONT_MONO = (_MONO, -12)
 
 WIN_W, WIN_H = 560, 700
 
@@ -97,7 +129,10 @@ class WiraApp(tk.Tk):
         self.title("Wira")
         self.geometry(f"{WIN_W}x{WIN_H}")
         self.configure(bg=BG)
-        self.resizable(False, False)
+        # Resizable, so a font-metric or display-scaling surprise on some machine
+        # can't leave a buyer staring at text clipped mid-sentence with no way out.
+        self.resizable(True, True)
+        self.minsize(WIN_W, 600)
 
         # Event queues for cross-thread communication
         self.event_queue = queue.Queue()
@@ -110,6 +145,15 @@ class WiraApp(tk.Tk):
         self.container = tk.Frame(self, bg=BG)
         self.container.pack(fill="both", expand=True, padx=40, pady=30)
 
+        # Labels wrap to the container's real width rather than a hardcoded pixel
+        # count. The old constants (460 / 390) were wider than the panel interior
+        # (~408px after paddings), so Tk wrapped past the frame edge and the text
+        # was clipped mid-word. That only showed up once fonts got wider — i.e. on
+        # Windows. Each entry is (label, inset) where inset is the horizontal
+        # chrome between the container edge and the label's own text box.
+        self._wrap_labels: list[tuple[tk.Label, int]] = []
+        self.container.bind("<Configure>", self._reflow_wraps)
+
         # Check if already set up
         from auth import is_logged_in
         if is_logged_in() and SESSION_DB_PATH.exists() and SESSION_DB_PATH.stat().st_size > 0:
@@ -120,7 +164,28 @@ class WiraApp(tk.Tk):
         # Poll event queue
         self.after(100, self._poll_events)
 
+    # Horizontal chrome between the container edge and a label's text box:
+    # panel pack padx (8*2) + panel padx (28*2) = 72. Bullet/step rows add their
+    # own padx (14*2) plus the dot/badge gutter (~34).
+    WRAP_INSET_PANEL = 72
+    WRAP_INSET_ROW = 72 + 28 + 34
+
+    def _register_wrap(self, label, inset):
+        self._wrap_labels.append((label, inset))
+        width = self.container.winfo_width()
+        if width > 1:
+            label.configure(wraplength=max(200, width - inset))
+        return label
+
+    def _reflow_wraps(self, event):
+        for label, inset in self._wrap_labels:
+            try:
+                label.configure(wraplength=max(200, event.width - inset))
+            except tk.TclError:
+                pass  # label was destroyed on a screen change
+
     def _clear(self):
+        self._wrap_labels.clear()
         for w in self.container.winfo_children():
             w.destroy()
 
@@ -148,7 +213,7 @@ class WiraApp(tk.Tk):
         ).pack(fill="x", pady=(0, 10))
 
     def _headline(self, parent, text):
-        tk.Label(
+        label = tk.Label(
             parent,
             text=text,
             font=FONT_TITLE,
@@ -157,10 +222,12 @@ class WiraApp(tk.Tk):
             justify="left",
             anchor="w",
             wraplength=460,
-        ).pack(fill="x", pady=(0, 10))
+        )
+        label.pack(fill="x", pady=(0, 10))
+        self._register_wrap(label, self.WRAP_INSET_PANEL)
 
     def _body(self, parent, text, *, small=False, fg=None, center=False, pady=(0, 12)):
-        tk.Label(
+        label = tk.Label(
             parent,
             text=text,
             font=FONT_SMALL if small else FONT_BODY,
@@ -169,7 +236,9 @@ class WiraApp(tk.Tk):
             justify="center" if center else "left",
             anchor="center" if center else "w",
             wraplength=460,
-        ).pack(fill="x", pady=pady)
+        )
+        label.pack(fill="x", pady=pady)
+        self._register_wrap(label, self.WRAP_INSET_PANEL)
 
     def _bullet_row(self, parent, title, body):
         row = tk.Frame(parent, bg=PANEL_ALT, padx=14, pady=12)
@@ -179,24 +248,28 @@ class WiraApp(tk.Tk):
         dot.pack(side="left", padx=(0, 10), pady=3)
         text_col = tk.Frame(row, bg=PANEL_ALT)
         text_col.pack(side="left", fill="x", expand=True)
-        tk.Label(text_col, text=title, font=("Avenir Next", 13, "bold"), fg=TEXT, bg=PANEL_ALT, anchor="w").pack(fill="x")
-        tk.Label(text_col, text=body, font=FONT_SMALL, fg=TEXT_DIM, bg=PANEL_ALT, anchor="w", justify="left", wraplength=390).pack(fill="x", pady=(2, 0))
+        tk.Label(text_col, text=title, font=(_FAMILY, -13, "bold"), fg=TEXT, bg=PANEL_ALT, anchor="w").pack(fill="x")
+        body_label = tk.Label(text_col, text=body, font=FONT_SMALL, fg=TEXT_DIM, bg=PANEL_ALT, anchor="w", justify="left", wraplength=390)
+        body_label.pack(fill="x", pady=(2, 0))
+        self._register_wrap(body_label, self.WRAP_INSET_ROW)
 
     def _step_row(self, parent, number, title, body):
         row = tk.Frame(parent, bg=PANEL_ALT, padx=14, pady=12)
         row.pack(fill="x", pady=6)
-        badge = tk.Label(row, text=str(number), font=("Avenir Next", 13, "bold"), fg=WHITE, bg=ACCENT_DARK, width=2)
+        badge = tk.Label(row, text=str(number), font=(_FAMILY, -13, "bold"), fg=WHITE, bg=ACCENT_DARK, width=2)
         badge.pack(side="left", padx=(0, 12), pady=2)
         text_col = tk.Frame(row, bg=PANEL_ALT)
         text_col.pack(side="left", fill="x", expand=True)
-        tk.Label(text_col, text=title, font=("Avenir Next", 13, "bold"), fg=TEXT, bg=PANEL_ALT, anchor="w").pack(fill="x")
-        tk.Label(text_col, text=body, font=FONT_SMALL, fg=TEXT_DIM, bg=PANEL_ALT, anchor="w", justify="left", wraplength=390).pack(fill="x", pady=(2, 0))
+        tk.Label(text_col, text=title, font=(_FAMILY, -13, "bold"), fg=TEXT, bg=PANEL_ALT, anchor="w").pack(fill="x")
+        body_label = tk.Label(text_col, text=body, font=FONT_SMALL, fg=TEXT_DIM, bg=PANEL_ALT, anchor="w", justify="left", wraplength=390)
+        body_label.pack(fill="x", pady=(2, 0))
+        self._register_wrap(body_label, self.WRAP_INSET_ROW)
 
     def _primary_button(self, parent, text, command, *, pady=(10, 0)):
         btn = tk.Button(
             parent,
             text=text,
-            font=("Avenir Next", 14, "bold"),
+            font=(_FAMILY, -14, "bold"),
             fg=WHITE,
             bg=ACCENT_DARK,
             activebackground=ACCENT,
@@ -315,7 +388,7 @@ class WiraApp(tk.Tk):
             fg=ACCENT_DARK, bg=PANEL_ALT, anchor="w",
         ).pack(fill="x")
         tk.Label(
-            key_card, text="Start free with an API key", font=("Avenir Next", 16, "bold"),
+            key_card, text="Start free with an API key", font=(_FAMILY, -16, "bold"),
             fg=TEXT, bg=PANEL_ALT, anchor="w",
         ).pack(fill="x", pady=(2, 2))
         tk.Label(
@@ -343,7 +416,7 @@ class WiraApp(tk.Tk):
             fg=ACCENT_DARK, bg=PANEL_ALT, anchor="w",
         ).pack(fill="x")
         tk.Label(
-            cg, text="Use my ChatGPT subscription", font=("Avenir Next", 16, "bold"),
+            cg, text="Use my ChatGPT subscription", font=(_FAMILY, -16, "bold"),
             fg=TEXT, bg=PANEL_ALT, anchor="w",
         ).pack(fill="x", pady=(2, 2))
         tk.Label(
@@ -362,7 +435,7 @@ class WiraApp(tk.Tk):
             fg=TEXT_SOFT, bg=PANEL_ALT, anchor="w",
         ).pack(fill="x")
         tk.Label(
-            self._local_card, text="Run it locally with Ollama", font=("Avenir Next", 16, "bold"),
+            self._local_card, text="Run it locally with Ollama", font=(_FAMILY, -16, "bold"),
             fg=TEXT, bg=PANEL_ALT, anchor="w",
         ).pack(fill="x", pady=(2, 2))
         tk.Label(
@@ -519,7 +592,7 @@ class WiraApp(tk.Tk):
         for p in _providers.all_presets():
             row = tk.Frame(f, bg=PANEL_ALT, padx=14, pady=10)
             row.pack(fill="x", pady=4)
-            tk.Label(row, text=p["label"], font=("Avenir Next", 14, "bold"),
+            tk.Label(row, text=p["label"], font=(_FAMILY, -14, "bold"),
                      fg=TEXT, bg=PANEL_ALT, anchor="w").pack(fill="x")
             tk.Label(row, text=p["tagline"], font=FONT_SMALL, fg=TEXT_DIM,
                      bg=PANEL_ALT, anchor="w", justify="left", wraplength=420).pack(fill="x")
@@ -892,7 +965,7 @@ class WiraApp(tk.Tk):
         f = self._panel()
 
         self._eyebrow(f, "Connected")
-        tk.Label(f, text="✓", font=("Avenir Next", 64), fg=SUCCESS, bg=PANEL_BG).pack(pady=(8, 6))
+        tk.Label(f, text="✓", font=(_FAMILY, -64), fg=SUCCESS, bg=PANEL_BG).pack(pady=(8, 6))
         self._headline(f, "Your agent is ready")
         self._body(f, "Open WhatsApp and send your first message. Wira will answer there.", center=True, pady=(0, 18))
         self._step_row(f, 1, "Try: What's on my calendar today?", "A fast first proof that your agent can help with real work.")
