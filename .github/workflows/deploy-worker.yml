@@ -1,0 +1,83 @@
+name: Deploy Worker
+
+# Auto-deploy the Cloudflare Worker (wira-local-agent -> wira.nibiashara.biz)
+# after CI passes on main. Removes the manual `wrangler login` + `wrangler deploy`
+# step: a merge that changes the site/Worker ships itself.
+#
+# Requires two repo settings (Settings -> Secrets and variables -> Actions):
+#   secret CLOUDFLARE_API_TOKEN  — scoped to "Edit Cloudflare Workers" on the
+#                                  Ni Biashara account (twe@nibiashara.biz).
+#   var    CLOUDFLARE_ACCOUNT_ID — 1fe79674ba6620b83abc46b81a92b356 (not secret).
+# Until the secret exists the job no-ops with a clear notice instead of failing.
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  # Manual re-deploy without a code change.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy wira-local-agent
+    runs-on: ubuntu-latest
+    # Only deploy when the CI run that triggered us actually succeeded. A manual
+    # dispatch has no triggering run, so allow it through.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Guard on deploy credentials
+        id: guard
+        env:
+          T_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$T_TOKEN" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Worker deploy skipped::CLOUDFLARE_API_TOKEN secret is not set. Add a token scoped to 'Edit Cloudflare Workers' to enable auto-deploy."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        if: steps.guard.outputs.ready == 'true'
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install
+        if: steps.guard.outputs.ready == 'true'
+        working-directory: site
+        run: npm ci
+
+      - name: Deploy
+        if: steps.guard.outputs.ready == 'true'
+        working-directory: site
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: "false"
+        run: npx wrangler deploy
+
+      - name: Verify the live Windows route serves the signed installer
+        if: steps.guard.outputs.ready == 'true'
+        run: |
+          # The deploy log is not proof; confirm the live edge actually flipped.
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -I --max-time 25 https://wira.nibiashara.biz/download/windows)
+          loc=$(curl -sS -o /dev/null -w '%{redirect_url}' -I --max-time 25 https://wira.nibiashara.biz/download/windows)
+          echo "windows route: $code -> $loc"
+          if [ "$code" != "302" ] || ! echo "$loc" | grep -q "WiraSetup.exe"; then
+            echo "::error title=Post-deploy check failed::/download/windows did not resolve to a 302 -> WiraSetup.exe"
+            exit 1
+          fi
