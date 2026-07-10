@@ -49,6 +49,27 @@ def _prime_tcl_tk_paths() -> None:
 
 _prime_tcl_tk_paths()
 
+
+def _force_utf8_stdio() -> None:
+    """Make stdout/stderr UTF-8 so third-party libraries can't crash on Windows.
+
+    Windows defaults these streams to the legacy cp1252 code page. Any dependency
+    that writes non-Latin-1 text (emoji, box-drawing glyphs, QR blocks) then
+    raises UnicodeEncodeError. The specific QR handler is fixed at its source, but
+    reconfiguring here is cheap insurance against the whole class of bug.
+    """
+    for name in ("stdout", "stderr"):
+        stream = getattr(sys, name, None)
+        if stream is None:
+            continue
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
+_force_utf8_stdio()
+
 import tkinter as tk
 
 from paths import ENV_FILE, RELEASES_URL, SESSION_DB_PATH, load_env, write_env
@@ -903,21 +924,30 @@ class WiraApp(tk.Tk):
             importlib.reload(_cfg)
 
             from neonize.client import NewClient
-            from neonize.events import ConnectedEv, QREv
+            from neonize.events import ConnectedEv
 
             client = NewClient(_cfg.SESSION_DB_PATH)
 
-            @client.event(QREv)
-            def on_qr(c, event):
-                # Sync client may pass bytes or protobuf with Codes field
-                if isinstance(event, bytes):
-                    qr_str = event.decode("utf-8", errors="replace")
-                elif hasattr(event, "Codes") and event.Codes:
-                    qr_str = list(event.Codes)[0]
+            def on_qr(c, data):
+                # Register through client.qr() — neonize's actual QR API — rather
+                # than @client.event(QREv). The QREv decorator leaves neonize's
+                # DEFAULT low-level handler in place, and that default prints the
+                # code to the terminal with Unicode block glyphs. On Windows the
+                # console is cp1252, so that print raises UnicodeEncodeError inside
+                # the ctypes callback, the callback dies, and the QR never reaches
+                # this GUI — the screen hangs on "Generating QR code..." forever.
+                # (Invisible on macOS, where stdout is UTF-8.) client.qr() replaces
+                # that default outright, so no terminal print happens at all.
+                if isinstance(data, (bytes, bytearray)):
+                    qr_str = bytes(data).decode("utf-8", errors="replace")
+                elif hasattr(data, "Codes") and data.Codes:
+                    qr_str = list(data.Codes)[0]
                 else:
-                    qr_str = str(event)
+                    qr_str = str(data)
                 if qr_str:
                     self.event_queue.put(("qr", qr_str))
+
+            client.qr(on_qr)
 
             @client.event(ConnectedEv)
             def on_connected(c, event):
