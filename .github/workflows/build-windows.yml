@@ -91,12 +91,15 @@ jobs:
           choco install innosetup --version=$env:INNO_SETUP_VERSION -y --no-progress
           iscc wira-installer.iss
 
-      # Authenticode signing via Azure Artifact/Trusted Signing. The signing
-      # account and service principal are wired through repo secrets/vars, but
-      # this stays inert until Microsoft completes Ni Biashara LLC Public Trust
-      # identity validation and a real certificate profile name is stored in
-      # AZURE_TRUSTED_SIGNING_CERT_PROFILE. When that lands, this signs
-      # WiraSetup.exe and the site can drop the SmartScreen unsigned-beta note.
+      # Authenticode signing via Azure Artifact/Trusted Signing. ACTIVE since
+      # 2026-07-10: Ni Biashara LLC Public Trust identity validation completed and
+      # AZURE_TRUSTED_SIGNING_CERT_PROFILE=wira-public-trust is set, so all six
+      # inputs exist and WiraSetup.exe is signed on every build.
+      #
+      # The gate below still tolerates a missing config on ordinary branch builds,
+      # but a release tag now fails hard rather than quietly publishing an
+      # unsigned installer. windows-smoke.yml independently verifies the
+      # signature, and the release asset must be verified before the site serves it.
       - name: Check signing configured
         id: signing
         shell: bash
@@ -114,10 +117,21 @@ jobs:
           if [ -n "$T_TENANT" ] && [ -n "$T_CLIENT" ] && [ -n "$T_SECRET" ] \
              && [ -n "$T_ENDPOINT" ] && [ -n "$T_ACCOUNT" ] && [ -n "$T_PROFILE" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "Signing not fully configured (need all Azure Trusted Signing secrets/vars + completed org validation + cert profile) — shipping unsigned (early beta)."
+            exit 0
           fi
+
+          echo "enabled=false" >> "$GITHUB_OUTPUT"
+
+          # Signing has been live since 2026-07-10. On a release tag, a missing
+          # input means a rotated secret or a deleted cert profile — NOT an early
+          # beta. Silently shipping unsigned there is how an unsigned installer
+          # reaches a buyer on a green build, so fail loudly instead.
+          if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
+            echo "::error title=Signing not configured::Refusing to publish an unsigned installer from a release tag. Check the Azure Trusted Signing secrets/vars on this repo."
+            exit 1
+          fi
+
+          echo "::warning title=Unsigned build::Signing not fully configured — shipping unsigned. This is only acceptable for non-tag builds."
 
       - name: Sign installer (Azure Trusted Signing)
         if: steps.signing.outputs.enabled == 'true'

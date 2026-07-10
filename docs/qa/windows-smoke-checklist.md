@@ -9,12 +9,18 @@ The public site should say Windows is coming soon until this checklist passes.
 
 ## Pre-req
 - A clean Windows account that has never run Wira (so `~/.wira` starts empty).
-- The exact `WiraSetup.exe` from the release under test (record the version/tag).
+- The exact signed `WiraSetup.exe` **from the `Build Windows Installer` workflow
+  run under test** — record its run ID and commit SHA.
+
+  Do not pull it from `releases/latest`. This checklist has to pass *before* we
+  cut a tagged release, and the newest published release still carries an
+  unsigned installer. Testing the release asset would test the wrong binary.
+  Verify the release asset separately, after tagging.
 
 ## Checklist
 
 1. **Download + trust**
-   - [ ] Download the exact `WiraSetup.exe` artifact from the GitHub release under test.
+   - [ ] Download the exact signed `WiraSetup.exe` from the workflow run under test.
    - [ ] Confirm Windows identifies the installer as signed by Ni Biashara LLC.
    - [ ] SmartScreen does not present the unsigned-unknown-publisher path.
    - [ ] Installer completes without admin elevation (it installs per-user, `PrivilegesRequired=lowest`).
@@ -51,5 +57,15 @@ The public site should say Windows is coming soon until this checklist passes.
 - Pass/fail per step, with a screenshot of the welcome screen and the QR screen.
 - File the result next to the other QA notes in `docs/qa/`.
 
-Only after a clean pass: update `STATUS.md`, switch the Worker Windows route
-from coming-soon to download, and add Windows back to the success/email copy.
+Only after a clean pass, in this order:
+
+1. Cut a tagged release so the **signed** `WiraSetup.exe` becomes a release asset.
+2. Verify the published asset is the signed one — `scripts/verify-authenticode.py`
+   against the file downloaded from `releases/latest`, not the workflow artifact.
+   The Worker serves the release, so an unverified release asset is what buyers get.
+3. Update `STATUS.md`.
+4. Switch the Worker Windows route from coming-soon to download, and add Windows
+   back to the success/email copy.
+
+Skipping step 2 is how an unsigned installer reaches a buyer despite a green
+smoke test: the smoke test validates the artifact, the Worker serves the release.
