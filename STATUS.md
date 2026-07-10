@@ -1,6 +1,6 @@
 # Wira Status
 
-Updated: 2026-07-09
+Updated: 2026-07-10
 Mode: BUSINESS
 Canonical repo: `/Users/motwe/Wira`
 Remote: `git@github.com:twe-cloud/wira.git`
@@ -11,67 +11,72 @@ Operating surface (live): `https://wira-local-agent.nibiashara.workers.dev` (Clo
 
 Wira is the productized WhatsApp assistant lane for small businesses.
 
-### 2026-07-09 — Windows signing status correction
+### 2026-07-10 — Windows code signing is LIVE (identity validation completed)
 
-Windows signing is **not fully ready yet**, but the Azure infrastructure has been
-recreated after the previous account deletion. The GitHub workflow is still wired
-for Azure Trusted/Artifact Signing, and the repo has the Azure tenant/client
-secrets plus endpoint/account variables.
+Microsoft completed the Ni Biashara LLC Public Trust identity validation
+(`02ab1180-16dd-4c5d-b667-872c3db74b78`). Everything downstream of it is now done:
 
-- Current Azure subscription: `Azure subscription 1`
+- Public Trust certificate profile `wira-public-trust` created on account
+  `wirawintrustsign`. `provisioningState: Succeeded`, `status: Active`, subject
+  `CN=Ni Biashara llc, O=Ni Biashara llc, L=Dallas, S=Texas, C=US`.
+- Repo var `AZURE_TRUSTED_SIGNING_CERT_PROFILE=wira-public-trust` is set, so all
+  six signing inputs exist and the `build-windows.yml` signing gate is now ON.
+- Run `29093731823` (main, workflow_dispatch) built and **signed** `WiraSetup.exe`.
+  Verified offline from the PE certificate table: chain terminates at `Microsoft
+  Identity Verification Root Certificate Authority 2020`, leaf subject is
+  `Ni Biashara llc`, and an RFC3161 timestamp countersignature is present.
+- Trusted Signing leaf certs are deliberately short-lived (~3 days: notBefore
+  2026-07-10, notAfter 2026-07-13). The RFC3161 countersignature is what keeps
+  already-signed binaries valid after the cert expires. This is expected — do not
+  "fix" it.
+
+**Windows is signed but NOT yet publicly available.** The signed installer exists
+only as a workflow artifact; release `v1.0.7` still carries the old *unsigned*
+`WiraSetup.exe` from 2026-05-31, and the Worker still returns the coming-soon
+`202` on `/download/windows`. Publishing requires, in order:
+
+1. A human pass of `docs/qa/windows-smoke-checklist.md` on a real Windows 11 box
+   (GUI render, brain setup, QR pairing + real reply, restart persistence).
+2. A tagged release so the signed `WiraSetup.exe` becomes a release asset.
+3. Flipping the Worker's Windows route from coming-soon to the release download.
+
+The machine-checkable half of that checklist now runs in CI as
+`.github/workflows/windows-smoke.yml` (signature validity + signer identity +
+timestamp, silent per-user install, install-tree layout, Windows RAM detection,
+uninstall). It cannot cover QR pairing or GUI rendering.
+
+Historical note: `twe-azure-automation` deleted the previous signing account on
+2026-06-28, which invalidated validation `9df16837-...`; request `0392d0e2-...`
+then failed on a malformed website field. Both are dead — only `02ab1180-...`
+is real. The account was recreated in `wira-win-qa-rg-centralus` on 2026-07-09.
+
+Signing infrastructure reference:
+
+- Azure subscription `Azure subscription 1`
   (`dccc9905-e9da-4e3a-94d8-a38834814129`), tenant
-  `bd301f01-e9a9-4654-979c-d78cf067e750`.
-- `Microsoft.CodeSigning` is registered.
-- Azure activity log shows `twe-azure-automation` previously deleted
-  `Microsoft.CodeSigning/codeSigningAccounts/wirawintrustsign` on
-  2026-06-28, including the account-scoped signing role assignments.
-- Recreated Artifact Signing account `wirawintrustsign` in
-  `wira-win-qa-rg-centralus` on 2026-07-09. Provisioning state: `Succeeded`;
-  account URI: `https://cus.codesigning.azure.net/`; SKU: `Basic`.
-- Reattached account-scoped roles:
-  - `Artifact Signing Identity Verifier` to `twe@nibiashara.biz`
+  `bd301f01-e9a9-4654-979c-d78cf067e750`. `Microsoft.CodeSigning` registered.
+- Artifact Signing account `wirawintrustsign` in `wira-win-qa-rg-centralus`;
+  account URI `https://cus.codesigning.azure.net/`; SKU `Basic`.
+- Certificate profile `wira-public-trust` (PublicTrust), bound to identity
+  validation `02ab1180-16dd-4c5d-b667-872c3db74b78`.
+- Account-scoped roles (account scope covers child certificate profiles):
+  - `Artifact Signing Identity Verifier` → `twe@nibiashara.biz`
     (`7ddee820-5520-463b-b34a-8b20324d5038`).
-  - `Artifact Signing Certificate Profile Signer` to `twe-azure-automation`
-    (`f80a454f-62e6-41eb-bba2-65d0bd107407`).
-  - `Artifact Signing Identity Verifier` to `twe-azure-automation` as a CLI
-    read/probe fallback, though Microsoft still gates validation management to
-    the portal.
-- Updated GitHub repo secrets on `twe-cloud/wira` so the signing workflow uses
-  `twe-azure-automation`, the same service principal that now has signer access.
-- Confirmed GitHub repo vars:
-  `AZURE_TRUSTED_SIGNING_ACCOUNT=wirawintrustsign` and
-  `AZURE_TRUSTED_SIGNING_ENDPOINT=https://cus.codesigning.azure.net/`.
-- GitHub repo var `AZURE_TRUSTED_SIGNING_CERT_PROFILE` is still unset, so the
-  signing gate correctly remains off.
+  - `Artifact Signing Certificate Profile Signer` → `twe-azure-automation`
+    (`f80a454f-62e6-41eb-bba2-65d0bd107407`), the SP CI signs with.
+- Repo secrets on `twe-cloud/wira`: `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`,
+  `AZURE_CLIENT_SECRET` (all → `twe-azure-automation`).
+- Repo vars: `AZURE_TRUSTED_SIGNING_ACCOUNT=wirawintrustsign`,
+  `AZURE_TRUSTED_SIGNING_ENDPOINT=https://cus.codesigning.azure.net/`,
+  `AZURE_TRUSTED_SIGNING_CERT_PROFILE=wira-public-trust`.
 
-Current blocker: Ni Biashara LLC Organization identity validation is submitted
-but not completed. The corrected Public Trust validation request is
-`02ab1180-16dd-4c5d-b667-872c3db74b78`; the Microsoft vetting gateway now shows
-status `InProgress` with OneVet request
-`fb03644a-fb45-42bd-afe2-a5e3b5616a5f`. The earlier request
-`0392d0e2-0046-4505-8a23-5f7aa4e09fc8` failed, in part because its website
-field was malformed. The still older validation ID
-`9df16837-7f54-4e41-b4da-05a7a9a06476` no longer works after account deletion;
-Azure rejects it with `System could not find identity validation id`.
-
-The Azure portal currently opens the correct account as `twe@nibiashara.biz`,
-but the `Identity validations` blade renders an empty content area because the
-portal's own vetting API calls are blocked by browser/CORS behavior. A direct
-authenticated portal-gateway submission was used to create the corrected request.
-
-The certificate profile is not created yet. Azure still rejects
-`az artifact-signing certificate-profile create ... --identity-validation-id
-02ab1180-16dd-4c5d-b667-872c3db74b78` with `System could not find identity
-validation id`, which is consistent with Microsoft docs requiring the identity
-validation process to finish before the ID can be selected for certificate
-profile creation. Current Microsoft docs quote a public identity validation
-processing time of 1 to 20 business days, with email or portal action required
-if additional verification or documents are requested.
-
-After validation reaches `Completed`: create Public Trust certificate profile
-`wira-public-trust`, set repo var `AZURE_TRUSTED_SIGNING_CERT_PROFILE`, dispatch
-a Windows build, then smoke-check the signed installer before removing the public
-unsigned-beta warning.
+Note for future sessions: the portal's `Identity validations` blade renders an
+empty content area (its own vetting API calls are blocked by browser/CORS
+behavior), and `az artifact-signing` exposes no identity-validation subcommand.
+The reliable probe for whether a validation has completed is simply to attempt
+`az artifact-signing certificate-profile create --identity-validation-id <id>`:
+it fails with `System could not find identity validation id` while the
+validation is still in progress, and succeeds once Microsoft completes it.
 
 ### 2026-06-10 — security siege fixes + signing-ready build
 

@@ -15,6 +15,14 @@ fully automated from the repo.
 - ✅ Site typecheck + production build; Worker `wrangler deploy --dry-run`.
 - ✅ Secret scan over source **and built artifacts** (`scripts/check-no-secrets.sh`).
 - ✅ Supply chain: CI actions SHA-pinned; neonize native DLL verified by SHA-256.
+- ✅ Windows installer signature, silent per-user install, install-tree layout,
+  Windows RAM detection, and uninstall (`.github/workflows/windows-smoke.yml`,
+  runs automatically after every `Build Windows Installer`).
+
+Run all of the above locally in one shot with `./scripts/qa.sh`. It prints a
+scoreboard, exits non-zero on any failure, and lists the human-only checks below
+rather than skipping them silently. Add `--exe <path>` to also verify a signed
+installer from a build box that has no `signtool` (`scripts/verify-authenticode.py`).
 
 ## Launch-blocking — needs a human / hardware
 
@@ -38,12 +46,18 @@ Verify a fresh install defaults to: owner-lock **on**, confirmation **on**
 (so Hermes runs without `--yolo`), and the **balanced** (not operator) permission preset.
 
 ### 4. Code signing
-- Windows: finish Azure Trusted Signing org validation → Public Trust cert profile →
-  set `AZURE_TRUSTED_SIGNING_CERT_PROFILE` (SP + secrets already provisioned), then
-  pass the Windows smoke checklist before replacing the public coming-soon message
-  with a real download.
-- Mac: Developer ID sign + notarize the DMG (cert + notarytool key are on the build Mac;
-  see `agent/scripts/rebuild-and-resubmit.sh`).
+- ✅ **Windows: done (2026-07-10).** Org identity validation completed, Public Trust
+  cert profile `wira-public-trust` created, `AZURE_TRUSTED_SIGNING_CERT_PROFILE` set.
+  `build-windows.yml` now produces a signed, timestamped `WiraSetup.exe`, and
+  `windows-smoke.yml` verifies the signature on every build.
+- ✅ **Mac: done.** The shipped `Wira.dmg` is notarized — `spctl` reports
+  `accepted / Notarized Developer ID / Developer ID Application: Ni Biashara llc
+  (Y5XRB2L24U)`. Re-verify after any rebuild: `spctl -a -t open --context
+  context:primary-signature -vv Wira.dmg`.
+- ⛔ Still blocking the public Windows download: the signed installer lives only as a
+  workflow artifact. Release `v1.0.7` still carries the **unsigned** `WiraSetup.exe`
+  from 2026-05-31. Pass the Windows smoke checklist, cut a tagged release, then flip
+  the Worker route.
 
 ## Strongly recommended before scaling
 
