@@ -256,6 +256,35 @@ class PlatformSupportTests(unittest.TestCase):
         self.assertIn("best on stronger machines", assessment.local_option_blurb)
         self.assertIn("Windows", assessment.download_label)
 
+    def test_installed_ram_rounds_not_floors(self):
+        """A 16 GB Windows PC must not be demoted to the limited local-AI tier.
+
+        Windows' GlobalMemoryStatusEx excludes firmware-reserved memory. The byte
+        count below was measured on a real Windows 11 box with 16 GB installed:
+        15.946 GiB. Flooring gave 15, which put the most common Windows RAM
+        configuration on the wrong side of the `ram >= 16` threshold.
+        """
+        import platform_support
+
+        measured_16gb_windows = 17_121_890_304
+        self.assertEqual(platform_support._bytes_to_gb(measured_16gb_windows), 16)
+
+        # A true 16 GiB figure (what macOS sysconf reports) still reads as 16.
+        self.assertEqual(platform_support._bytes_to_gb(16 * 1024 ** 3), 16)
+        # Smaller machines are not silently promoted.
+        self.assertEqual(platform_support._bytes_to_gb(8 * 1024 ** 3), 8)
+        self.assertEqual(platform_support._bytes_to_gb(int(11.9 * 1024 ** 3)), 12)
+        # Unknown stays unknown rather than becoming "small".
+        self.assertEqual(platform_support._bytes_to_gb(0), 0)
+
+        # End to end: the rounded value crosses the local-AI threshold.
+        assessment = platform_support.assess(
+            machine="AMD64",
+            system="Windows",
+            ram_gb=platform_support._bytes_to_gb(measured_16gb_windows),
+        )
+        self.assertEqual(assessment.local_ai_tier, "recommended")
+
     def test_unknown_platform_is_marked_limited(self):
         import platform_support
 

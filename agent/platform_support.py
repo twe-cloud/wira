@@ -28,6 +28,24 @@ class PlatformAssessment:
 
 
 
+def _bytes_to_gb(total_bytes: int) -> int:
+    """Convert a byte count to the machine's *installed* RAM in GB.
+
+    Round, never floor. An OS does not report all installed memory as usable:
+    Windows' GlobalMemoryStatusEx excludes firmware/hardware-reserved memory, so
+    a 16 GiB machine reports ~15.95 GiB (measured: 17,121,890,304 bytes on a
+    Windows 11 box with 16 GB installed). Flooring turned that into 15 GB and
+    dropped every 16 GB Windows PC — the single most common configuration —
+    into the "limited" local-AI tier.
+
+    Physical RAM is installed in whole (usually power-of-two) gigabytes, so the
+    nearest integer is the honest answer.
+    """
+    if total_bytes <= 0:
+        return 0
+    return round(total_bytes / (1024 ** 3))
+
+
 def system_ram_gb() -> int:
     """Best-effort total physical RAM in GB on macOS, Windows, and Linux.
 
@@ -41,7 +59,7 @@ def system_ram_gb() -> int:
         page_size = os.sysconf("SC_PAGE_SIZE")
         phys_pages = os.sysconf("SC_PHYS_PAGES")
         if page_size > 0 and phys_pages > 0:
-            return int((page_size * phys_pages) / (1024 ** 3))
+            return _bytes_to_gb(page_size * phys_pages)
     except (AttributeError, ValueError, OSError):
         pass
 
@@ -66,7 +84,7 @@ def system_ram_gb() -> int:
             stat = _MemoryStatusEx()
             stat.dwLength = ctypes.sizeof(_MemoryStatusEx)
             if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):
-                return int(stat.ullTotalPhys / (1024 ** 3))
+                return _bytes_to_gb(stat.ullTotalPhys)
     except Exception:
         pass
 
