@@ -9,6 +9,34 @@ Operating surface (live): `https://wira-local-agent.nibiashara.workers.dev` (Clo
 
 ## Current state
 
+### 2026-07-12 — release-readiness reconciliation
+
+The canonical source and live read-only probes confirm that Windows is already
+public, correcting the stale July 10 paragraph below: `/download/windows` returns
+`302` to the `v1.0.7` `WiraSetup.exe`, whose release asset was replaced on
+2026-07-10. The downloaded release asset independently verifies as signed by Ni
+Biashara and timestamped. The public `Wira.dmg` is Gatekeeper-accepted, notarized,
+Developer ID signed, and has a stapled ticket.
+
+Current machine-verifiable release state:
+
+- Agent tests: 77 pass locally on macOS. Azure reproduced 75 non-GUI passes; its
+  two GUI import checks require the optional Tk package absent from that host.
+- Site/Worker: 27 tests pass on Azure; typecheck, production build, Wrangler
+  deploy dry-run, and npm audit (zero advisories) pass.
+- Live routes: root `200`; Mac and Windows download routes `302` to their expected
+  release filenames.
+- Source truth repaired: public docs, onboarding, `llms.txt`, structured data,
+  and the QA runner now describe both signed platforms instead of stale
+  Windows-coming-soon copy.
+- No push, deploy, release, or provider mutation occurred in this pass.
+
+Remaining gates before scaling public traffic: rerun the human Windows 11 flow
+(GUI at 125/150%, brain setup, QR pairing, real reply, restart persistence), run
+the equivalent clean Apple Silicon first-run flow, verify Stripe test-mode
+checkout/webhook/email, rotate the live Stripe key to restricted scope, and add
+checkout rate limiting plus failure alerting.
+
 ### 2026-07-12 — public-rollout dependency security repair
 
 The site toolchain was upgraded after a clean Azure reproduction of nine npm
@@ -40,7 +68,8 @@ Microsoft completed the Ni Biashara LLC Public Trust identity validation
   already-signed binaries valid after the cert expires. This is expected — do not
   "fix" it.
 
-**Windows is signed but NOT yet publicly available.** The signed installer exists
+**Historical pre-launch state, superseded by the release-readiness section above.**
+At this point Windows was signed but not yet publicly available. The installer existed
 only as a workflow artifact; release `v1.0.7` still carries the old *unsigned*
 `WiraSetup.exe` from 2026-05-31, and the Worker still returns the coming-soon
 `202` on `/download/windows`. Publishing requires, in order:

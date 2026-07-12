@@ -51,9 +51,9 @@ echo "== agent =="
 # CI wraps this in xvfb-run; do the same here when a display is unavailable.
 AGENT_PY="${WIRA_QA_PYTHON:-python3}"
 if [ "$(uname)" != "Darwin" ] && [ -z "${DISPLAY:-}" ] && command -v xvfb-run >/dev/null 2>&1; then
-  run "agent unit suite (76 tests)" env -C agent xvfb-run -a "$AGENT_PY" -m unittest
+  run "agent unit suite (77 tests)" env -C agent xvfb-run -a "$AGENT_PY" -m unittest
 else
-  run "agent unit suite (76 tests)" env -C agent "$AGENT_PY" -m unittest
+  run "agent unit suite (77 tests)" env -C agent "$AGENT_PY" -m unittest
 fi
 
 echo "== site + worker =="
@@ -104,9 +104,15 @@ else
   BASE="${WIRA_QA_BASE:-https://wira.nibiashara.biz}"
   probe "site root serves"                  "$BASE/"                 200
   probe "mac download redirects to release" "$BASE/download/mac"     302
-  # 202 = the deliberate coming-soon hold. Flip this to 302 in the same commit
-  # that makes the Windows download public, so the suite guards the new state.
-  probe "windows download still gated"      "$BASE/download/windows" 202
+  probe "windows download redirects to release" "$BASE/download/windows" 302
+
+  windows_location=$(curl -sS -o /dev/null -w '%{redirect_url}' -I --max-time 20 \
+    "$BASE/download/windows" 2>/dev/null)
+  if [[ "$windows_location" == *"WiraSetup.exe"* ]]; then
+    record PASS "windows redirect targets installer" "$windows_location"
+  else
+    record FAIL "windows redirect targets installer" "got ${windows_location:-no location}"
+  fi
 fi
 
 echo
@@ -116,8 +122,8 @@ echo "======================================"
 
 cat <<'HUMAN'
 
-Not covered here — these need a human on real hardware, and the public Windows
-download must stay gated until they pass (docs/qa/windows-smoke-checklist.md):
+Not covered here — these need a human on real hardware before broad paid traffic
+(docs/qa/windows-smoke-checklist.md):
 
   - Windows: GUI renders at 125%/150% scaling; pick-a-brain flow completes.
   - Windows: QR pairing against a real phone; Wira replies to a WhatsApp message.
