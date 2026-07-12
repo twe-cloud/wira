@@ -37,6 +37,29 @@ the equivalent clean Apple Silicon first-run flow, verify Stripe test-mode
 checkout/webhook/email, rotate the live Stripe key to restricted scope, and add
 checkout rate limiting plus failure alerting.
 
+### 2026-07-12 — private Azure Windows 11 hardware lane
+
+A temporary Windows 11 Pro QA machine now exists as `wira-win-qa-01` in the
+approved BUSINESS subscription. It is a Trusted Launch `Standard_D2as_v7`
+machine with 8 GB RAM, private IP `10.43.10.4`, no public IP, and an NSG that
+allows RDP only from `nb-control-01`. Its East US 2 VNet is privately peered to
+the existing BUSINESS control network. Auto-shutdown is enabled for 06:00 UTC
+(1:00 AM Dallas time). A temporary outbound NAT was used only to land the exact
+v1.0.7 installer, then deleted so it cannot accrue idle NAT cost.
+
+Machine-side verification confirms Windows 11 Pro build 26100, exact installer
+SHA-256 `181a29e8e181ad79fd2bf8e9cc0e7185a8c5bdb2067c64254d54610751984aef`,
+valid Ni Biashara Authenticode identity, and an RFC3161 timestamp. The installer
+is staged at `C:\WiraQA\WiraSetup.exe`. A private RDP tunnel from the Mac to the
+VM is active on `127.0.0.1:13389`; the generated RDP profile contains no secret,
+and the password remains in the macOS Keychain.
+
+The remaining install/GUI checks require the first interactive `wiraqa` login:
+install in that user's per-user context, inspect GUI scaling at 125/150%, choose
+a brain, pair the real WhatsApp QR, verify a reply, and restart. System-context
+installation was deliberately not accepted as buyer evidence because Inno's
+per-user path resolves against the service account instead of the buyer profile.
+
 ### 2026-07-12 — public-rollout dependency security repair
 
 The site toolchain was upgraded after a clean Azure reproduction of nine npm
