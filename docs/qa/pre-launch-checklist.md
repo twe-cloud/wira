@@ -54,10 +54,11 @@ Verify a fresh install defaults to: owner-lock **on**, confirmation **on**
   `accepted / Notarized Developer ID / Developer ID Application: Ni Biashara llc
   (Y5XRB2L24U)`. Re-verify after any rebuild: `spctl -a -t open --context
   context:primary-signature -vv Wira.dmg`.
-- ⛔ Still blocking the public Windows download: the signed installer lives only as a
-  workflow artifact. Release `v1.0.7` still carries the **unsigned** `WiraSetup.exe`
-  from 2026-05-31. Pass the Windows smoke checklist, cut a tagged release, then flip
-  the Worker route.
+- ✅ **Windows release asset is live.** The signed installer replaced the old
+  `v1.0.7` asset on 2026-07-10 and `/download/windows` redirects to it. On
+  2026-07-12 the downloaded release asset independently passed signer and
+  timestamp verification. Keep the real-hardware checklist as a required
+  regression gate before broad paid traffic and after material GUI/pairing changes.
 
 ## Strongly recommended before scaling
 
@@ -65,10 +66,11 @@ Verify a fresh install defaults to: owner-lock **on**, confirmation **on**
   failures. Add Logpush or Sentry + an alert. A silent webhook failure loses customers.
 - **Rate-limit `/api/checkout`**: it mints Stripe sessions unauthenticated. Add a
   Cloudflare rate-limiting rule (dashboard) or a Workers rate-limit binding.
-- **Pin the download**: the Worker proxies the *latest* GitHub release, so a bad release
-  auto-propagates to buyers. Serve a known-good pinned tag and bump deliberately.
+- **Pin the download**: the Worker resolves the *latest* GitHub release before falling
+  back to `v1.0.7`, so a bad release can auto-propagate to buyers. Serve a known-good
+  pinned tag first and bump deliberately.
 - **Synthetic uptime**: `GET /` (200), `OPTIONS /api/checkout` (204), `HEAD /download/mac`
-  (302), and `HEAD /download/windows` (202 until launch) every few minutes → alert.
+  (302), and `HEAD /download/windows` (302 to `WiraSetup.exe`) every few minutes → alert.
   Plus a weekly test-mode checkout canary.
 - **Privacy/Terms**: have counsel review (templates note this). Copy now matches the
   local-first architecture (no server-stored conversations).

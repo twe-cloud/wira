@@ -41,8 +41,8 @@ export default function Success() {
             <div>
               <div className="font-medium">Download &amp; open {PRODUCT.name}</div>
               <p className="mt-1 text-sm text-ink-muted">
-                Drag it to Applications and open it. The setup screen appears
-                automatically.
+                Choose the installer for your computer, install Wira, and open
+                it. The setup screen appears automatically.
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 <a href={publicDownloadUrl} className="btn-primary inline-flex text-sm">

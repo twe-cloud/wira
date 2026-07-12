@@ -126,12 +126,17 @@ function Step1Welcome({
       <div className="mt-6 rounded-xl border border-border bg-canvas p-4">
         <div className="font-medium">First, download the app</div>
         <p className="mt-1 text-sm text-ink-muted">
-          Wira's public download is Mac-first right now. Download it, drag it to
-          Applications, and open it before pairing WhatsApp.
+          Choose the signed installer for your Mac or Windows PC, install Wira,
+          and open it before pairing WhatsApp.
         </p>
-        <a href={PRODUCT.downloadMacUrl} className="btn-primary mt-3 inline-flex">
-          Download {PRODUCT.name} for Mac
-        </a>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <a href={PRODUCT.downloadMacUrl} className="btn-primary inline-flex">
+            Download for Mac
+          </a>
+          <a href={PRODUCT.downloadWindowsUrl} className="btn-primary inline-flex">
+            Download for Windows
+          </a>
+        </div>
         <p className="mt-2 text-xs text-ink-muted">{PRODUCT.systemRequirement}</p>
       </div>
       <div className="mt-6 rounded-xl border border-border bg-canvas p-4 text-sm text-ink-muted">

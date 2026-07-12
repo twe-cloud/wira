@@ -39,9 +39,9 @@ then grows with the user into a deeper Hermes workflow.
 
 ## Support shape right now
 
-- **Mac download is live now.** Apple Silicon is the strongest fit for the fully private local-AI lane.
+- **Mac and Windows downloads are live now.** Both installers are signed; Apple Silicon remains the strongest fit for the fully private local-AI lane.
 - **Intel Macs should start cloud-first.** The app/runtime path is still useful there, but the cloud or ChatGPT lane is the smoother default.
-- **Windows is the next hardening lane.** The repo already contains a Windows build workflow and installer path; public release plumbing still needs more smoke testing.
+- **Windows broad-rollout QA remains a hardware gate.** Automation verifies signature, installation, layout, RAM detection, and uninstall; a clean Windows 11 pass must still cover GUI scaling, QR pairing, a real reply, and restart persistence before paid traffic scales.
 
 ## Quick Start
 
@@ -202,17 +202,14 @@ To update a Local install, download the latest Mac build from:
 https://github.com/twe-cloud/wira/releases/latest
 ```
 
-Windows builds may appear in releases before they are buyer-safe. Azure code
-signing went live on 2026-07-10, but that alone does not make a release asset
-safe to hand a customer: `releases/latest` can still hold an older *unsigned*
-`WiraSetup.exe`. Do not point customers at a Windows build until all of these
-are true:
+The public Windows route went live after the signed release asset was checked.
+For every future Windows release, keep these gates intact:
 
 1. The Windows smoke checklist has passed on a real machine.
 2. A tagged release has published the signed installer.
 3. That published asset has been verified with `scripts/verify-authenticode.py`
    (verify the file downloaded from the release, not the workflow artifact).
-4. The Worker's `/download/windows` route has been flipped off coming-soon.
+4. The Worker's `/download/windows` route resolves to that verified asset.
 
 If a WhatsApp linked-device session expires, reconnect from the Wira window and scan a new
 QR code. The buyer controls their machine, accounts, tools, model/provider cost, and

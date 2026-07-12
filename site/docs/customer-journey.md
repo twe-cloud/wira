@@ -9,7 +9,7 @@ Wira is not a WhatsApp auto-reply bot.
 Wira is a branded path into real agentic work:
 - a local agent that lives on the buyer's computer
 - reached from the buyer's phone over WhatsApp
-- powered by the buyer's choice of brain: the fastest free API path first, the ChatGPT subscription they already have, or a fully private local model on their own Mac
+- powered by the buyer's choice of brain: the fastest free API path first, the ChatGPT subscription they already have, or a fully private local model when their computer is a good fit
 - designed so the buyer can grow naturally into deeper local-agent access over time
 
 ## Product Split
@@ -25,8 +25,8 @@ In both lanes, the primary user is the **owner/operator**, not outside contacts.
 
 1. Buy Wira Local (or start the free path).
 2. Land on `/success` with clear next steps.
-3. Download the macOS app and open it.
-4. Pick a brain: fastest free API path first, ChatGPT if they already use it, or a fully private local model on the Mac.
+3. Download the signed macOS or Windows app and open it.
+4. Pick a brain: fastest free API path first, ChatGPT if they already use it, or a fully private local model when the computer is a good fit.
 5. Scan WhatsApp QR to pair.
 6. Confirm owner lock and safe local permissions.
 7. Send first real task from WhatsApp.

@@ -10,7 +10,7 @@ From the landing page, click **Start with Wira**. Stripe will take you through c
 
 After payment you're redirected to **/success** with the short path in front of you:
 
-1. **Download & open Wira** — install the Mac app and launch it. Windows support is being hardened; for now the public download path is Mac-first.
+1. **Download & open Wira** — choose the signed Mac or Windows installer and launch it.
 2. **Pick how it should think** — start free, connect ChatGPT, or keep the brain private when your machine is a good fit.
 3. **Scan the WhatsApp QR** — pair your phone through Linked Devices.
 

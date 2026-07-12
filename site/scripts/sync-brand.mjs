@@ -68,7 +68,7 @@ html = html.replace(
     "@type": "SoftwareApplication",
     name,
     applicationCategory: "BusinessApplication",
-    operatingSystem: "macOS",
+    operatingSystem: ["macOS", "Windows 10", "Windows 11"],
     url: siteUrl,
     image: `${siteUrl}/wira-logo.png`,
     description,

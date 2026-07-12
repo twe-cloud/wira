@@ -378,10 +378,14 @@ class SiteCopyTests(unittest.TestCase):
             root / "site" / "src" / "pages" / "Onboarding.tsx",
             root / "site" / "src" / "lib" / "brand.ts",
             root / "site" / "docs" / "quickstart.md",
+            root / "site" / "docs" / "customer-journey.md",
+            root / "site" / "public" / "llms.txt",
         ]
         joined = "\n".join(path.read_text(encoding="utf-8") for path in paths)
         self.assertNotIn("Apple Silicon Mac only", joined)
         self.assertNotIn("Mac only", joined)
+        self.assertNotIn("Windows is coming", joined)
+        self.assertNotIn("Mac-first", joined)
         self.assertIn("machine is a good fit", joined)
         # Both signed platforms must be offered — Wira is not a Mac-only product.
         self.assertIn("Download for Mac", joined)

@@ -96,7 +96,7 @@ export function softwareApplicationSchema() {
     "@type": "SoftwareApplication",
     name: PRODUCT.name,
     applicationCategory: "BusinessApplication",
-    operatingSystem: "macOS",
+    operatingSystem: ["macOS", "Windows 10", "Windows 11"],
     url: PRODUCT.siteUrl,
     image: `${PRODUCT.siteUrl}/wira-logo.png`,
     description: PRODUCT.description,
@@ -145,4 +145,3 @@ export function websiteSchema() {
     },
   };
 }
-

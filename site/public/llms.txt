@@ -12,13 +12,13 @@ Product summary:
 - Name: Wira
 - Company: Ni Biashara LLC
 - Category: WhatsApp AI agent, personal AI agent, local agent
-- Current public platform: macOS on Apple Silicon
-- Windows status: coming soon after code signing and install smoke testing
+- Current public platforms: macOS on Apple Silicon and Windows 10 or 11 (64-bit)
+- Both platform installers are signed and available from the Wira download routes
 - Price: $49 one-time Wira Local purchase
 - Main value: Wira gives a nontechnical owner a familiar WhatsApp thread that becomes the front door to a real personal agent on their own computer.
 
 How it works:
-1. Download and open Wira on a Mac.
+1. Download and open Wira on a supported Mac or Windows PC.
 2. Choose a brain: a free provider tier, an existing ChatGPT subscription, or a private local model when the machine fits.
 3. Pair WhatsApp through Linked Devices.
 4. Send the first message to Wira from WhatsApp.
@@ -28,4 +28,3 @@ Important positioning:
 - Wira is not a public auto-reply bot by default.
 - Wira Local is owner-controlled and lives on the buyer's machine.
 - The product starts simple and can grow into deeper local agent work later.
-
