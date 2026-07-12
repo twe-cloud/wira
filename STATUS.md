@@ -1,6 +1,6 @@
 # Wira Status
 
-Updated: 2026-07-10
+Updated: 2026-07-12
 Mode: BUSINESS
 Canonical repo: `/Users/motwe/Wira`
 Remote: `git@github.com:twe-cloud/wira.git`
@@ -8,6 +8,16 @@ Public product page: `https://nibiashara.biz/products/wira/`
 Operating surface (live): `https://wira-local-agent.nibiashara.workers.dev` (Cloudflare Workers)
 
 ## Current state
+
+### 2026-07-12 — public-rollout dependency security repair
+
+The site toolchain was upgraded after a clean Azure reproduction of nine npm
+advisories, including a critical Vitest UI file-read/execution advisory and
+high-severity Vite/Wrangler transitive issues. `vite`, `vitest`, `wrangler`, and
+`@cloudflare/workers-types` are now on compatible patched releases. The repaired
+lockfile audits at zero known vulnerabilities; the existing 27 Worker tests,
+TypeScript check, and production build pass. This is a local canonical-source
+repair only until separately approved for push/deploy.
 
 Wira is the productized WhatsApp assistant lane for small businesses.
 
