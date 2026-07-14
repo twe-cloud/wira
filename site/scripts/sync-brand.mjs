@@ -67,7 +67,7 @@ html = html.replace(
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     name,
-    applicationCategory: "BusinessApplication",
+    applicationCategory: "ProductivityApplication",
     operatingSystem: ["macOS", "Windows 10", "Windows 11"],
     url: siteUrl,
     image: `${siteUrl}/wira-logo.png`,
